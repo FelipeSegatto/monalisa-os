@@ -1,0 +1,231 @@
+.catalog {
+  position: relative;
+  padding: 72px 40px 80px;
+  transition: background-color 0.7s ease, color 0.7s ease;
+  font-family: 'Riccione Serial', Georgia, serif;
+}
+
+.texture {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-size: 450px 450px;
+  mix-blend-mode: multiply;
+  opacity: 0.32;
+}
+
+.inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 56px;
+}
+
+.carouselColumn {
+  flex: 1 1 420px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.ringViewport {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  perspective: 1100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  user-select: none;
+  touch-action: pan-y;
+}
+
+.ringViewport:active {
+  cursor: grabbing;
+}
+
+.ring {
+  position: relative;
+  width: 240px;
+  height: 300px;
+  transform-style: preserve-3d;
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  border: 3px solid #161515;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  backface-visibility: visible;
+  -webkit-backface-visibility: visible;
+}
+
+.faceImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.arrow {
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-size: 20px;
+  width: 44px;
+  height: 44px;
+  border: 2px solid #161515;
+  border-radius: 6px;
+  background: #fefefe;
+  color: #161515;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.arrow:hover {
+  background: #161515;
+  color: #fefefe;
+}
+
+.dots {
+  display: flex;
+  gap: 10px;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #161515;
+  padding: 0;
+  cursor: pointer;
+}
+
+.infoColumn {
+  flex: 1 1 340px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.counter {
+  font-size: 18px;
+  letter-spacing: 0.08em;
+}
+
+.titleWrap {
+  position: relative;
+}
+
+.filterDefs {
+  position: absolute;
+}
+
+.titleHighlight {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-weight: 700;
+  font-size: 76px;
+  line-height: 1;
+  text-wrap: balance;
+  filter: url(#roughHL);
+  transform: translate(1px, 1px);
+}
+
+.title {
+  position: relative;
+  margin: 0;
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-weight: 700;
+  font-size: 76px;
+  line-height: 1;
+  color: #161515;
+  text-wrap: balance;
+}
+
+.description {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.3;
+  max-width: 460px;
+  text-wrap: pretty;
+}
+
+.priceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.price {
+  font-size: 34px;
+  letter-spacing: 0.06em;
+}
+
+.bookButton {
+  position: relative;
+  z-index: 2;
+  font-size: 22px;
+  padding: 10px 20px;
+  border: 2px solid #161515;
+  border-radius: 6px;
+  background: #161515;
+  color: #eeeeee;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.bookButton:hover {
+  background: #fefefe;
+  color: #161515;
+}
+
+.ctaGroup {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.learnMore {
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-size: 22px;
+  padding: 10px 20px;
+  border: 2px solid #161515;
+  border-radius: 6px;
+  background: #fefefe;
+  color: #161515;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.learnMore:hover {
+  background: #f5b800;
+}

@@ -1,0 +1,88 @@
+.devices {
+  background: #e8b82a;
+  border-top: 2px solid #161515;
+  padding: clamp(48px, 6vw, 88px) clamp(16px, 3vw, 40px) clamp(40px, 5vw, 64px);
+}
+
+.grid {
+  max-width: 1320px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(24px, 4vw, 56px) clamp(12px, 2.4vw, 40px);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  cursor: pointer;
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: 260px;
+  height: clamp(220px, 26vw, 320px);
+  perspective: 900px;
+}
+
+.turnLayer {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 2.4s cubic-bezier(0.45, 0, 0.2, 1);
+}
+
+.hotLayer {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.swayLayer {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.front {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: translateZ(0px);
+  backface-visibility: hidden;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+}
+
+.name {
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(22px, 2.2vw, 32px);
+  line-height: 1.1;
+  color: #161515;
+  text-align: center;
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  margin-top: clamp(28px, 4vw, 48px);
+}
+
+.dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #161515;
+  padding: 0;
+  cursor: pointer;
+}

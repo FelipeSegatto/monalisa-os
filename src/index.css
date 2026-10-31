@@ -1,0 +1,57 @@
+@import './assets/fonts/fonts.css';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  background: #eeeeee;
+}
+
+body {
+  font-family: 'Riccione Serial', Georgia, serif;
+  color: #161515;
+  overflow-x: hidden;
+}
+
+a {
+  color: #161515;
+}
+
+.page {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+img {
+  max-width: 100%;
+}
+
+@keyframes cardSway {
+  0% {
+    transform: rotateY(-18deg) rotateX(3deg);
+  }
+  100% {
+    transform: rotateY(18deg) rotateX(-2deg);
+  }
+}
+
+@keyframes cardSwayHot {
+  0%,
+  100% {
+    transform: rotateY(0deg) rotateX(0deg);
+  }
+  25% {
+    transform: rotateY(16deg) rotateX(-3deg);
+  }
+  75% {
+    transform: rotateY(-16deg) rotateX(3deg);
+  }
+}

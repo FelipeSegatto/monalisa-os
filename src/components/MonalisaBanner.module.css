@@ -1,0 +1,17 @@
+.banner {
+  background: #fefefe;
+  border-top: 2px solid #161515;
+  padding: clamp(24px, 4vw, 56px) clamp(16px, 3vw, 40px);
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  justify-content: center;
+  gap: 0.6em;
+  font-family: 'Delikaaat', cursive;
+  font-size: min(120px, 4.5vw);
+  line-height: 1.1;
+  color: #161515;
+  white-space: nowrap;
+}

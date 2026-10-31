@@ -1,0 +1,78 @@
+.header {
+  position: relative;
+  height: 75vh;
+  min-height: 420px;
+  overflow: hidden;
+  background: #eeeeee;
+}
+
+.logo {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 314px;
+  will-change: transform;
+}
+
+.logoImg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.marquee {
+  position: relative;
+  border-top: 2px solid #161515;
+  border-bottom: 2px solid #161515;
+  padding: 12px 0 14px;
+  overflow: hidden;
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  will-change: transform;
+}
+
+.trackGroup {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-right: 14px;
+}
+
+.word {
+  font-family: 'Delikaaat', cursive;
+  font-size: 75px;
+  line-height: 1.1;
+  white-space: nowrap;
+  color: #161515;
+}
+
+.illustrationWrap {
+  width: 95px;
+  display: flex;
+  justify-content: center;
+  flex: none;
+}
+
+.illustrationBodybuilder {
+  height: 115px;
+  width: auto;
+  display: block;
+}
+
+.illustrationStar {
+  height: 70px;
+  width: auto;
+  display: block;
+  transform: rotate(-8deg) translateY(-6px);
+}
+
+.illustrationPinup {
+  height: 120px;
+  width: auto;
+  display: block;
+  transform: translateX(9px);
+}

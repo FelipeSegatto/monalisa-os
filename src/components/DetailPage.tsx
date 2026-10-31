@@ -1,0 +1,68 @@
+import type { CatalogItem } from '../data/catalog';
+import { soften } from '../data/catalog';
+import { CollageTitle } from './CollageTitle';
+import { IllustrationRing } from './IllustrationRing';
+import paperTexture from '../assets/images/textura-papel.png';
+import styles from './DetailPage.module.css';
+
+interface DetailPageProps {
+  item: CatalogItem;
+  onClose: () => void;
+  /** True when this page was just revealed by the paper tear (longer entrance delay). */
+  withTear?: boolean;
+}
+
+export function DetailPage({ item, onClose, withTear = true }: DetailPageProps) {
+  return (
+    <div className={styles.overlay} style={{ background: item.detailBg ?? soften(item.bg), color: item.ink }}>
+      <div className={styles.texture} style={{ backgroundImage: `url(${paperTexture})` }} />
+
+      <div className={styles.container}>
+        <button type="button" className={styles.back} onClick={onClose} aria-label="Voltar">
+          ←
+        </button>
+
+        {item.illusWide ? (
+          <div className={styles.photoColumnWide}>
+            <img src={item.detailPhoto} alt={item.name} className={styles.photoWide} />
+            <IllustrationRing illus={item.illus} illusAR={item.illusAR} className={styles.illusBelowPhoto} />
+          </div>
+        ) : (
+          <div className={styles.photoColumn}>
+            <img src={item.detailPhoto} alt={item.name} className={styles.photo} />
+          </div>
+        )}
+
+        <div className={styles.textColumn}>
+          <div className={styles.titleRow}>
+            <CollageTitle text={item.name} titleDiv={item.titleDiv} baseDelay={withTear ? 0.95 : 0.25} />
+            <a href="#agendar" className={styles.bookButton}>
+              BOOK NOW
+            </a>
+          </div>
+
+          <div className={`${styles.block} ${styles.blockIntro}`}>
+            <h2 className={styles.intro}>{item.intro}</h2>
+            <p className={styles.body}>{item.body}</p>
+          </div>
+
+          <div className={styles.block}>
+            <h3 className={styles.bulletsTitle}>O que esperar:</h3>
+            <ul className={styles.bullets}>
+              {item.bullets.map((bullet) => (
+                <li key={bullet} className={styles.bullet}>
+                  <span aria-hidden="true">·</span>
+                  <span>{bullet}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {!item.illusWide && (
+          <IllustrationRing illus={item.illus} illusAR={item.illusAR} className={styles.illusSide} />
+        )}
+      </div>
+    </div>
+  );
+}

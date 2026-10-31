@@ -1,0 +1,172 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  overflow-y: auto;
+  font-family: 'Riccione Serial', Georgia, serif;
+}
+
+.texture {
+  position: fixed;
+  inset: 0;
+  background-size: 450px 450px;
+  mix-blend-mode: multiply;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.container {
+  position: relative;
+  max-width: 1320px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px clamp(16px, 3vw, 40px);
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: clamp(14px, 2.6vw, 36px);
+}
+
+.back {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  align-self: flex-start;
+  border: 2px solid #161515;
+  border-radius: 6px;
+  background: #fefefe;
+  font-size: 24px;
+  line-height: 1;
+  box-shadow: 0 2px 0 #161515;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.back:hover {
+  background: #f5b800;
+}
+
+.photoColumn {
+  flex: 0 1 300px;
+  width: 300px;
+  min-width: 160px;
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.photoColumnWide {
+  flex: 0 1 300px;
+  width: 300px;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.photoWide {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: calc(100vh - 200px);
+  object-fit: contain;
+}
+
+.illusBelowPhoto {
+  width: 100%;
+  flex: none;
+}
+
+.textColumn {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  container-type: inline-size;
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 28px 36px;
+}
+
+.bookButton {
+  flex: none;
+  font-size: 24px;
+  padding: 12px 24px;
+  border: 2px solid #161515;
+  border-radius: 4px;
+  background: #161515;
+  color: #eeeeee;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.bookButton:hover {
+  background: #fefefe;
+  color: #161515;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.blockIntro {
+  max-width: 600px;
+}
+
+.intro {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.body {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.bulletsTitle {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.bullets {
+  list-style: none;
+  margin: 0;
+  padding-left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.bullet {
+  display: flex;
+  gap: 10px;
+}
+
+.illusSide,
+.illusBelowPhoto {
+  flex: none;
+}
+
+.illusSide {
+  height: min(300px, 42vh, 30vw);
+  align-self: center;
+}

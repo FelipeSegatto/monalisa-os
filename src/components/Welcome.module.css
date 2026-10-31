@@ -1,0 +1,33 @@
+.welcome {
+  background: #fefefe;
+  border-bottom: 2px solid #161515;
+  padding: clamp(32px, 5vw, 64px) clamp(24px, 4vw, 56px) clamp(40px, 6vw, 80px);
+  color: #161515;
+  scroll-margin-top: 90px;
+}
+
+.title {
+  margin: 0;
+  font-family: 'Ruda', sans-serif;
+  font-weight: 900;
+  font-size: clamp(44px, 8vw, 112px);
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  margin: 0 0 clamp(24px, 3vw, 40px);
+  font-family: 'Markazi Text', serif;
+  font-weight: 700;
+  font-size: clamp(36px, 6.4vw, 92px);
+  line-height: 1.05;
+}
+
+.description {
+  margin: 0;
+  max-width: 920px;
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-size: 20px;
+  line-height: 1.3;
+  text-wrap: pretty;
+}

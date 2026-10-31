@@ -1,0 +1,98 @@
+.nav {
+  position: fixed;
+  top: 16px;
+  left: 20px;
+  right: 20px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.link {
+  pointer-events: auto;
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-size: 18px;
+  padding: 8px 18px;
+  border: 2px solid #161515;
+  border-radius: 6px;
+  background: #eeeeee;
+  color: #161515;
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.linkAbout:hover {
+  background: #f5b800;
+}
+
+.linkCatalogue:hover {
+  background: #8650d8;
+  color: #fefefe;
+}
+
+.linkBookNow {
+  background: #161515;
+  color: #eeeeee;
+}
+
+.linkBookNow:hover {
+  background: #ff3b4e;
+  color: #161515;
+}
+
+.heartButton {
+  pointer-events: auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fefefe;
+  border: 2px solid #161515;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.heartIcon {
+  height: 22px;
+  width: auto;
+  display: block;
+}
+
+.signIn {
+  pointer-events: auto;
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-size: 18px;
+  padding: 8px 16px;
+  border: 2px solid #161515;
+  border-radius: 6px;
+  background: #161515;
+  color: #eeeeee;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.signIn:hover {
+  background: #ff3d7f;
+  color: #161515;
+}

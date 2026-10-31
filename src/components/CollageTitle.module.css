@@ -1,0 +1,42 @@
+.title {
+  display: flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  align-items: center;
+  padding: 0.18em 0.2em;
+  margin: 0;
+}
+
+.letter {
+  display: inline-block;
+  margin-right: 0.1em;
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-weight: 700;
+  line-height: 1;
+  paint-order: stroke fill;
+  transform: translateY(var(--y)) rotate(var(--r));
+  animation: collageIn 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+}
+
+.space {
+  display: inline-block;
+  width: 0.32em;
+  flex: none;
+  color: transparent;
+  overflow: hidden;
+}
+
+@keyframes collageIn {
+  0% {
+    opacity: 0;
+    transform: translateY(calc(var(--y) - 0.35em)) rotate(calc(var(--r) + 18deg)) scale(1.7);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(var(--y)) rotate(var(--r)) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(var(--y)) rotate(var(--r)) scale(1);
+  }
+}

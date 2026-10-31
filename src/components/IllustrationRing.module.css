@@ -1,0 +1,41 @@
+.ring {
+  position: relative;
+}
+
+.silhouette {
+  position: absolute;
+  left: 10%;
+  top: 10%;
+  width: 80%;
+  height: 80%;
+  transform-origin: 50% 50%;
+  animation: ladyRing 2.4s linear infinite;
+}
+
+.illusImg {
+  position: absolute;
+  left: 10%;
+  top: 10%;
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  z-index: 5;
+  display: block;
+  pointer-events: none;
+}
+
+@keyframes ladyRing {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    z-index: 4;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.32);
+    opacity: 0;
+    z-index: 0;
+  }
+}
