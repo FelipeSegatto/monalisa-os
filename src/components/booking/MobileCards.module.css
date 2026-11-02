@@ -15,7 +15,7 @@
 .cartCardHeader[class] { display: grid !important; grid-template-columns: minmax(0, 1fr) 28px; row-gap: 6px !important; }
 .cartCardHeader > span { grid-column: 1; grid-row: 1; font-size: 13px !important; white-space: normal !important; overflow: visible !important; }
 .cartCardHeader > button { grid-column: 2; grid-row: 1; min-width: 28px; min-height: 28px; }
-.cartCardHeader > img { right: -7px !important; bottom: calc(100% - 2px) !important; width: 7cqw !important; }
+.cartCardHeader > img { right: -3cqw !important; bottom: calc(100% - 2.7cqw) !important; width: 7cqw !important; }
 .quantity[class] { grid-column: 1 / -1; grid-row: 2; gap: 6px !important; row-gap: 3px !important; }
 .quantity button { width: 30px !important; height: 30px !important; font-size: 17px !important; }
 .quantity > span { font-size: 12px !important; white-space: nowrap; }

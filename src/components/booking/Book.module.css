@@ -423,3 +423,12 @@
 .mobileSummaryHint, .mobileSummaryTotal { display: none; }
 .mobileFace .mobileSummaryHint { display: block; flex: none; margin-top: 6px; font-size: 11px; }
 .mobileFace .mobileSummaryTotal { display: flex; flex: none; justify-content: space-between; gap: 8px; margin-top: 8px; font-size: 15px; }
+
+.mobileBack::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(270deg, rgba(22,21,21,.5), transparent 75%);
+  opacity: .85;
+  pointer-events: none;
+}
