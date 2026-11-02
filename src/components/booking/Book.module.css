@@ -372,7 +372,7 @@
 .mobileShadeIn { animation: mobileShadeIn 1.35s cubic-bezier(.85,0,.15,1) both; }
 .mobileFast .mobileFace { transition-duration: .65s; }
 .mobileFast .mobileBackOff { animation-duration: .65s; }
-.mobileSpiral { position: absolute; top: 0; left: -3.18cqw; width: 10.53cqw; height: 99.2%; z-index: 55; pointer-events: none; }
+.mobileSpiral { filter: drop-shadow(2px 1px 1.5px rgba(22,21,21,.25)); position: absolute; top: 0; left: -3.18cqw; width: 10.53cqw; height: 99.2%; z-index: 55; pointer-events: none; }
 .mobileNavigation { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; font-size: 16px; text-align: center; }
 .mobileNavigation .navBtn { min-width: 44px; min-height: 44px; }
 .mobileNavigation .navBtn:disabled { opacity: .4; cursor: default; }

@@ -289,7 +289,7 @@ function CartCard({ j, line, item, isFirst, mobile, density, incQty, decQty, del
           <button type="button" aria-label="mais" onClick={() => incQty(j)} style={smallBtnStyle}>
             +
           </button>
-          <span data-cart-total style={{ fontWeight: 700, fontSize: d.priceFont, minWidth: hasQuote ? 0 : d.priceMinWidth, textAlign: 'right', ...(hasQuote ? { flexBasis: '100%', whiteSpace: 'normal', lineHeight: 1.2 } : {}) }}>{totalLabel}</span>
+          <span data-cart-total style={{ fontWeight: 700, fontSize: d.priceFont, minWidth: hasQuote ? 0 : d.priceMinWidth, textAlign: hasQuote ? 'left' : 'right', ...(hasQuote ? { flexBasis: '100%', whiteSpace: 'normal', lineHeight: 1.2 } : {}) }}>{totalLabel}</span>
         </div>
         <button
           type="button"

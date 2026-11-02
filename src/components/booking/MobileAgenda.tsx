@@ -16,7 +16,7 @@ import styles from './Book.module.css';
 const LABELS = ['Capa', 'algo a mais?', 'carrinho', 'calendário', 'horário', 'seus dados', 'resumo'];
 const COLORS = ['#F2B21B', '#2F1CFF', '#2F1CFF', '#F7F2E7', '#F7F2E7', '#F6B900', '#FF5179'];
 const TURN_LOCK_MS = 1370;
-type Motion = { page: number; direction: 1 | -1 } | null;
+type Motion = { page: number; fromStep: number; direction: 1 | -1 } | null;
 
 export function MobileAgenda({ bookRef }: { bookRef: RefObject<HTMLDivElement | null> }) {
   const { bkS, bkPhase, bkStamped, bkGo, bkJump, ok1, ok2 } = useBooking();
@@ -38,7 +38,7 @@ export function MobileAgenda({ bookRef }: { bookRef: RefObject<HTMLDivElement | 
   if (observedStep !== step) {
     const direction = step > observedStep ? 1 : -1;
     setObservedStep(step);
-    setMotion(bkPhase ? null : { page: direction === 1 ? observedStep : step, direction });
+    setMotion(bkPhase ? null : { page: direction === 1 ? observedStep : step, fromStep: observedStep, direction });
   }
   if (bkS === 0 && side !== 0) setSide(0);
 
@@ -53,6 +53,7 @@ export function MobileAgenda({ bookRef }: { bookRef: RefObject<HTMLDivElement | 
     if (!bkPhase) wrapper.current?.closest('[data-booking-overlay]')?.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [step, bkPhase]);
 
+  const leftColorStep = closing ? (closingFrom ?? step) : (motion?.fromStep ?? shownStep);
   const canContinue = step === 2 ? ok1 : step === 4 ? ok2 : true;
   const navigate = (direction: 1 | -1) => {
     if (bkPhase || locked.current || (direction === 1 && (!canContinue || step === 6))) return;
@@ -84,7 +85,7 @@ export function MobileAgenda({ bookRef }: { bookRef: RefObject<HTMLDivElement | 
               <div key={p} className={`${styles.mobileFace} ${turning ? direction === 1 ? styles.mobileLifting : styles.mobileDropping : ''}`} data-mobile-page={p} data-turned={turned} data-turning={turning} inert={p !== shownStep || !!bkPhase} style={{ transform: `rotateY(${turned ? -180 : 0}deg) translateZ(${p % 2 === 0 ? 1 : 0}px)`, zIndex: turning ? 50 : 20 - p, visibility: visible ? 'visible' : 'hidden', pointerEvents: p === shownStep && !bkPhase ? 'auto' : 'none' }}>
                 {page}
                 {underTurn && !closing && <div key={`shade-${motion.page}-${direction}`} className={`${styles.mobilePageShade} ${direction === 1 ? styles.mobileShadeOut : styles.mobileShadeIn}`} aria-hidden="true" />}
-                <div key={`back-${motion?.page}-${direction}`} aria-hidden="true" className={`${styles.mobileBack} ${closing && p < (closingFrom ?? step) ? styles.mobileBackOff : turning ? direction === 1 ? styles.mobileBackOn : styles.mobileBackOff : ''}`} style={{ backgroundColor: COLORS[shownStep], backgroundImage: `url("${grain}")`, opacity: turned ? 1 : 0 }} />
+                <div key={`back-${motion?.page}-${direction}`} aria-hidden="true" className={`${styles.mobileBack} ${closing && p < (closingFrom ?? step) ? styles.mobileBackOff : turning ? direction === 1 ? styles.mobileBackOn : styles.mobileBackOff : ''}`} style={{ backgroundColor: COLORS[leftColorStep], backgroundImage: `url("${grain}")`, opacity: turned ? 1 : 0 }} />
                 {bkStamped && p === 6 && <div className={styles.mobileStamp}><BookingStamp /></div>}
               </div>
             );
