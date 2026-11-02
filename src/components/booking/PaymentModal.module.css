@@ -216,3 +216,17 @@
   mix-blend-mode: multiply;
   opacity: 0.45;
 }
+
+@media (max-width: 759px) {
+  .overlay { padding: 12px; align-items: flex-start; overscroll-behavior: contain; }
+  .card { grid-template-columns: minmax(0, 1fr); margin: auto 0; box-shadow: 4px 4px 0 #161515; }
+  .left { padding: 20px 16px; min-width: 0; }
+  .right { border-left: 0; border-top: 2px solid #161515; padding: 20px 16px; min-width: 0; overflow-wrap: anywhere; }
+  .title { font-size: 26px; }
+  .tab { min-height: 48px; font-size: 14px; padding: 10px 5px; }
+  .input { font-size: 16px; padding: 12px 8px; min-width: 0; }
+  .pixInput { min-width: 0; }
+  .qr { width: 148px; height: 148px; margin: 0 auto; }
+  .cta { font-size: 18px; }
+  .field { min-width: 0; }
+}

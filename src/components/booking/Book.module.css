@@ -325,3 +325,81 @@
   overflow: hidden;
   pointer-events: none;
 }
+
+/* Mobile: the right page stays whole and turned paper remains left of the spine. */
+.mobileStage { position: relative; }
+.mobileBook {
+  position: relative;
+  width: 180%;
+  margin-left: 5%;
+  aspect-ratio: 1262 / 838;
+  container-type: inline-size;
+  perspective: 1600px;
+  perspective-origin: 25% 50%;
+  transition: transform .85s cubic-bezier(.55,0,.8,.25);
+}
+.mobileFace {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  transform-origin: 0 50%;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+  transition: transform 1.35s cubic-bezier(.85,0,.15,1);
+}
+.mobileFace > .pageLeft, .mobileFace > .pageRight { overflow: hidden; }
+.mobileFace .navRow, .mobileFace .navRowEnd { display: none; }
+.mobileFace[data-mobile-page='6'] .navRow { display: flex; }
+.mobileFace[data-mobile-page='6'] .navRow .navBtn { display: none; }
+.mobileBack {
+  position: absolute;
+  inset: 0;
+  z-index: 26;
+  transform: rotateY(180deg) translateZ(.1px);
+  background-size: 256px;
+  background-blend-mode: soft-light;
+  pointer-events: none;
+  overflow: hidden;
+}
+.mobileBackIllustration { position: absolute; right: 2cqw; bottom: 5cqw; width: 19cqw; max-height: 55%; object-fit: contain; }
+.mobileBackOn { animation: mobileBackOn 1.35s linear both; }
+.mobileBackOff { animation: mobileBackOff 1.35s linear both; }
+.mobileLifting { animation: mobilePageLift 1.35s cubic-bezier(.85,0,.15,1) both; }
+.mobileDropping { animation: mobilePageDrop 1.35s cubic-bezier(.85,0,.15,1) both; }
+.mobilePageShade { position: absolute; inset: 0; z-index: 24; background: linear-gradient(90deg,rgba(22,21,21,.5),transparent 75%); pointer-events: none; }
+.mobileShadeOut { animation: mobileShadeOut 1.35s cubic-bezier(.85,0,.15,1) both; }
+.mobileShadeIn { animation: mobileShadeIn 1.35s cubic-bezier(.85,0,.15,1) both; }
+.mobileFast .mobileFace { transition-duration: .46s; }
+.mobileFast .mobileBack { opacity: 0 !important; animation: none; }
+.mobileSpiral { position: absolute; top: 0; left: -3.18cqw; width: 10.53cqw; height: 99.2%; z-index: 55; pointer-events: none; }
+.mobileNavigation { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; font-size: 16px; text-align: center; }
+.mobileNavigation .navBtn { min-width: 44px; min-height: 44px; }
+.mobileNavigation .navBtn:disabled { opacity: .4; cursor: default; }
+.mobileNavSpacer { width: 44px; flex: none; }
+.mobileStamp { position: absolute; top: 33.2cqw; left: 25cqw; width: 76cqw; height: 30cqw; transform: translate(-50%,-50%) rotate(-8deg) scale(.6); z-index: 25; pointer-events: none; mix-blend-mode: multiply; }
+@keyframes mobileBackOn { 0%,49.9% { opacity: 0; } 50%,100% { opacity: 1; } }
+@keyframes mobileBackOff { 0%,49.9% { opacity: 1; } 50%,100% { opacity: 0; } }
+@keyframes mobilePageLift { from { filter: brightness(1); } to { filter: brightness(.5); } }
+@keyframes mobilePageDrop { from { filter: brightness(.5); } to { filter: brightness(1); } }
+@keyframes mobileShadeOut { from { opacity: .85; } to { opacity: 0; } }
+@keyframes mobileShadeIn { from { opacity: 0; } to { opacity: .85; } }
+@media (max-width: 759px) {
+  .overlay { overflow-x: hidden; overflow-y: auto; }
+  .topbar { padding: 12px; gap: 12px; }
+  .backButton { font-size: 16px; padding: 8px 12px; }
+  .brand { font-size: 28px; }
+  .wrapper { padding: 24px 14px 40px 34px; overflow-x: visible; min-height: calc(100svh - 68px); }
+  .final { position: relative; min-height: calc(100svh - 120px); padding: 30px 0; overflow: visible; }
+  .mobileStage:has(+ .final) { position: absolute; left: 34px; right: 14px; }
+  .finalTitle { font-size: clamp(36px,10vw,68px) !important; }
+  .finalGreeting { font-size: 23px; }
+  .finalMessage { font-size: 16px; }
+  .finalActions { flex-direction: column; align-items: stretch; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobileFace, .mobileBook { transition-duration: .01ms; }
+  .mobileLifting, .mobileDropping, .mobilePageShade { animation-duration: .01ms; }
+  .mobileBackOn, .mobileBackOff { animation: none; }
+}

@@ -15,3 +15,13 @@ export function useBooking(): BookingFlow {
   if (!ctx) throw new Error('useBooking must be used within a BookingProvider');
   return ctx;
 }
+
+/** Adapt page navigation on narrow screens while sharing the same booking state. */
+export function BookingPageNavigation({ children, onNavigate, onJump }: {
+  children: ReactNode;
+  onNavigate: BookingFlow['bkGo'];
+  onJump: BookingFlow['bkJump'];
+}) {
+  const flow = useBooking();
+  return <BookingContext.Provider value={{ ...flow, bkGo: onNavigate, bkJump: onJump }}>{children}</BookingContext.Provider>;
+}
