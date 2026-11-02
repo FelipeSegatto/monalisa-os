@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode, MouseEventHandler } from 'react';
-import paperTexture from '../../assets/images/textura-papel.png';
+import paperTexture from '../../assets/images/booking-paper-grain.svg';
 import styles from './Book.module.css';
 
 interface PageShellProps {
@@ -13,7 +13,7 @@ interface PageShellProps {
   style?: CSSProperties;
 }
 
-export function PageShell({ side, bg, color, textureOpacity = 0.45, spine, children, onClick, style }: PageShellProps) {
+export function PageShell({ side, bg, color, textureOpacity = 0.58, spine, children, onClick, style }: PageShellProps) {
   const spineClass =
     (spine ?? side) === 'right'
       ? styles.spineRight
@@ -34,7 +34,7 @@ export function PageShell({ side, bg, color, textureOpacity = 0.45, spine, child
       <div
         aria-hidden="true"
         className={styles.pageTexture}
-        style={{ backgroundImage: `url(${paperTexture})`, opacity: textureOpacity }}
+        style={{ backgroundImage: `url("${paperTexture}")`, opacity: textureOpacity }}
       />
     </div>
   );

@@ -151,9 +151,9 @@
   inset: 0;
   z-index: 20;
   pointer-events: none;
-  background-size: 450px 450px;
-  mix-blend-mode: multiply;
-  opacity: 0.45;
+  background-size: 256px 256px;
+  mix-blend-mode: soft-light;
+  opacity: 0.58;
 }
 
 .coverTexture {
