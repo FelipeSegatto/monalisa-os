@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode, MouseEventHandler } from 'react';
-import paperTexture from '../../assets/images/booking-paper-grain.svg';
+// Keep grain rasterized: SVG filters and blend modes can flash during iOS 3D repaints.
+import paperTexture from '../../assets/images/booking-paper-grain-flat.png';
 import styles from './Book.module.css';
 
 interface PageShellProps {
@@ -26,7 +27,7 @@ export function PageShell({ side, bg, color, spine, children, onClick, style, cl
   return (
     <div
       className={`${side === 'right' ? styles.pageRight : styles.pageLeft} ${className ?? ''}`}
-      style={{ backgroundColor: bg, backgroundImage: `url("${paperTexture}")`, backgroundSize: '256px 256px', backgroundBlendMode: 'soft-light', color, ...style }}
+      style={{ backgroundColor: bg, backgroundImage: `url("${paperTexture}")`, backgroundSize: '256px 256px', color, ...style }}
       onClick={onClick}
     >
       {children}

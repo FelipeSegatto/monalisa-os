@@ -10,7 +10,7 @@ import { UserInfoPage } from './UserInfoPage';
 import { SummaryPage } from './SummaryPage';
 import { BookingStamp } from './BookingStamp';
 import spiral from '../../assets/images/bk-spiral-closed.png';
-import grain from '../../assets/images/booking-paper-grain.svg';
+import grain from '../../assets/images/booking-paper-grain-flat.png';
 import styles from './Book.module.css';
 
 const LABELS = ['Capa', 'algo a mais?', 'carrinho', 'calendário', 'horário', 'seus dados', 'resumo'];

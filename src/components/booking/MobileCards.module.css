@@ -21,7 +21,7 @@
 .quantity > span { font-size: 12px !important; white-space: nowrap; }
 .quantity > span:last-child { margin-left: auto; }
 .cartCard > div:last-child { padding: 5px 2px 2px !important; }
-.cartCard input { min-height: 28px; font-size: 12px !important; padding: 4px 8px !important; }
+.cartCard input { min-height: 28px; font-size: 16px !important; padding: 4px 8px !important; }
 .subtotal { position: relative; display: flex; justify-content: space-between; gap: 12px; margin-top: auto; padding-top: 5px; font-size: 14px; }
 
 .areaBadges { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 3px; width: 100%; min-width: 0; }

@@ -6,7 +6,7 @@ import styles from './Book.module.css';
 const fieldLabelStyle = { display: 'flex', flexDirection: 'column', gap: '.4cqw', fontSize: 'max(12px, 1.5cqw)' } as const;
 const fieldInputStyle = {
   fontFamily: "'Riccione Serial', Georgia, serif",
-  fontSize: 'max(15px, 2cqw)',
+  fontSize: 'max(16px, 2cqw)',
   padding: '.6cqw 0',
   border: 0,
   borderBottom: '2px solid #161515',
@@ -42,6 +42,7 @@ export function UserInfoPage() {
             value={name}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
             placeholder="como podemos te chamar?"
+            className={styles.customerInput}
             style={fieldInputStyle}
           />
         </label>
@@ -52,6 +53,7 @@ export function UserInfoPage() {
             value={phone}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
             placeholder="(11) 90000-0000"
+            className={styles.customerInput}
             style={fieldInputStyle}
           />
         </label>
@@ -62,6 +64,7 @@ export function UserInfoPage() {
             value={email}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
             placeholder="voce@email.com"
+            className={styles.customerInput}
             style={fieldInputStyle}
           />
         </label>
@@ -72,6 +75,7 @@ export function UserInfoPage() {
             value={note}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setNote(e.target.value)}
             placeholder="alergias, preferências…"
+            className={styles.customerInput}
             style={fieldInputStyle}
           />
         </label>

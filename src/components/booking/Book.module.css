@@ -359,7 +359,6 @@
   z-index: 26;
   transform: rotateY(180deg) translateZ(.1px);
   background-size: 256px;
-  background-blend-mode: soft-light;
   pointer-events: none;
   overflow: hidden;
 }
@@ -438,3 +437,7 @@
 .returningBook { animation: returningBook .7s cubic-bezier(.2,.7,.3,1) both; }
 @keyframes returningBook { from { transform: translateY(-110vh) rotate(-14deg); } to { transform: none; } }
 @media (prefers-reduced-motion: reduce) { .returningBook { animation: none; } }
+
+.customerInput { appearance: none; -webkit-appearance: none; border-radius: 0; box-shadow: none; min-width: 0; caret-color: #161515; }
+.customerInput:autofill { background-color: #f6b900; color: #161515; }
+.customerInput:-webkit-autofill { -webkit-text-fill-color: #161515; -webkit-box-shadow: 0 0 0 1000px #f6b900 inset; }
