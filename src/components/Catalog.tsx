@@ -92,7 +92,7 @@ export function Catalog() {
     const dy = e.clientY - (dragStartY.current ?? e.clientY);
     if (Math.hypot(dx, dy) > 8) moved.current = true;
     if (Math.abs(dx) > Math.abs(dy)) {
-      const rotation = dx * (touchGesture.current ? .85 : DRAG_FACTOR);
+      const rotation = dx * (touchGesture.current ? .7 : DRAG_FACTOR);
       setDrag(touchGesture.current ? Math.max(-60, Math.min(60, rotation)) : rotation);
     }
   };
@@ -108,7 +108,7 @@ export function Catalog() {
     if (dragStartX.current === null) return;
     const dx = e.clientX - dragStartX.current;
     const dy = e.clientY - (dragStartY.current ?? e.clientY);
-    const horizontal = moved.current && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > (touchGesture.current ? 10 : 12);
+    const horizontal = moved.current && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > (touchGesture.current ? 14 : 12);
     if (horizontal) {
       const steps = touchGesture.current ? (dx < 0 ? 1 : -1) : -Math.round((dx * DRAG_FACTOR) / (360 / N)) || (dx < 0 ? 1 : -1);
       setStep((s) => s + steps);
