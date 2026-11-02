@@ -4,6 +4,7 @@ import styles from './Book.module.css';
 
 interface PageShellProps {
   side: 'left' | 'right';
+  className?: string;
   bg: string;
   color?: string;
   textureOpacity?: number;
@@ -13,7 +14,7 @@ interface PageShellProps {
   style?: CSSProperties;
 }
 
-export function PageShell({ side, bg, color, textureOpacity = 0.58, spine, children, onClick, style }: PageShellProps) {
+export function PageShell({ side, bg, color, textureOpacity = 0.58, spine, children, onClick, style, className }: PageShellProps) {
   const spineClass =
     (spine ?? side) === 'right'
       ? styles.spineRight
@@ -25,7 +26,7 @@ export function PageShell({ side, bg, color, textureOpacity = 0.58, spine, child
 
   return (
     <div
-      className={side === 'right' ? styles.pageRight : styles.pageLeft}
+      className={`${side === 'right' ? styles.pageRight : styles.pageLeft} ${className ?? ''}`}
       style={{ background: bg, color, ...style }}
       onClick={onClick}
     >

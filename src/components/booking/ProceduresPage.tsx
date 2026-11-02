@@ -1,3 +1,6 @@
+import { useMobileBooking } from '../../hooks/useMobileBooking';
+import { CardPager } from './CardPager';
+import mobileStyles from './MobileCards.module.css';
 import { useState } from 'react';
 import type { CSSProperties, ChangeEvent } from 'react';
 import { CATALOG_ITEMS } from '../../data/catalog';
@@ -106,12 +109,17 @@ const CARD_DENSITY: Record<Density, CardDensity> = {
 export function ProceduresPage() {
   const { cart, incQty, decQty, delLine, addArea, removeArea, bkGo } = useBooking();
 
+  const isMobile = useMobileBooking();
+  const [requestedPage, setRequestedPage] = useState(0);
+  const currentPage = Math.min(requestedPage, Math.max(0, cart.length - 1));
+  const rows = cart.map((line, j) => ({ line, j }));
+  const visibleRows = isMobile ? rows.slice(currentPage, currentPage + 1) : rows;
   const subtotal = cart.reduce((a, c) => a + lineBreakdown(CATALOG_ITEMS[c.i], c).amount, 0);
-  const density = densityFor(cart.length);
+  const density = isMobile ? 'normal' : densityFor(cart.length);
   const spacing = LIST_SPACING[density];
 
   return (
-    <PageShell side="left" bg="#2F1CFF" color="#FEFEFE">
+    <PageShell side="left" bg="#2F1CFF" color="#FEFEFE" className={isMobile ? mobileStyles.cartPage : undefined}>
       <div
         style={{
           position: 'relative',
@@ -124,13 +132,14 @@ export function ProceduresPage() {
           paintOrder: 'stroke fill',
         }}
       >
-        Procedimentos
+        {isMobile ? 'Carrinho' : 'Procedimentos'}
       </div>
       <span style={{ position: 'relative', marginTop: '2.6cqw', fontSize: 'max(12px, 1.6cqw)', opacity: 0.85 }}>
-        confira o que você escolheu — dá para mudar as sessões ou remover
+        {isMobile ? 'confira as áreas e a quantidade de sessões' : 'confira o que você escolheu — dá para mudar as sessões ou remover'}
       </span>
 
       <div
+        className={isMobile ? mobileStyles.cartList : undefined}
         style={{
           position: 'relative',
           marginTop: spacing.marginTop,
@@ -140,13 +149,14 @@ export function ProceduresPage() {
           gap: spacing.gap,
         }}
       >
-        {cart.map((line, j) => (
+        {visibleRows.map(({ line, j }) => (
           <CartCard
-            key={j}
+            key={line.i}
             j={j}
             line={line}
             item={CATALOG_ITEMS[line.i]}
-            isFirst={j === 0}
+            isFirst={isMobile || j === 0}
+            mobile={isMobile}
             density={density}
             incQty={incQty}
             decQty={decQty}
@@ -158,10 +168,13 @@ export function ProceduresPage() {
 
         {cart.length === 0 && (
           <div style={{ fontSize: 'max(13px, 1.9cqw)', lineHeight: 1.3, border: '2px dashed #FEFEFE', padding: '2cqw' }}>
-            nenhum procedimento ainda. escolha ao lado →
+            {isMobile ? 'Seu carrinho está vazio. Volte para escolher um procedimento.' : 'nenhum procedimento ainda. escolha ao lado →'}
           </div>
         )}
       </div>
+
+      {isMobile && <CardPager label="Carrinho" page={currentPage} pageSize={1} total={cart.length} onChange={setRequestedPage} />}
+      {isMobile && <p className={mobileStyles.subtotal}>subtotal <strong>{brl(subtotal)}</strong></p>}
 
       <div className={styles.navRow}>
         <button type="button" aria-label="Fechar agenda" className={styles.navBtn} onClick={() => bkGo(-1)}>
@@ -180,6 +193,7 @@ interface CartCardProps {
   line: CartLine;
   item: CatalogItem;
   isFirst: boolean;
+  mobile?: boolean;
   density: Density;
   incQty: (j: number) => void;
   decQty: (j: number) => void;
@@ -188,7 +202,7 @@ interface CartCardProps {
   removeArea: (j: number, area: string) => void;
 }
 
-function CartCard({ j, line, item, isFirst, density, incQty, decQty, delLine, addArea, removeArea }: CartCardProps) {
+function CartCard({ j, line, item, isFirst, mobile, density, incQty, decQty, delLine, addArea, removeArea }: CartCardProps) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
 
@@ -221,6 +235,8 @@ function CartCard({ j, line, item, isFirst, density, incQty, decQty, delLine, ad
 
   return (
     <div
+      className={mobile ? mobileStyles.cartCard : undefined}
+      data-cart-procedure={item.name}
       style={{
         position: 'relative',
         display: 'flex',
@@ -233,7 +249,7 @@ function CartCard({ j, line, item, isFirst, density, incQty, decQty, delLine, ad
         transform: `rotate(${j % 2 ? 0.5 : -0.5}deg)`,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '.5cqw' }}>
+      <div className={mobile ? mobileStyles.cartCardHeader : undefined} style={{ display: 'flex', alignItems: 'center', gap: '.5cqw' }}>
         {isFirst && (
           <img
             src={bkSitting}
@@ -262,7 +278,7 @@ function CartCard({ j, line, item, isFirst, density, incQty, decQty, delLine, ad
         >
           {item.name}
         </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: d.clusterGap, flex: 'none' }}>
+        <div className={mobile ? mobileStyles.quantity : undefined} style={{ display: 'flex', alignItems: 'center', gap: d.clusterGap, flex: 'none' }}>
           <button type="button" aria-label="menos" onClick={() => decQty(j)} style={smallBtnStyle}>
             −
           </button>
@@ -294,6 +310,7 @@ function CartCard({ j, line, item, isFirst, density, incQty, decQty, delLine, ad
           paddingTop: d.row2PaddingTop,
         }}
       >
+        <div className={mobile ? mobileStyles.selectedAreas : undefined} tabIndex={mobile ? 0 : undefined} role={mobile ? 'group' : undefined} aria-label={mobile ? 'Áreas selecionadas; deslize para ver todas' : undefined} style={mobile ? undefined : { display: 'contents' }}>
         {line.a.map((ar) => (
           <button
             key={ar}
@@ -314,6 +331,7 @@ function CartCard({ j, line, item, isFirst, density, incQty, decQty, delLine, ad
             {ar} ×
           </button>
         ))}
+        </div>
 
         {available.length > 0 && (
           <div style={{ position: 'relative', flex: '1 1 160px', minWidth: 140 }}>

@@ -28,6 +28,7 @@ export function SummaryPage() {
       </div>
 
       <div
+        data-booking-summary
         style={{
           position: 'relative',
           marginTop: '3cqw',
@@ -58,6 +59,9 @@ export function SummaryPage() {
           <span>{brl(total)}</span>
         </div>
       </div>
+
+      {lines.length > 3 && <span className={styles.mobileSummaryHint}>deslize para ver todos os itens</span>}
+      <div className={styles.mobileSummaryTotal}><span>total</span><strong>{brl(total)}</strong></div>
 
       <div className={styles.navRow}>
         <button type="button" aria-label="Voltar" className={styles.navBtn} onClick={() => bkGo(-1)}>

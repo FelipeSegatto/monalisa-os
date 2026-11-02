@@ -363,7 +363,6 @@
   pointer-events: none;
   overflow: hidden;
 }
-.mobileBackIllustration { position: absolute; right: 2cqw; bottom: 5cqw; width: 19cqw; max-height: 55%; object-fit: contain; }
 .mobileBackOn { animation: mobileBackOn 1.35s linear both; }
 .mobileBackOff { animation: mobileBackOff 1.35s linear both; }
 .mobileLifting { animation: mobilePageLift 1.35s cubic-bezier(.85,0,.15,1) both; }
@@ -403,3 +402,22 @@
   .mobileLifting, .mobileDropping, .mobilePageShade { animation-duration: .01ms; }
   .mobileBackOn, .mobileBackOff { animation: none; }
 }
+
+
+/* Binding depth comes from the rings and the turn, rather than a permanent dark band. */
+.mobileFace .spineRight, .mobileFace .spineLeft { background: none; }
+.mobileFace[data-mobile-page='5'] > .pageLeft,
+.mobileFace[data-mobile-page='6'] > .pageRight { padding-left: 8cqw; }
+.mobileFace[data-mobile-page='6'] > .pageRight > div:first-child { flex: none; }
+.mobileFace[data-mobile-page='6'] [data-booking-summary] { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.mobileFace[data-mobile-page='6'] .navRow { flex: none; padding-top: 14px; }
+
+@media (max-width: 359px) {
+  .topbar { gap: 8px; }
+  .topbar .backButton { font-size: 14px; white-space: nowrap; padding: 8px 10px; }
+  .brand { font-size: 25px; }
+}
+
+.mobileSummaryHint, .mobileSummaryTotal { display: none; }
+.mobileFace .mobileSummaryHint { display: block; flex: none; margin-top: 6px; font-size: 11px; }
+.mobileFace .mobileSummaryTotal { display: flex; flex: none; justify-content: space-between; gap: 8px; margin-top: 8px; font-size: 15px; }

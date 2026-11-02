@@ -1,3 +1,4 @@
+import { useMobileBooking } from '../../hooks/useMobileBooking';
 import { MORNING, AFTERNOON, WEEK, formatDateLabel, isSlotTaken, weekdayOf } from '../../data/booking';
 import { useBooking } from '../../context/BookingContext';
 import { CollageTitle } from '../CollageTitle';
@@ -14,6 +15,7 @@ const slotStyle = {
 } as const;
 
 export function TimeSlotsPage() {
+  const isMobile = useMobileBooking();
   const { day, time, pickTime, ok2, bkGo, calYear, calMonth } = useBooking();
 
   const periods =
@@ -47,11 +49,11 @@ export function TimeSlotsPage() {
           <div style={{ position: 'relative', marginTop: '1.4cqw' }}>
             <CollageTitle text={weekday} fontSize="3.4cqw" baseDelay={0} as="div" />
           </div>
-          <div style={{ position: 'relative', marginTop: '2.4cqw', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.6cqw' }}>
+          <div style={{ position: 'relative', marginTop: '2.4cqw', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '2.6cqw' }}>
             {periods.map((period) => (
               <div key={period.label} style={{ display: 'flex', flexDirection: 'column', gap: '1cqw' }}>
                 <span style={{ fontWeight: 700, fontSize: 'max(12px, 1.7cqw)' }}>{period.label}</span>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '.8cqw' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, 1fr)', gap: '.8cqw' }}>
                   {period.slots.map(({ t, i }) => {
                     const taken = isSlotTaken(day, i);
                     const selected = time === t;

@@ -1,0 +1,29 @@
+/* These classes are applied only to the mobile agenda. Desktop layouts stay intact. */
+.extrasPage[class], .cartPage[class] { padding: 4cqw 3.5cqw 2.5cqw 6cqw; }
+.pager { position: relative; display: flex; flex: none; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 12px; }
+.pager button { width: 34px; height: 32px; border: 1.5px solid currentColor; border-radius: 5px; background: transparent; color: inherit; font: 17px 'Riccione Serial', Georgia, serif; cursor: pointer; }
+.pager button:disabled { opacity: .3; cursor: default; }
+.pager button:not(:disabled):hover { background: #f6b900; color: #161515; border-color: #161515; }
+.extraCard[class] { transform: none !important; min-height: 40px; padding: 6px 8px !important; font-size: 12px !important; gap: 8px !important; align-items: center; }
+.procedureCard[class] { min-height: 50px; padding: 6px 7px !important; font-size: 12px !important; flex-direction: column; gap: 4px !important; }
+.procedureChoices { min-height: 50px; }
+.allAdded { position: relative; font-size: 12px; margin-top: 8px; line-height: 1.3; }
+.cartPage[class] > div:first-child { font-size: 4.4cqw !important; }
+.cartPage[class] > span { margin-top: 1.4cqw !important; font-size: 12px !important; }
+.cartList[class] { margin-top: 3.8cqw !important; width: 100% !important; }
+.cartCard[class] { transform: none !important; padding: 7px 8px !important; gap: 7px !important; }
+.cartCardHeader[class] { display: grid !important; grid-template-columns: minmax(0, 1fr) 28px; row-gap: 6px !important; }
+.cartCardHeader > span { grid-column: 1; grid-row: 1; font-size: 13px !important; white-space: normal !important; overflow: visible !important; }
+.cartCardHeader > button { grid-column: 2; grid-row: 1; min-width: 28px; min-height: 28px; }
+.cartCardHeader > img { right: -7px !important; bottom: calc(100% - 2px) !important; width: 7cqw !important; }
+.quantity[class] { grid-column: 1 / -1; grid-row: 2; gap: 6px !important; }
+.quantity button { width: 30px !important; height: 30px !important; font-size: 17px !important; }
+.quantity > span { font-size: 12px !important; white-space: nowrap; }
+.quantity > span:last-child { margin-left: auto; }
+.cartCard > div:last-child { padding: 5px 2px 2px !important; }
+.selectedAreas { display: flex; flex-wrap: nowrap; gap: 4px; max-height: 36px; overflow-x: auto; overflow-y: hidden; overscroll-behavior: contain; scrollbar-width: thin; width: 100%; }
+.selectedAreas > button { flex: none; white-space: nowrap; }
+.selectedAreas:empty { display: none; }
+.cartCard input { min-height: 28px; font-size: 12px !important; padding: 4px 8px !important; }
+.cartCard button[aria-label='remover área'] { min-height: 26px; font-size: 11px !important; }
+.subtotal { position: relative; display: flex; justify-content: space-between; gap: 12px; margin-top: auto; padding-top: 10px; font-size: 14px; }

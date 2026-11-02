@@ -11,14 +11,10 @@ import { SummaryPage } from './SummaryPage';
 import { BookingStamp } from './BookingStamp';
 import spiral from '../../assets/images/bk-spiral-closed.png';
 import grain from '../../assets/images/booking-paper-grain.svg';
-import sitting from '../../assets/images/bk-sitting2.png';
-import uau from '../../assets/images/bk-uau2.png';
-import couple from '../../assets/images/bk-couple.png';
 import styles from './Book.module.css';
 
 const LABELS = ['Capa', 'algo a mais?', 'carrinho', 'calendário', 'horário', 'seus dados', 'resumo'];
-const COLORS = ['#F2B21B', '#2F1CFF', '#2F1CFF', '#EEEEEE', '#EEEEEE', '#F6B900', '#FF5179'];
-const BACK_ILLUSTRATIONS: Record<number, string> = { 1: uau, 2: sitting, 3: couple };
+const COLORS = ['#F2B21B', '#2F1CFF', '#2F1CFF', '#F7F2E7', '#F7F2E7', '#F6B900', '#FF5179'];
 const TURN_LOCK_MS = 1370;
 type Motion = { page: number; direction: 1 | -1 } | null;
 
@@ -84,10 +80,8 @@ export function MobileAgenda({ bookRef }: { bookRef: RefObject<HTMLDivElement | 
             return (
               <div key={p} className={`${styles.mobileFace} ${turning ? direction === 1 ? styles.mobileLifting : styles.mobileDropping : ''}`} data-mobile-page={p} data-turned={turned} data-turning={turning} inert={p !== shownStep || !!bkPhase} style={{ transform: `rotateY(${turned ? -180 : 0}deg) translateZ(${p % 2 === 0 ? 1 : 0}px)`, zIndex: turning ? 50 : 20 - p, visibility: visible ? 'visible' : 'hidden', pointerEvents: p === shownStep && !bkPhase ? 'auto' : 'none' }}>
                 {page}
-                {underTurn && !closing && <div key={`${motion.page}-${direction}`} className={`${styles.mobilePageShade} ${direction === 1 ? styles.mobileShadeOut : styles.mobileShadeIn}`} aria-hidden="true" />}
-                <div key={`${motion?.page}-${direction}`} aria-hidden="true" className={`${styles.mobileBack} ${turning ? direction === 1 ? styles.mobileBackOn : styles.mobileBackOff : ''}`} style={{ backgroundColor: COLORS[p], backgroundImage: `url("${grain}")`, opacity: turned ? 1 : 0 }}>
-                  {BACK_ILLUSTRATIONS[p] && <img src={BACK_ILLUSTRATIONS[p]} alt="" className={styles.mobileBackIllustration} />}
-                </div>
+                {underTurn && !closing && <div key={`shade-${motion.page}-${direction}`} className={`${styles.mobilePageShade} ${direction === 1 ? styles.mobileShadeOut : styles.mobileShadeIn}`} aria-hidden="true" />}
+                <div key={`back-${motion?.page}-${direction}`} aria-hidden="true" className={`${styles.mobileBack} ${turning ? direction === 1 ? styles.mobileBackOn : styles.mobileBackOff : ''}`} style={{ backgroundColor: COLORS[shownStep], backgroundImage: `url("${grain}")`, opacity: turned ? 1 : 0 }} />
                 {bkStamped && p === 6 && <div className={styles.mobileStamp}><BookingStamp /></div>}
               </div>
             );
