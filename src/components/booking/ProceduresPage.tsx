@@ -279,17 +279,17 @@ function CartCard({ j, line, item, isFirst, mobile, density, incQty, decQty, del
         >
           {item.name}
         </span>
-        <div className={mobile ? mobileStyles.quantity : undefined} style={{ display: 'flex', alignItems: 'center', gap: d.clusterGap, flex: 'none' }}>
+        <div className={mobile ? mobileStyles.quantity : undefined} style={{ display: 'flex', alignItems: 'center', gap: d.clusterGap, flex: 'none', ...(hasQuote ? { flexWrap: 'wrap', width: mobile ? '100%' : 'max(110px, 18cqw)' } : {}) }}>
           <button type="button" aria-label="menos" onClick={() => decQty(j)} style={smallBtnStyle}>
             −
           </button>
-          <span style={{ fontSize: d.qtyFont, minWidth: d.qtyMinWidth, textAlign: 'center', lineHeight: 1.1 }}>
+          <span data-cart-quantity style={{ fontSize: d.qtyFont, minWidth: d.qtyMinWidth, textAlign: 'center', lineHeight: 1.1, whiteSpace: 'nowrap', flexShrink: 0 }}>
             {line.n} {line.n > 1 ? 'sessões' : 'sessão'}
           </span>
           <button type="button" aria-label="mais" onClick={() => incQty(j)} style={smallBtnStyle}>
             +
           </button>
-          <span style={{ fontWeight: 700, fontSize: d.priceFont, minWidth: d.priceMinWidth, textAlign: 'right' }}>{totalLabel}</span>
+          <span data-cart-total style={{ fontWeight: 700, fontSize: d.priceFont, minWidth: hasQuote ? 0 : d.priceMinWidth, textAlign: 'right', ...(hasQuote ? { flexBasis: '100%', whiteSpace: 'normal', lineHeight: 1.2 } : {}) }}>{totalLabel}</span>
         </div>
         <button
           type="button"

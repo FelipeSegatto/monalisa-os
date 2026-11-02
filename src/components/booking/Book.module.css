@@ -406,6 +406,8 @@
 
 /* Binding depth comes from the rings and the turn, rather than a permanent dark band. */
 .mobileFace .spineRight, .mobileFace .spineLeft { background: none; }
+.mobileFace[data-mobile-page='3'] > .pageLeft,
+.mobileFace[data-mobile-page='4'] > .pageRight,
 .mobileFace[data-mobile-page='5'] > .pageLeft,
 .mobileFace[data-mobile-page='6'] > .pageRight { padding-left: 8cqw; }
 .mobileFace[data-mobile-page='6'] > .pageRight > div:first-child { flex: none; }
