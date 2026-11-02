@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { CSSProperties, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
 import { CATALOG_ITEMS, soften } from '../data/catalog';
 import type { CatalogItem } from '../data/catalog';
 import { DetailPage } from './DetailPage';
@@ -37,11 +37,26 @@ export function Catalog() {
   const [drag, setDrag] = useState(0);
   const [dragging, setDragging] = useState(false);
 
+  const [zoomed, setZoomed] = useState(false);
+  const [compactScale, setCompactScale] = useState(.65);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const dragStartX = useRef<number | null>(null);
+  const dragStartY = useRef<number | null>(null);
   const moved = useRef(false);
 
   const [detailItem, setDetailItem] = useState<CatalogItem | null>(null);
   const { openBook } = useBooking();
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    const observer = new ResizeObserver(() => {
+      // 430px includes the widest projected ring angle and a small safety margin.
+      setCompactScale(Math.min(.9, Math.max(.1, (viewport.clientWidth - 8) / 430)));
+    });
+    observer.observe(viewport);
+    return () => observer.disconnect();
+  }, []);
 
   const active = ((step % N) + N) % N;
   const current = CATALOG_ITEMS[active];
@@ -59,8 +74,10 @@ export function Catalog() {
   };
 
   const handlePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    e.preventDefault();
+    if (!e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    if (e.pointerType === 'mouse') e.preventDefault();
     dragStartX.current = e.clientX;
+    dragStartY.current = e.clientY;
     moved.current = false;
     e.currentTarget.setPointerCapture(e.pointerId);
     setDragging(true);
@@ -70,22 +87,31 @@ export function Catalog() {
   const handlePointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (dragStartX.current === null) return;
     const dx = e.clientX - dragStartX.current;
-    if (Math.abs(dx) > 5) moved.current = true;
-    setDrag(dx * DRAG_FACTOR);
+    const dy = e.clientY - (dragStartY.current ?? e.clientY);
+    if (Math.hypot(dx, dy) > 8) moved.current = true;
+    if (Math.abs(dx) > Math.abs(dy)) setDrag(dx * DRAG_FACTOR);
+  };
+
+  const clearDrag = () => {
+    dragStartX.current = null;
+    dragStartY.current = null;
+    setDrag(0);
+    setDragging(false);
   };
 
   const handlePointerEnd = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (dragStartX.current === null) return;
     const dx = e.clientX - dragStartX.current;
-    dragStartX.current = null;
-
-    const steps = moved.current
-      ? -Math.round((dx * DRAG_FACTOR) / (360 / N)) || (Math.abs(dx) > 30 ? (dx < 0 ? 1 : -1) : 0)
-      : 1;
-
-    setStep((s) => s + steps);
-    setDrag(0);
-    setDragging(false);
+    const dy = e.clientY - (dragStartY.current ?? e.clientY);
+    const horizontal = moved.current && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 12;
+    if (horizontal) {
+      const steps = -Math.round((dx * DRAG_FACTOR) / (360 / N)) || (dx < 0 ? 1 : -1);
+      setStep((s) => s + steps);
+    } else if (!moved.current) {
+      if (window.matchMedia('(max-width: 640px)').matches) setZoomed((value) => !value);
+      else setStep((s) => s + 1);
+    }
+    clearDrag();
   };
 
   const goTo = (index: number) => {
@@ -115,12 +141,18 @@ export function Catalog() {
 
       <div className={styles.inner}>
         <div className={styles.carouselColumn}>
+          <div className={styles.carouselDisplay}>
           <div
-            className={styles.ringViewport}
+            ref={viewportRef}
+            className={`${styles.ringViewport} ${zoomed ? styles.zoomed : ''}`}
+            style={{ '--catalog-compact-scale': compactScale } as CSSProperties}
+            data-catalog-zoomed={zoomed}
+            role="group"
+            aria-label="Carrossel de procedimentos"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerEnd}
-            onPointerCancel={handlePointerEnd}
+            onPointerCancel={clearDrag}
           >
             <div
               className={styles.ring}
@@ -144,6 +176,12 @@ export function Catalog() {
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className={styles.zoomControls}>
+            <button type="button" className={styles.zoomToggle} aria-label={zoomed ? 'Reduzir carrossel' : 'Ampliar carrossel'} aria-pressed={zoomed} onClick={() => setZoomed((value) => !value)}>{zoomed ? '− reduzir' : '+ ampliar'}</button>
+            <span>arraste para girar</span>
+          </div>
           </div>
 
           <div className={styles.controls}>

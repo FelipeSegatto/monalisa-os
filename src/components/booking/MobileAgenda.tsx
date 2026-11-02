@@ -30,6 +30,9 @@ export function MobileAgenda({ bookRef }: { bookRef: RefObject<HTMLDivElement | 
   const leaving = bkPhase === 'gone' || bkPhase === 'final';
 
   const [observedStep, setObservedStep] = useState(step);
+  const [closingFrom, setClosingFrom] = useState<number | null>(null);
+  if (bkPhase === 'closing' && closingFrom === null) setClosingFrom(observedStep);
+  if (!bkPhase && closingFrom !== null) setClosingFrom(null);
   // Capture the previous page before React commits the new transform; this also
   // catches automatic cover opening and spread changes from the desktop flow.
   if (observedStep !== step) {
@@ -47,7 +50,7 @@ export function MobileAgenda({ bookRef }: { bookRef: RefObject<HTMLDivElement | 
   }, [motion, bkPhase]);
 
   useEffect(() => {
-    if (!bkPhase) wrapper.current?.closest('[data-booking-overlay]')?.scrollTo({ top: 0, behavior: 'instant' });
+    if (!bkPhase) wrapper.current?.closest('[data-booking-overlay]')?.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }, [step, bkPhase]);
 
   const canContinue = step === 2 ? ok1 : step === 4 ? ok2 : true;
@@ -81,7 +84,7 @@ export function MobileAgenda({ bookRef }: { bookRef: RefObject<HTMLDivElement | 
               <div key={p} className={`${styles.mobileFace} ${turning ? direction === 1 ? styles.mobileLifting : styles.mobileDropping : ''}`} data-mobile-page={p} data-turned={turned} data-turning={turning} inert={p !== shownStep || !!bkPhase} style={{ transform: `rotateY(${turned ? -180 : 0}deg) translateZ(${p % 2 === 0 ? 1 : 0}px)`, zIndex: turning ? 50 : 20 - p, visibility: visible ? 'visible' : 'hidden', pointerEvents: p === shownStep && !bkPhase ? 'auto' : 'none' }}>
                 {page}
                 {underTurn && !closing && <div key={`shade-${motion.page}-${direction}`} className={`${styles.mobilePageShade} ${direction === 1 ? styles.mobileShadeOut : styles.mobileShadeIn}`} aria-hidden="true" />}
-                <div key={`back-${motion?.page}-${direction}`} aria-hidden="true" className={`${styles.mobileBack} ${turning ? direction === 1 ? styles.mobileBackOn : styles.mobileBackOff : ''}`} style={{ backgroundColor: COLORS[shownStep], backgroundImage: `url("${grain}")`, opacity: turned ? 1 : 0 }} />
+                <div key={`back-${motion?.page}-${direction}`} aria-hidden="true" className={`${styles.mobileBack} ${closing && p < (closingFrom ?? step) ? styles.mobileBackOff : turning ? direction === 1 ? styles.mobileBackOn : styles.mobileBackOff : ''}`} style={{ backgroundColor: COLORS[shownStep], backgroundImage: `url("${grain}")`, opacity: turned ? 1 : 0 }} />
                 {bkStamped && p === 6 && <div className={styles.mobileStamp}><BookingStamp /></div>}
               </div>
             );

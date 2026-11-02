@@ -8,7 +8,7 @@ import styles from './Book.module.css';
 const PAID_TEXT = { pix: 'Pagamento via Pix recebido.', card: 'Pagamento no cartão aprovado.', local: 'O pagamento fica para o dia.' };
 
 export function BookingCelebration() {
-  const { name, day, time, calYear, calMonth, paidWith, closeBook, bkReset } = useBooking();
+  const { name, day, time, calYear, calMonth, paidWith, bkReset } = useBooking();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = ref.current;
@@ -60,7 +60,6 @@ export function BookingCelebration() {
         <p className={styles.finalGreeting}>{name.trim().split(' ')[0] || 'Te'}{name.trim() ? ', te' : ''} esperamos {date} às {time}.</p>
         <p className={styles.finalMessage}>{paidWith ? PAID_TEXT[paidWith] : ''} Enviamos a confirmação no seu WhatsApp. Quando chegar, por favor tire os sapatos.</p>
         <div className={styles.finalActions}>
-          <button type="button" className={styles.backButton} onClick={closeBook}>voltar ao site</button>
           <button type="button" className={styles.backButton} onClick={bkReset}>fazer outro agendamento</button>
         </div>
       </div>

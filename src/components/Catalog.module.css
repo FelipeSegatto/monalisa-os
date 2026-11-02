@@ -239,10 +239,14 @@
 }
 
 @media (max-width: 640px) {
+  .catalog { padding: 48px 16px 56px; }
   .ringViewport {
-    height: 378px;
-    transform: scale(0.9);
+    height: clamp(280px, 95vw, 378px);
+    transform: scale(var(--catalog-compact-scale, .65));
+    transition: transform .4s cubic-bezier(.2,.7,.3,1);
   }
+  .ringViewport.zoomed { transform: scale(.9); }
+
 
   .ctaInfo {
     display: none;
@@ -268,3 +272,10 @@
     display: block;
   }
 }
+
+.carouselDisplay { width: 100%; }
+.zoomControls { display: none; align-items: center; justify-content: center; gap: 12px; font-size: 13px; }
+.zoomToggle { border: 1.5px solid #161515; border-radius: 6px; padding: 7px 12px; background: #fefefe; color: #161515; font: 14px 'Riccione Serial', Georgia, serif; cursor: pointer; }
+.zoomToggle:focus-visible { outline: 3px solid #161515; outline-offset: 3px; }
+@media (max-width: 640px) { .zoomControls { display: flex; } }
+@media (prefers-reduced-motion: reduce) { .ringViewport { transition: none; } }

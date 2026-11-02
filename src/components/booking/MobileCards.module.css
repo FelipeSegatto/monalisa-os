@@ -21,9 +21,15 @@
 .quantity > span { font-size: 12px !important; white-space: nowrap; }
 .quantity > span:last-child { margin-left: auto; }
 .cartCard > div:last-child { padding: 5px 2px 2px !important; }
-.selectedAreas { display: flex; flex-wrap: nowrap; gap: 4px; max-height: 36px; overflow-x: auto; overflow-y: hidden; overscroll-behavior: contain; scrollbar-width: thin; width: 100%; }
-.selectedAreas > button { flex: none; white-space: nowrap; }
-.selectedAreas:empty { display: none; }
 .cartCard input { min-height: 28px; font-size: 12px !important; padding: 4px 8px !important; }
-.cartCard button[aria-label='remover área'] { min-height: 26px; font-size: 11px !important; }
 .subtotal { position: relative; display: flex; justify-content: space-between; gap: 12px; margin-top: auto; padding-top: 10px; font-size: 14px; }
+
+.areaBadges { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 3px; width: 100%; min-width: 0; }
+.areaBadgesOverflow { grid-template-columns: 24px minmax(0, 1fr) 24px; }
+.areaViewport { display: flex; gap: 4px; min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+.areaViewport::-webkit-scrollbar { display: none; }
+.areaBadge { flex: none; white-space: nowrap; min-height: 24px; padding: 2px 7px; border: 1px solid #161515; border-radius: 999px; background: #161515; color: #fefefe; font: 10.5px 'Riccione Serial', Georgia, serif; cursor: pointer; }
+.areaBadge span { margin-left: 2px; }
+.areaArrow { width: 24px; height: 28px; border: 1px solid #161515; border-radius: 5px; background: #fefefe; color: #161515; font: 21px 'Riccione Serial', Georgia, serif; cursor: pointer; }
+.areaArrow:disabled { opacity: .3; cursor: default; }
+.areaBadges :focus-visible { outline: 2px solid #2f1cff; outline-offset: 2px; }

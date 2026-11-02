@@ -78,7 +78,7 @@ export function BookingOverlay() {
   const stamped = (side: 'left' | 'right') => bkStamped && <div className={`${styles.pageStamp} ${side === 'left' ? styles.stampLeft : styles.stampRight}`}><BookingStamp /></div>;
 
   return (
-    <div className={styles.overlay} data-booking-overlay>
+    <div className={styles.overlay} data-booking-overlay onScroll={isMobile ? (event) => { if (event.currentTarget.scrollLeft !== 0) event.currentTarget.scrollLeft = 0; } : undefined}>
       <div className={styles.topbar}>
         <button type="button" className={styles.backButton} onClick={closeBook}>← voltar ao site</button>
         <span className={styles.brand}>monalisa</span>

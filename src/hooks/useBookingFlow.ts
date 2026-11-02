@@ -103,7 +103,7 @@ export function useBookingFlow() {
     schedule(() => {
       busyRef.current = false;
       setBkFlip(-1);
-    }, fastRef.current ? 460 : FLIP_DURATION_MS);
+    }, fastRef.current ? 650 : FLIP_DURATION_MS);
   };
 
   const bkJump = (target: number) => {
@@ -111,7 +111,7 @@ export function useBookingFlow() {
     const step = () => {
       if (jump !== jumpRef.current || !bookOpenRef.current || bkSRef.current === target) return;
       bkGo(target > bkSRef.current ? 1 : -1);
-      schedule(step, fastRef.current ? 480 : JUMP_STEP_MS);
+      schedule(step, fastRef.current ? 690 : JUMP_STEP_MS);
     };
     step();
   };
@@ -178,7 +178,12 @@ export function useBookingFlow() {
       fastRef.current = true;
       setBkFast(true);
       setPhase('closing');
-      bkJump(0);
+      const mobile = window.matchMedia('(max-width: 759px)').matches;
+      if (mobile) {
+        bkSRef.current = 0;
+        setBkS(0);
+        setBkFlip(-1);
+      } else bkJump(0);
       schedule(() => {
         setPhase('gone');
         schedule(() => {
@@ -186,7 +191,7 @@ export function useBookingFlow() {
           setBkFast(false);
           setPhase('final');
         }, 900);
-      }, 1900);
+      }, mobile ? 1100 : 2400);
     }, 1000);
   };
 

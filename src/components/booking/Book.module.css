@@ -269,7 +269,7 @@
   height: 99.2%;
   transition: opacity .18s ease;
 }
-.fast .leaf { transition-duration: .46s; }
+.fast .leaf { transition-duration: .65s; }
 .pageStamp {
   position: absolute;
   top: 33.2cqw;
@@ -370,8 +370,8 @@
 .mobilePageShade { position: absolute; inset: 0; z-index: 24; background: linear-gradient(90deg,rgba(22,21,21,.5),transparent 75%); pointer-events: none; }
 .mobileShadeOut { animation: mobileShadeOut 1.35s cubic-bezier(.85,0,.15,1) both; }
 .mobileShadeIn { animation: mobileShadeIn 1.35s cubic-bezier(.85,0,.15,1) both; }
-.mobileFast .mobileFace { transition-duration: .46s; }
-.mobileFast .mobileBack { opacity: 0 !important; animation: none; }
+.mobileFast .mobileFace { transition-duration: .65s; }
+.mobileFast .mobileBackOff { animation-duration: .65s; }
 .mobileSpiral { position: absolute; top: 0; left: -3.18cqw; width: 10.53cqw; height: 99.2%; z-index: 55; pointer-events: none; }
 .mobileNavigation { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; margin-top: 22px; font-size: 16px; text-align: center; }
 .mobileNavigation .navBtn { min-width: 44px; min-height: 44px; }

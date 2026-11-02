@@ -1,4 +1,5 @@
 import { useMobileBooking } from '../../hooks/useMobileBooking';
+import { AreaBadges } from './AreaBadges';
 import { CardPager } from './CardPager';
 import mobileStyles from './MobileCards.module.css';
 import { useState } from 'react';
@@ -310,7 +311,8 @@ function CartCard({ j, line, item, isFirst, mobile, density, incQty, decQty, del
           paddingTop: d.row2PaddingTop,
         }}
       >
-        <div className={mobile ? mobileStyles.selectedAreas : undefined} tabIndex={mobile ? 0 : undefined} role={mobile ? 'group' : undefined} aria-label={mobile ? 'Áreas selecionadas; deslize para ver todas' : undefined} style={mobile ? undefined : { display: 'contents' }}>
+        {mobile ? <AreaBadges areas={line.a} onRemove={(area) => removeArea(j, area)} /> : (
+          <div style={{ display: 'contents' }}>
         {line.a.map((ar) => (
           <button
             key={ar}
@@ -331,7 +333,8 @@ function CartCard({ j, line, item, isFirst, mobile, density, incQty, decQty, del
             {ar} ×
           </button>
         ))}
-        </div>
+          </div>
+        )}
 
         {available.length > 0 && (
           <div style={{ position: 'relative', flex: '1 1 160px', minWidth: 140 }}>
