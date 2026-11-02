@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import type { AvatarId } from '../data/avatars';
+import type { AvatarId, AvatarColor } from '../data/avatars';
 import { AccountContext } from './AccountContext';
 import type { DemoProfile, AccountView } from './AccountContext';
 
@@ -29,8 +29,8 @@ function useDemoAccount() {
     setUser(profile);
     setLastProfile(profile);
   };
-  const chooseAvatar = (avatar: AvatarId) => {
-    if (user) updateProfile({ ...user, avatar });
+  const chooseAvatar = (avatar: AvatarId, avatarColor?: AvatarColor) => {
+    if (user) updateProfile({ ...user, avatar, avatarColor });
     setView(null);
   };
   const logout = () => { setUser(null); setView(null); };

@@ -56,7 +56,7 @@ export function Nav() {
       </div>
       <div className={styles.right}>
         <div ref={accountRef} className={styles.account}>
-          <button ref={triggerRef} type="button" className={styles.heartButton} aria-label="Minha conta" title="Minha conta" aria-expanded={user ? menuOpen : undefined} aria-controls={user && menuOpen ? 'account-options' : undefined} onClick={() => user ? setMenuOpen(!menuOpen) : openAccount()} style={user ? { background: avatar.color } : undefined}>
+          <button ref={triggerRef} type="button" className={styles.heartButton} aria-label="Minha conta" title="Minha conta" aria-expanded={user ? menuOpen : undefined} aria-controls={user && menuOpen ? 'account-options' : undefined} onClick={() => user ? setMenuOpen(!menuOpen) : openAccount()} style={user ? { background: user.avatarColor ?? avatar.color } : undefined}>
             <img src={avatar.image} alt="" className={user ? styles.avatarIcon : styles.heartIcon} />
           </button>
           {user && menuOpen && <div id="account-options" className={styles.accountMenu}>

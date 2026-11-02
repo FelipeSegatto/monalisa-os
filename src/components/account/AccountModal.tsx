@@ -3,7 +3,8 @@ import type { FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useAccount } from '../../context/AccountContext';
 import { useBooking } from '../../context/BookingContext';
-import { AVATARS, avatarFor } from '../../data/avatars';
+import type { AvatarId, AvatarColor } from '../../data/avatars';
+import { AVATARS, AVATAR_COLORS, avatarFor } from '../../data/avatars';
 import { CollageTitle } from '../CollageTitle';
 import styles from './AccountModal.module.css';
 
@@ -62,6 +63,8 @@ function AccountContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [selectedAvatar, setSelectedAvatar] = useState<AvatarId>(user?.avatar ?? 'heart');
+  const [selectedColor, setSelectedColor] = useState<AvatarColor>(user?.avatarColor ?? avatarFor(user?.avatar ?? 'heart').color);
   const nameRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
   const isSignup = view === 'signup';
@@ -79,18 +82,27 @@ function AccountContent() {
     if (hasPersonalFields && phone.replace(/\D/g, '').length < 10) { setError('Confira o WhatsApp com DDD.'); phoneRef.current?.focus(); return; }
     if (view === 'recover') { setMessage('Na versão completa, você receberá as instruções por e-mail. Nesta demonstração, nenhum e-mail foi enviado.'); return; }
     if (view === 'login') { demoLogin(email); return; }
-    const profile = { name: name.trim(), email: email.trim().toLowerCase(), phone, avatar: user?.avatar ?? 'heart' as const };
+    const profile = { name: name.trim(), email: email.trim().toLowerCase(), phone, avatar: user?.avatar ?? 'heart' as const, avatarColor: user?.avatarColor };
     if (isSignup) demoSignup(profile);
     else { updateProfile(profile); setMessage('Perfil da demonstração atualizado.'); }
   };
 
   if (view === 'avatar') return (
     <section className={styles.content}>
-      <p>Escolha uma ilustração da Monalisa para o seu perfil. Você pode trocar depois.</p>
-      <div className={styles.avatars} role="group" aria-label="Escolha seu avatar">
-        {AVATARS.map((avatar) => <button key={avatar.id} type="button" className={styles.avatarChoice} style={{ background: avatar.color }} aria-label={`Usar avatar ${avatar.name}`} aria-pressed={user?.avatar === avatar.id} onClick={() => chooseAvatar(avatar.id)}><img src={avatar.image} alt="" /><span>{avatar.name}</span></button>)}
+      <p>Escolha sua ilustração e a cor do seu perfil. Você pode trocar depois.</p>
+      <div className={styles.avatarPreview} aria-label="Prévia do avatar" style={{ background: selectedColor }}>
+        <img src={avatarFor(selectedAvatar).image} alt={avatarFor(selectedAvatar).name} />
       </div>
-      <button type="button" className={styles.secondary} data-initial-focus onClick={closeAccount}>escolher depois</button>
+      <div className={styles.colorChoices} role="group" aria-label="Cor do avatar">
+        {AVATAR_COLORS.map((color) => <button key={color.value} type="button" className={styles.colorChoice} style={{ background: color.value }} aria-label={`Cor ${color.name}`} aria-pressed={selectedColor === color.value} title={color.name} onClick={() => setSelectedColor(color.value)}>{selectedColor === color.value ? '✓' : ''}</button>)}
+      </div>
+      <div className={styles.avatars} role="group" aria-label="Escolha seu avatar">
+        {AVATARS.map((avatar) => <button key={avatar.id} type="button" className={styles.avatarChoice} style={{ background: selectedAvatar === avatar.id ? selectedColor : avatar.color }} aria-label={`Usar avatar ${avatar.name}`} aria-pressed={selectedAvatar === avatar.id} onClick={() => setSelectedAvatar(avatar.id)}><img src={avatar.image} alt="" /><span>{avatar.name}</span></button>)}
+      </div>
+      <div className={styles.avatarActions}>
+        <button type="button" className={styles.primary} onClick={() => chooseAvatar(selectedAvatar, selectedColor)}>salvar meu avatar</button>
+        <button type="button" className={styles.secondary} onClick={closeAccount}>escolher depois</button>
+      </div>
     </section>
   );
   if (view === 'appointments') return (
@@ -102,7 +114,7 @@ function AccountContent() {
   );
   return (
     <form className={styles.form} onSubmit={submit}>
-      {isProfile && user && <button type="button" className={styles.profileAvatar} onClick={() => setView('avatar')}><img src={avatarFor(user.avatar).image} alt="" /><span>trocar ilustração →</span></button>}
+      {isProfile && user && <button type="button" className={styles.profileAvatar} style={{ background: user.avatarColor ?? avatarFor(user.avatar).color }} onClick={() => setView('avatar')}><img src={avatarFor(user.avatar).image} alt="" /><span>trocar ilustração e cor →</span></button>}
       {view === 'login' && <p className={styles.intro}>Acesse sua conta para acompanhar seus agendamentos.</p>}
       {view === 'recover' && <p className={styles.intro}>Qual e-mail você usou no cadastro?</p>}
       {hasPersonalFields && <label className={styles.field}>nome<input ref={nameRef} name="name" autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} placeholder="como podemos te chamar?" required maxLength={100} /></label>}

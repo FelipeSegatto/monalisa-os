@@ -23,3 +23,14 @@ export const AVATARS = [
 ] as const;
 export type AvatarId = typeof AVATARS[number]['id'];
 export const avatarFor = (id: AvatarId) => AVATARS.find((avatar) => avatar.id === id) ?? AVATARS[0];
+
+
+export const AVATAR_COLORS = [
+  { name: 'Amarelo', value: '#F6B900' },
+  { name: 'Rosa', value: '#FF5179' },
+  { name: 'Roxo', value: '#8650D8' },
+  { name: 'Azul', value: '#00C0F2' },
+  { name: 'Vermelho', value: '#FF394A' },
+  { name: 'Papel', value: '#F7F2E7' },
+] as const;
+export type AvatarColor = typeof AVATAR_COLORS[number]['value'];
