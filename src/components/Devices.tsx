@@ -95,7 +95,9 @@ export function Devices() {
   }, [isMobile, active]);
 
   useEffect(() => {
-    DEVICES.forEach(({ img }) => { const image = new Image(); image.src = img; });
+    DEVICES.forEach(({ img, cardboard, core }) => {
+      [img, cardboard, core].forEach((src) => { const image = new Image(); image.src = src; });
+    });
   }, []);
 
   const visibleIndices = isMobile ? [active] : DEVICES.map((_, i) => i);
@@ -112,7 +114,6 @@ export function Devices() {
       >
         {visibleIndices.map((i) => {
           const d = DEVICES[i];
-          const mask = `url(${d.img}) center / contain no-repeat`;
           return (
             <div
               key={d.name}
@@ -155,17 +156,24 @@ export function Devices() {
                     >
                       <img data-device-face="front" src={d.img} alt={d.name} className={styles.front} draggable={false} onLoad={() => setLoadedImages((current) => current[d.name] ? current : { ...current, [d.name]: true })} />
                       {loadedImages[d.name] && MID_LAYER_DEPTHS.map((z) => (
-                        <div
+                        <img
                           key={z}
+                          src={d.core}
+                          alt=""
+                          draggable={false}
                           aria-hidden="true"
                           className={styles.layer}
-                          style={{ transform: `translateZ(${-z}px)`, background: '#8A6A42', mask, WebkitMask: mask }}
+                          style={{ transform: `translateZ(${-z}px) rotateY(180deg) scaleX(-1)` }}
                         />
                       ))}
-                      {loadedImages[d.name] && <div
+                      {loadedImages[d.name] && <img
+                        src={d.cardboard}
+                        alt=""
+                        draggable={false}
+                        data-device-face="back"
                         aria-hidden="true"
                         className={styles.layer}
-                        style={{ transform: `translateZ(${-BACK_LAYER_DEPTH}px)`, background: '#B88F5C', mask, WebkitMask: mask }}
+                        style={{ transform: `translateZ(${-BACK_LAYER_DEPTH}px) rotateY(180deg) scaleX(-1)` }}
                       />}
                     </div>
                   </div>
