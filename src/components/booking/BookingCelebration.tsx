@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useBooking } from '../../context/BookingContext';
 import { WEEK, formatDateLabel, weekdayOf } from '../../data/booking';
 import { CollageTitle } from '../CollageTitle';
-import logo from '../../assets/images/bk-final-logo.png';
+import { createPortal } from 'react-dom';
 import styles from './Book.module.css';
 
 const PAID_TEXT = { pix: 'Pagamento via Pix recebido.', card: 'Pagamento no cartão aprovado.', local: 'O pagamento fica para o dia.' };
@@ -17,12 +17,11 @@ export function BookingCelebration() {
     const pieces = Array.from({ length: 160 }, (_, i) => {
       const piece = document.createElement('span');
       const w = 7 + Math.random() * 9;
-      piece.style.cssText = `position:absolute;left:50%;top:30%;width:${w}px;height:${w * (.4 + Math.random() * .9)}px;background:${colors[i % colors.length]};border:1px solid #161515;border-radius:${Math.random() < .3 ? '50%' : '1px'};pointer-events:none;z-index:5`;
+      piece.style.cssText = `position:absolute;left:${(i + Math.random()) / 160 * 100}%;top:${35 + Math.random() * 25}%;width:${w}px;height:${w * (.4 + Math.random() * .9)}px;background:${colors[i % colors.length]};border:1px solid #161515;border-radius:${Math.random() < .3 ? '50%' : '1px'};pointer-events:none;z-index:5`;
       piece.setAttribute('aria-hidden', 'true');
-      // A burst biased upward, then a gravity-driven fall. Horizontal drag keeps
-      // the pieces floating near the composition instead of shooting offscreen.
+      // Spread the burst across the viewport, then let each piece fall with gravity.
       const angle = -Math.PI / 2 + (Math.random() - .5) * Math.PI * 1.1;
-      const speed = (340 + Math.random() * 300) * Math.min(1, el.clientWidth / 900);
+      const speed = (340 + Math.random() * 300) * Math.min(1.5, el.clientHeight / 850);
       const vx = Math.cos(angle) * speed;
       const vy = Math.sin(angle) * speed;
       const duration = 2200 + Math.random() * 1200;
@@ -54,15 +53,17 @@ export function BookingCelebration() {
   }, []);
   const date = day == null ? '' : `${WEEK[weekdayOf(calYear, calMonth, day)].toLowerCase()}, ${formatDateLabel(day, calMonth)}`;
   return (
-    <div ref={ref} className={styles.final} role="status">
-      <CollageTitle text="Agendado!" fontSize="clamp(52px,9vw,112px)" baseDelay={.85} className={styles.finalTitle} />
-      <p className={styles.finalGreeting}>{name.trim().split(' ')[0] || 'Te'}{name.trim() ? ', te' : ''} esperamos {date} às {time}.</p>
-      <p className={styles.finalMessage}>{paidWith ? PAID_TEXT[paidWith] : ''} Enviamos a confirmação no seu WhatsApp. Quando chegar, por favor tire os sapatos.</p>
-      <img className={styles.finalLogo} src={logo} alt="monalisa" />
-      <div className={styles.finalActions}>
-        <button type="button" className={styles.backButton} onClick={closeBook}>voltar ao site</button>
-        <button type="button" className={styles.backButton} onClick={bkReset}>fazer outro agendamento</button>
+    <>
+      {createPortal(<div ref={ref} className={styles.confetti} data-booking-confetti aria-hidden="true" />, document.body)}
+      <div className={styles.final} role="status">
+        <CollageTitle text="Agendado!" fontSize="clamp(52px,9vw,112px)" baseDelay={.85} className={styles.finalTitle} />
+        <p className={styles.finalGreeting}>{name.trim().split(' ')[0] || 'Te'}{name.trim() ? ', te' : ''} esperamos {date} às {time}.</p>
+        <p className={styles.finalMessage}>{paidWith ? PAID_TEXT[paidWith] : ''} Enviamos a confirmação no seu WhatsApp. Quando chegar, por favor tire os sapatos.</p>
+        <div className={styles.finalActions}>
+          <button type="button" className={styles.backButton} onClick={closeBook}>voltar ao site</button>
+          <button type="button" className={styles.backButton} onClick={bkReset}>fazer outro agendamento</button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

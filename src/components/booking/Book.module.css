@@ -233,15 +233,6 @@
   transition: transform 0.3s, border-width 0.2s, box-shadow 0.2s;
 }
 
-.overlayTexture {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-size: 450px 450px;
-  mix-blend-mode: multiply;
-  opacity: .4;
-}
-
 .coverFace { overflow: visible; }
 .cover {
   position: absolute;
@@ -311,19 +302,26 @@
   overflow: clip;
 }
 .finalTitle { position: relative; z-index: 6; margin: 0; }
-.finalGreeting, .finalMessage, .finalLogo, .finalActions {
+.finalGreeting, .finalMessage, .finalActions {
   position: relative;
   z-index: 6;
   animation: finalFadeUp .5s ease both;
 }
 .finalGreeting { margin: 0; max-width: 640px; font-size: clamp(20px,2.6vw,32px); line-height: 1.3; animation-delay: 2s; }
 .finalMessage { margin: 0; max-width: 560px; font-size: clamp(15px,1.6vw,19px); line-height: 1.4; animation-delay: 2.2s; }
-.finalLogo { width: clamp(180px,24vw,300px); display: block; animation-delay: 2.4s; }
 .finalActions { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; animation-delay: 2.6s; }
 @keyframes finalFadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
   .book, .leaf, .spiralClosed { transition-duration: .01ms !important; }
-  .finalGreeting, .finalMessage, .finalLogo, .finalActions { animation: none; }
+  .finalGreeting, .finalMessage, .finalActions { animation: none; }
 }
 
 .stampImage { display: block; width: 100%; height: 100%; object-fit: contain; }
+
+.confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  overflow: hidden;
+  pointer-events: none;
+}

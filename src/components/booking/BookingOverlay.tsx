@@ -14,10 +14,8 @@ import { BookingStamp } from './BookingStamp';
 import { BookingCelebration } from './BookingCelebration';
 import cover from '../../assets/images/bk-cover.png';
 import stampAsset from '../../assets/images/confirmado.svg';
-import finalLogo from '../../assets/images/bk-final-logo.png';
 import spiralClosed from '../../assets/images/bk-spiral-closed.png';
 import spiralOpen from '../../assets/images/bk-spiral.png';
-import paperTexture from '../../assets/images/textura-papel.png';
 import styles from './Book.module.css';
 
 function leafProps(k: number, bkS: number, bkFlip: number) {
@@ -34,7 +32,7 @@ export function BookingOverlay() {
   const { bookOpen, bkS, bkFlip, closeBook, bkGo, payOpen, bkPhase, bkFast, bkStamped, stampLanded } = useBooking();
   useEffect(() => {
     // Load both bindings before the user starts a cover turn, including on a cold visit.
-    [cover, spiralOpen, spiralClosed, stampAsset, finalLogo].forEach((src) => {
+    [cover, spiralOpen, spiralClosed, stampAsset].forEach((src) => {
       const image = new Image();
       image.src = src;
     });
@@ -77,7 +75,6 @@ export function BookingOverlay() {
 
   return (
     <div className={styles.overlay}>
-      <div className={styles.overlayTexture} style={{ backgroundImage: `url(${paperTexture})` }} aria-hidden="true" />
       <div className={styles.topbar}>
         <button type="button" className={styles.backButton} onClick={closeBook}>← voltar ao site</button>
         <span className={styles.brand}>monalisa</span>
