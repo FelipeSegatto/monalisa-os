@@ -32,35 +32,46 @@ interface CollageTitleProps {
 
 export function CollageTitle({ text, fontSize, baseDelay, as: As = 'h1', className }: CollageTitleProps) {
   let letterIndex = 0;
+  let charIndex = 0;
+  const words = text.split(' ');
 
   return (
     <As className={[styles.title, className].filter(Boolean).join(' ')} style={{ fontSize }} aria-label={text}>
-      {text.split('').map((ch, charIndex) => {
-        if (ch === ' ') {
+      {words.map((word, wordIdx) => {
+        const letters = word.split('').map((ch) => {
+          const i = letterIndex++;
+          const myCharIndex = charIndex++;
+          const [fill, stroke] = COLLAGE[i % COLLAGE.length];
+          const r = (((myCharIndex * 37) % 9) - 4) * 1.1;
+          const y = (((myCharIndex * 53) % 7) - 3) * 0.018;
+          const delay = baseDelay + myCharIndex * 0.07;
+
+          const style: LetterStyle = {
+            color: fill,
+            WebkitTextStroke: `.2em ${stroke}`,
+            animationDelay: `${delay}s`,
+            '--y': `${y}em`,
+            '--r': `${r}deg`,
+          };
+
           return (
-            <span key={charIndex} className={styles.space} aria-hidden="true">
-              {' '}
+            <span key={myCharIndex} className={styles.letter} style={style} aria-hidden="true">
+              {ch}
             </span>
           );
-        }
+        });
 
-        const i = letterIndex++;
-        const [fill, stroke] = COLLAGE[i % COLLAGE.length];
-        const r = (((charIndex * 37) % 9) - 4) * 1.1;
-        const y = (((charIndex * 53) % 7) - 3) * 0.018;
-        const delay = baseDelay + charIndex * 0.07;
-
-        const style: LetterStyle = {
-          color: fill,
-          WebkitTextStroke: `.2em ${stroke}`,
-          animationDelay: `${delay}s`,
-          '--y': `${y}em`,
-          '--r': `${r}deg`,
-        };
+        const isLast = wordIdx === words.length - 1;
+        if (!isLast) charIndex += 1;
 
         return (
-          <span key={charIndex} className={styles.letter} style={style} aria-hidden="true">
-            {ch}
+          <span key={wordIdx} className={styles.word}>
+            {letters}
+            {!isLast && (
+              <span className={styles.space} aria-hidden="true">
+                {' '}
+              </span>
+            )}
           </span>
         );
       })}

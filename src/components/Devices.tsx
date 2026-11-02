@@ -1,14 +1,38 @@
-import { useRef, useState } from 'react';
-import { DEVICES, MID_LAYER_DEPTHS, BACK_LAYER_DEPTH } from '../data/devices';
+import { useEffect, useRef, useState } from 'react';
+import type { CSSProperties, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
+import { DEVICES, MID_LAYER_DEPTHS, BACK_LAYER_DEPTH, TIP_STYLES } from '../data/devices';
 import styles from './Devices.module.css';
 
 const SPIN_LOCK_MS = 2400;
+const MOBILE_QUERY = '(max-width: 640px)';
+const MOBILE_AUTO_SPIN_MS = 3000;
+const SWIPE_THRESHOLD = 40;
+const N = DEVICES.length;
+
+interface TipStyle extends CSSProperties {
+  '--r': string;
+}
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_QUERY);
+    const handler = () => setIsMobile(mq.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return isMobile;
+}
 
 export function Devices() {
   const [turns, setTurns] = useState<number[]>(() => DEVICES.map(() => 0));
   const [active, setActive] = useState(0);
   const [hoverIndex, setHoverIndex] = useState(-1);
+  const [devTip, setDevTip] = useState(-1);
   const spinLock = useRef<number[]>(DEVICES.map(() => 0));
+  const isMobile = useIsMobile();
+  const dragStartX = useRef<number | null>(null);
+  const dragMoved = useRef(false);
 
   const spin = (i: number) => {
     if (hoverIndex !== i) setHoverIndex(i);
@@ -25,10 +49,63 @@ export function Devices() {
 
   const leave = () => setHoverIndex(-1);
 
+  const click = (i: number) => {
+    if (dragMoved.current) {
+      dragMoved.current = false;
+      return;
+    }
+    spin(i);
+    setDevTip((prev) => (prev === i ? -1 : i));
+  };
+
+  const closeTip = (e: ReactMouseEvent) => {
+    e.stopPropagation();
+    setDevTip(-1);
+  };
+
+  const handlePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!isMobile) return;
+    dragStartX.current = e.clientX;
+    dragMoved.current = false;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!isMobile || dragStartX.current === null) return;
+    if (Math.abs(e.clientX - dragStartX.current) > 8) dragMoved.current = true;
+  };
+
+  const handlePointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!isMobile || dragStartX.current === null) return;
+    const dx = e.clientX - dragStartX.current;
+    dragStartX.current = null;
+    if (Math.abs(dx) > SWIPE_THRESHOLD) {
+      const next = dx < 0 ? (active + 1) % N : (active - 1 + N) % N;
+      spin(next);
+    }
+  };
+
+  // No hover on touch devices: keep the active device gently spinning on its own.
+  useEffect(() => {
+    if (!isMobile) return;
+    const id = setInterval(() => spin(active), MOBILE_AUTO_SPIN_MS);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMobile, active]);
+
+  const visibleIndices = isMobile ? [active] : DEVICES.map((_, i) => i);
+
   return (
     <section className={styles.devices}>
-      <div className={styles.grid}>
-        {DEVICES.map((d, i) => {
+      <div
+        className={styles.grid}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+      >
+        {visibleIndices.map((i) => {
+          const d = DEVICES[i];
           const mask = `url(${d.img}) center / contain no-repeat`;
           return (
             <div
@@ -36,9 +113,24 @@ export function Devices() {
               className={styles.item}
               onMouseEnter={() => spin(i)}
               onMouseLeave={leave}
-              onClick={() => spin(i)}
+              onClick={() => click(i)}
             >
               <div className={styles.stage}>
+                {devTip === i && (
+                  <div
+                    className={styles.tip}
+                    style={{
+                      '--r': `${TIP_STYLES[i].rotate}deg`,
+                      background: TIP_STYLES[i].bg,
+                      color: TIP_STYLES[i].color,
+                    } as TipStyle}
+                    onClick={closeTip}
+                  >
+                    <strong className={styles.tipTitle}>{d.tipTitle}</strong>
+                    <p className={styles.tipText}>{d.tipText}</p>
+                    <div className={styles.tipPoint} style={{ background: TIP_STYLES[i].bg }} />
+                  </div>
+                )}
                 <div className={styles.turnLayer} style={{ transform: `rotateY(${turns[i]}deg)` }}>
                   <div
                     className={styles.hotLayer}

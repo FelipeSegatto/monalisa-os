@@ -9,8 +9,11 @@ export function Nav() {
   const { openBook } = useBooking();
   const { user, openAccount, setView, logout } = useAccount();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const navRef = useRef<HTMLDivElement>(null);
+  const burgerRef = useRef<HTMLButtonElement>(null);
   const avatar = avatarFor(user?.avatar ?? 'heart');
   useEffect(() => {
     if (!menuOpen) return;
@@ -20,14 +23,36 @@ export function Nav() {
     document.addEventListener('keydown', escape);
     return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); };
   }, [menuOpen]);
-  const handleBookNow = (event: MouseEvent<HTMLAnchorElement>) => { event.preventDefault(); setMenuOpen(false); openBook(null); };
+  useEffect(() => {
+    if (!navOpen) return;
+    const outside = (event: PointerEvent) => { if (!navRef.current?.contains(event.target as Node) && !burgerRef.current?.contains(event.target as Node)) setNavOpen(false); };
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') { setNavOpen(false); burgerRef.current?.focus(); } };
+    document.addEventListener('pointerdown', outside);
+    document.addEventListener('keydown', escape);
+    return () => { document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); };
+  }, [navOpen]);
+  const handleBookNow = (event: MouseEvent<HTMLAnchorElement>) => { event.preventDefault(); setMenuOpen(false); setNavOpen(false); openBook(null); };
   const openPanel = (view: 'profile' | 'appointments') => { setMenuOpen(false); triggerRef.current?.focus(); setView(view); };
   return (
     <nav className={styles.nav} aria-label="Navegação principal">
-      <div className={styles.links}>
-        <a href="#sobre" className={`${styles.link} ${styles.linkAbout}`}>Sobre a monalisa</a>
+      <button
+        ref={burgerRef}
+        type="button"
+        className={styles.burger}
+        aria-label={navOpen ? 'Fechar menu' : 'Abrir menu'}
+        aria-expanded={navOpen}
+        aria-controls="mobile-nav-links"
+        onClick={() => setNavOpen((v) => !v)}
+      >
+        <span className={`${styles.burgerBar} ${navOpen ? styles.burgerBarTop : ''}`} />
+        <span className={`${styles.burgerBar} ${navOpen ? styles.burgerBarMid : ''}`} />
+        <span className={`${styles.burgerBar} ${navOpen ? styles.burgerBarBottom : ''}`} />
+      </button>
+
+      <div ref={navRef} id="mobile-nav-links" className={`${styles.links} ${navOpen ? styles.linksOpen : ''}`}>
+        <a href="#sobre" className={`${styles.link} ${styles.linkAbout}`} onClick={() => setNavOpen(false)}>Sobre a monalisa</a>
         <a href="#agendar" className={`${styles.link} ${styles.linkBookNow}`} onClick={handleBookNow}>BOOK NOW</a>
-        <a href="#catalogo" className={`${styles.link} ${styles.linkCatalogue}`}>Catálogo</a>
+        <a href="#catalogo" className={`${styles.link} ${styles.linkCatalogue}`} onClick={() => setNavOpen(false)}>Catálogo</a>
       </div>
       <div className={styles.right}>
         <div ref={accountRef} className={styles.account}>

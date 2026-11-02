@@ -126,6 +126,16 @@
   white-space: nowrap;
 }
 
+.demoNotice {
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 10px 14px;
+  border: 2px solid #161515;
+  border-radius: 6px;
+  background: #f5b800;
+  color: #161515;
+}
+
 .field {
   display: flex;
   flex-direction: column;

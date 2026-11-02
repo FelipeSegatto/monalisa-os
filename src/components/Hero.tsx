@@ -18,7 +18,9 @@ const PALETTE = [
   { color: '#F93AA4', logo: logoRosa },
 ];
 
-const LOGO_SPEED = 0.8;
+const MOBILE_QUERY = '(max-width: 640px)';
+const LOGO_SPEED_DESKTOP = 0.8;
+const LOGO_SPEED_MOBILE = 0.61;
 const MARQUEE_SPEED = 0.6;
 
 const MARQUEE_COPIES = 6;
@@ -48,6 +50,17 @@ export function Hero() {
   const trackRef = useRef<HTMLDivElement>(null);
   const groupRef = useRef<HTMLDivElement>(null);
   const [colorIndex, setColorIndex] = useState(0);
+  const logoSpeedRef = useRef(LOGO_SPEED_DESKTOP);
+
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_QUERY);
+    const sync = () => {
+      logoSpeedRef.current = mq.matches ? LOGO_SPEED_MOBILE : LOGO_SPEED_DESKTOP;
+    };
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
 
   // Preload every logo color so the instant swap on bounce never flashes blank.
   useEffect(() => {
@@ -78,8 +91,8 @@ export function Hero() {
       if (box && el) {
         const maxX = box.clientWidth - el.offsetWidth;
         const maxY = box.clientHeight - el.offsetHeight;
-        x += vx * LOGO_SPEED;
-        y += vy * LOGO_SPEED;
+        x += vx * logoSpeedRef.current;
+        y += vy * logoSpeedRef.current;
 
         let hit = false;
         if (x <= 0) {

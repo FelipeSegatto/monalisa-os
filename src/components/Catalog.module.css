@@ -10,9 +10,9 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-size: 450px 450px;
-  mix-blend-mode: multiply;
-  opacity: 0.32;
+  background-size: 256px 256px;
+  mix-blend-mode: soft-light;
+  opacity: 0.58;
 }
 
 .inner {
@@ -148,7 +148,7 @@
   margin: 0;
   font-family: 'Riccione Serial', Georgia, serif;
   font-weight: 700;
-  font-size: 76px;
+  font-size: clamp(28px, calc((100vw - 80px) / 5.84), 76px);
   line-height: 1;
   text-wrap: balance;
   filter: url(#roughHL);
@@ -160,7 +160,7 @@
   margin: 0;
   font-family: 'Riccione Serial', Georgia, serif;
   font-weight: 700;
-  font-size: 76px;
+  font-size: clamp(28px, calc((100vw - 80px) / 5.84), 76px);
   line-height: 1;
   color: #161515;
   text-wrap: balance;
@@ -184,8 +184,12 @@
 }
 
 .price {
-  font-size: 34px;
+  font-size: clamp(18px, calc((100vw - 80px) / 8), 34px);
   letter-spacing: 0.06em;
+}
+
+.priceValue {
+  white-space: nowrap;
 }
 
 .bookButton {
@@ -214,6 +218,10 @@
   flex-wrap: wrap;
 }
 
+.ctaCarousel {
+  display: none;
+}
+
 .learnMore {
   font-family: 'Riccione Serial', Georgia, serif;
   font-size: 22px;
@@ -228,4 +236,35 @@
 
 .learnMore:hover {
   background: #f5b800;
+}
+
+@media (max-width: 640px) {
+  .ringViewport {
+    height: 378px;
+    transform: scale(0.9);
+  }
+
+  .ctaInfo {
+    display: none;
+  }
+
+  .ctaCarousel {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    max-width: 320px;
+    gap: 12px;
+  }
+
+  .ctaCarousel .bookButton,
+  .ctaCarousel .learnMore {
+    font-size: 24px;
+    padding: 14px 20px;
+    text-align: center;
+  }
+
+  .priceValue {
+    display: block;
+  }
 }

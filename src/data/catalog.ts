@@ -131,7 +131,7 @@ export const CATALOG_ITEMS: CatalogItem[] = [
     detailBg: '#E65889',
     illus: ultrassomMan,
     illusAR: '1047 / 696',
-    titleDiv: 14,
+    titleDiv: 9,
     intro: 'Firmeza que vem de dentro.',
     body: 'Estímulo de colágeno nas camadas profundas da pele, para firmeza e efeito lifting sem procedimentos invasivos.',
     bullets: ['Efeito lifting natural, sem cortes', 'Resultados que evoluem nas semanas seguintes'],
