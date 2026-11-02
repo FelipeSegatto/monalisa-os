@@ -1,3 +1,4 @@
+import seatedMan from '../assets/images/homem-sentado-mona.svg';
 import lying from '../assets/images/mulher-deitada-monalisa.png';
 import sitting from '../assets/images/bk-sitting2.png';
 import cloud from '../assets/images/nuvem-sorrindo-monalisa.svg';
@@ -11,6 +12,7 @@ import smile from '../assets/images/carinha-monalisa.png';
 export const AVATARS = [
   { id: 'heart', name: 'Coração', image: heart, color: '#FF5179' },
   { id: 'laser', name: 'Musculoso', image: laser, color: '#00C0F2' },
+  { id: 'seated-man', name: 'Musculoso sentado', image: seatedMan, color: '#F6B900' },
   { id: 'lying', name: 'Deitada', image: lying, color: '#FF5179' },
   { id: 'pose', name: 'Pose', image: pose, color: '#F6B900' },
   { id: 'body', name: 'Curvas', image: body, color: '#8650D8' },
