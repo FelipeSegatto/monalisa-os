@@ -3,6 +3,8 @@ import { CATALOG_ITEMS } from '../data/catalog';
 import { EXTRAS, lineBreakdown } from '../data/booking';
 import type { CartLine } from '../data/booking';
 
+export type BookingPhase = 'stamp' | 'closing' | 'gone' | 'final' | null;
+
 export type PayMethod = 'pix' | 'card' | 'local';
 
 const FLIP_DURATION_MS = 720;
@@ -16,6 +18,9 @@ export function useBookingFlow() {
   const [bkS, setBkS] = useState(0);
   const [bkFlip, setBkFlip] = useState(-1);
   const [bkMax, setBkMax] = useState(0);
+  const [bkPhase, setBkPhase] = useState<BookingPhase>(null);
+  const [bkStamped, setBkStamped] = useState(false);
+  const [bkFast, setBkFast] = useState(false);
 
   const [cart, setCart] = useState<CartLine[]>([]);
   const [extraIdx, setExtraIdx] = useState<number[]>([]);
@@ -47,72 +52,99 @@ export function useBookingFlow() {
   const bookOpenRef = useRef(false);
   const busyRef = useRef(false);
 
-  useEffect(() => {
-    bkSRef.current = bkS;
-  }, [bkS]);
-  useEffect(() => {
-    bookOpenRef.current = bookOpen;
-  }, [bookOpen]);
+  const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
+  const phaseRef = useRef<BookingPhase>(null);
+  const fastRef = useRef(false);
+  const jumpRef = useRef(0);
+
+  const schedule = (callback: () => void, delay: number) => {
+    const timer = setTimeout(() => {
+      timers.current.delete(timer);
+      callback();
+    }, delay);
+    timers.current.add(timer);
+    return timer;
+  };
+
+  const clearSequence = () => {
+    timers.current.forEach(clearTimeout);
+    timers.current.clear();
+    jumpRef.current += 1;
+    busyRef.current = false;
+    fastRef.current = false;
+    phaseRef.current = null;
+  };
+
+  const setPhase = (phase: BookingPhase) => {
+    phaseRef.current = phase;
+    setBkPhase(phase);
+  };
 
   const bkGo = (dir: 1 | -1) => {
-    if (busyRef.current) return;
+    if (!bookOpenRef.current || busyRef.current || (phaseRef.current && phaseRef.current !== 'closing')) return;
     const s = bkSRef.current;
     const n = s + dir;
-    if (n < 0 || n > 4) return;
+    if (n < 0 || n > 3) return;
     busyRef.current = true;
-    const k = dir > 0 ? s : s - 1;
     bkSRef.current = n;
     setBkS(n);
-    setBkFlip(k);
+    setBkFlip(dir > 0 ? s : s - 1);
     setBkMax((m) => Math.max(m, n));
-    setTimeout(() => {
+    schedule(() => {
       busyRef.current = false;
       setBkFlip(-1);
-    }, FLIP_DURATION_MS);
+    }, fastRef.current ? 460 : FLIP_DURATION_MS);
   };
 
   const bkJump = (target: number) => {
+    const jump = ++jumpRef.current;
     const step = () => {
-      const s = bkSRef.current;
-      if (s === target) return;
-      bkGo(target > s ? 1 : -1);
-      setTimeout(step, JUMP_STEP_MS);
+      if (jump !== jumpRef.current || !bookOpenRef.current || bkSRef.current === target) return;
+      bkGo(target > bkSRef.current ? 1 : -1);
+      schedule(step, fastRef.current ? 480 : JUMP_STEP_MS);
     };
     step();
   };
 
+  const autoOpen = (delay: number) => schedule(() => {
+    if (bookOpenRef.current && bkSRef.current === 0 && !phaseRef.current && !busyRef.current) bkGo(1);
+  }, delay);
+
   const openBook = (i: number | null) => {
+    clearSequence();
     bkSRef.current = 0;
     bookOpenRef.current = true;
     setBookOpen(true);
     setBkS(0);
     setBkFlip(-1);
+    setBkPhase(null);
+    setBkStamped(false);
+    setBkFast(false);
+    setPayOpen(false);
+    setPayBusy(false);
+    setPaidWith(null);
     if (i != null) {
       setCart((prev) => (prev.some((c) => c.i === i) ? prev : [...prev, { i, n: 1, a: [CATALOG_ITEMS[i].areas[0].name] }]));
     }
     document.body.style.overflow = 'hidden';
     if (location.hash !== '#agendar') history.pushState(null, '', '#agendar');
+    autoOpen(2000);
   };
 
   const closeBook = () => {
+    clearSequence();
     bookOpenRef.current = false;
     setBookOpen(false);
     setPayOpen(false);
+    setPayBusy(false);
     document.body.style.overflow = '';
     if (location.hash === '#agendar') history.pushState(null, '', location.pathname + location.search);
   };
 
   useEffect(() => {
     const sync = () => {
-      const want = location.hash === '#agendar';
-      if (want && !bookOpenRef.current) {
-        openBook(null);
-      } else if (!want && bookOpenRef.current) {
-        bookOpenRef.current = false;
-        setBookOpen(false);
-        setPayOpen(false);
-        document.body.style.overflow = '';
-      }
+      if (location.hash === '#agendar' && !bookOpenRef.current) openBook(null);
+      else if (location.hash !== '#agendar' && bookOpenRef.current) closeBook();
     };
     window.addEventListener('hashchange', sync);
     window.addEventListener('popstate', sync);
@@ -120,9 +152,33 @@ export function useBookingFlow() {
     return () => {
       window.removeEventListener('hashchange', sync);
       window.removeEventListener('popstate', sync);
+      clearSequence();
+      document.body.style.overflow = '';
+      bookOpenRef.current = false;
     };
+    // Routing listeners use refs so they always see the current animation state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const bkConfirm = () => setPhase('stamp');
+  const stampLanded = () => {
+    if (phaseRef.current !== 'stamp') return;
+    setBkStamped(true);
+    schedule(() => {
+      fastRef.current = true;
+      setBkFast(true);
+      setPhase('closing');
+      bkJump(0);
+      schedule(() => {
+        setPhase('gone');
+        schedule(() => {
+          fastRef.current = false;
+          setBkFast(false);
+          setPhase('final');
+        }, 900);
+      }, 1900);
+    }, 1000);
+  };
 
   // Cart mutations
   const updateCart = (fn: (rows: CartLine[]) => CartLine[]) => setCart((rows) => fn(rows.map((r) => ({ ...r, a: [...r.a] }))));
@@ -221,7 +277,7 @@ export function useBookingFlow() {
       // clipboard unavailable, ignore
     }
     setPixCopied(true);
-    setTimeout(() => setPixCopied(false), 1800);
+    schedule(() => setPixCopied(false), 1800);
   };
 
   const paySubmit = () => {
@@ -236,35 +292,53 @@ export function useBookingFlow() {
     setPayBusy(true);
     setPayError('');
     const method = payMethod;
-    setTimeout(
+    schedule(
       () => {
         setPayBusy(false);
         setPayOpen(false);
         setPaidWith(method);
-        setTimeout(() => bkGo(1), 250);
+        schedule(bkConfirm, 300);
       },
       method === 'local' ? 500 : 1500,
     );
   };
 
   const bkReset = () => {
-    bkJump(0);
-    setTimeout(() => {
-      setBkMax(0);
-      setCart([]);
-      setExtraIdx([]);
-      setDay(null);
-      setTime(null);
-      setName('');
-      setPhone('');
-      setEmail('');
-      setNote('');
-      setPaidWith(null);
-    }, 3200);
+    clearSequence();
+    bkSRef.current = 0;
+    setBkS(0);
+    setBkFlip(-1);
+    setBkMax(0);
+    setBkPhase(null);
+    setBkStamped(false);
+    setBkFast(false);
+    setCart([]);
+    setExtraIdx([]);
+    setDay(null);
+    setTime(null);
+    setMonthOffset(0);
+    setName('');
+    setPhone('');
+    setEmail('');
+    setNote('');
+    setPaidWith(null);
+    setPayOpen(false);
+    setPayBusy(false);
+    setPayError('');
+    setCardNumState('');
+    setCardName('');
+    setCardExp('');
+    setCardCvv('');
+    setCardInst('1');
+    autoOpen(2700);
   };
 
   return {
     bookOpen,
+    bkPhase,
+    bkStamped,
+    bkFast,
+    stampLanded,
     bkS,
     bkFlip,
     bkMax,
