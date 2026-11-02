@@ -273,9 +273,12 @@
   }
 }
 
-.carouselDisplay { width: 100%; }
-.zoomControls { display: none; align-items: center; justify-content: center; gap: 12px; font-size: 13px; }
+.carouselDisplay { position: relative; isolation: isolate; width: 100%; }
+.zoomControls { position: relative; z-index: 2; display: none; align-items: center; justify-content: center; gap: 12px; font-size: 13px; }
 .zoomToggle { border: 1.5px solid #161515; border-radius: 6px; padding: 7px 12px; background: #fefefe; color: #161515; font: 14px 'Riccione Serial', Georgia, serif; cursor: pointer; }
 .zoomToggle:focus-visible { outline: 3px solid #161515; outline-offset: 3px; }
-@media (max-width: 640px) { .zoomControls { display: flex; } }
+@media (max-width: 640px) {
+  .ringViewport { z-index: 0; }
+  .zoomControls { display: flex; padding-top: 32px; }
+}
 @media (prefers-reduced-motion: reduce) { .ringViewport { transition: none; } }

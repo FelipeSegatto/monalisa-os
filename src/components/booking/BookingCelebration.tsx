@@ -14,14 +14,16 @@ export function BookingCelebration() {
     const el = ref.current;
     if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const colors = ['#F5B800', '#FF3B4E', '#2F1CFF', '#FF3D7F', '#00C0F2', '#161515', '#FEFEFE'];
-    const pieces = Array.from({ length: 160 }, (_, i) => {
+    const particleCount = 200;
+    const viewportHeight = el.clientHeight;
+    const pieces = Array.from({ length: particleCount }, (_, i) => {
       const piece = document.createElement('span');
       const w = 7 + Math.random() * 9;
-      piece.style.cssText = `position:absolute;left:${(i + Math.random()) / 160 * 100}%;top:${35 + Math.random() * 25}%;width:${w}px;height:${w * (.4 + Math.random() * .9)}px;background:${colors[i % colors.length]};border:1px solid #161515;border-radius:${Math.random() < .3 ? '50%' : '1px'};pointer-events:none;z-index:5`;
+      piece.style.cssText = `position:absolute;left:${(i + Math.random()) / particleCount * 100}%;top:${35 + Math.random() * 25}%;width:${w}px;height:${w * (.4 + Math.random() * .9)}px;background:${colors[i % colors.length]};border:1px solid #161515;border-radius:${Math.random() < .3 ? '50%' : '1px'};pointer-events:none;z-index:5`;
       piece.setAttribute('aria-hidden', 'true');
       // Spread the burst across the viewport, then let each piece fall with gravity.
       const angle = -Math.PI / 2 + (Math.random() - .5) * Math.PI * 1.1;
-      const speed = (340 + Math.random() * 300) * Math.min(1.5, el.clientHeight / 850);
+      const speed = (340 + Math.random() * 300) * Math.min(1.5, viewportHeight / 850);
       const vx = Math.cos(angle) * speed;
       const vy = Math.sin(angle) * speed;
       const duration = 2200 + Math.random() * 1200;

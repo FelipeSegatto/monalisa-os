@@ -149,3 +149,6 @@
     transform: translateX(-50%) translateY(0) scale(1) rotate(var(--r));
   }
 }
+
+.hint { max-width: 1320px; margin: 0 auto 28px; text-align: center; font: 14px 'Riccione Serial', Georgia, serif; letter-spacing: .025em; color: #161515; }
+.item:focus-visible { outline: 2px solid #161515; outline-offset: 8px; border-radius: 6px; }

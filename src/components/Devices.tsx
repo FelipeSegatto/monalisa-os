@@ -97,6 +97,7 @@ export function Devices() {
 
   return (
     <section className={styles.devices}>
+      <p className={styles.hint}>{isMobile ? 'toque para conhecer' : 'clique para conhecer'}</p>
       <div
         className={styles.grid}
         onPointerDown={handlePointerDown}
@@ -111,6 +112,13 @@ export function Devices() {
             <div
               key={d.name}
               className={styles.item}
+              role="button"
+              tabIndex={0}
+              aria-label={`Conhecer ${d.name}`}
+              aria-expanded={devTip === i}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); click(i); }
+              }}
               onMouseEnter={() => spin(i)}
               onMouseLeave={leave}
               onClick={() => click(i)}
