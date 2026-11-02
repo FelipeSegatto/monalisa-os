@@ -28,7 +28,7 @@ export function TimeSlotsPage() {
   const weekday = day != null ? WEEK[weekdayOf(calYear, calMonth, day)] : '';
 
   return (
-    <PageShell side="right" bg="#EEEEEE" color="#161515">
+    <PageShell side="right" bg="#F7F2E7" color="#161515">
       {day != null ? (
         <>
           <div

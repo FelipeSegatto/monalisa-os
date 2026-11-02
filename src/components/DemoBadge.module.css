@@ -1,0 +1,47 @@
+.badge {
+  position: fixed;
+  left: 14px;
+  bottom: 14px;
+  z-index: 500;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 14px;
+  background: #161515;
+  border: 3px double #f5b800;
+  border-radius: 8px;
+  color: #f5b800;
+  font-family: 'Riccione Serial', Georgia, serif;
+  transform: rotate(-6deg);
+  box-shadow: 3px 3px 0 rgba(22, 21, 21, 0.25);
+}
+
+.big {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+
+.small {
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .badge {
+    left: 10px;
+    bottom: 10px;
+    padding: 6px 10px;
+  }
+  .big {
+    font-size: 13px;
+  }
+  .small {
+    font-size: 9px;
+  }
+}

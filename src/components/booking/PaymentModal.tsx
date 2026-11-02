@@ -80,6 +80,10 @@ export function PaymentModal() {
             </button>
           </div>
 
+          <div className={styles.demoNotice}>
+            <b>Isso é uma demonstração.</b> Nenhuma cobrança real é feita — use dados fictícios (não digite número de cartão real).
+          </div>
+
           <div className={styles.tabs}>
             {PAY_TABS.map((tab) => (
               <button
@@ -125,7 +129,7 @@ export function PaymentModal() {
                     inputMode="numeric"
                     value={cardNum}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setCardNum(e.target.value)}
-                    placeholder="0000 0000 0000 0000"
+                    placeholder="0000 0000 0000 0000 (fictício)"
                     className={styles.input}
                     style={{ paddingRight: 96 }}
                   />

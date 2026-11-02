@@ -5,13 +5,32 @@ import type { CatalogItem } from '../data/catalog';
 import { DetailPage } from './DetailPage';
 import { tearPage } from '../lib/paperTear';
 import { useBooking } from '../context/BookingContext';
-import textura from '../assets/images/textura-papel.png';
+import textura from '../assets/images/booking-paper-grain.svg';
 import styles from './Catalog.module.css';
 
 const N = CATALOG_ITEMS.length;
 const FACE_W = 240;
 const RING_RADIUS = Math.round(FACE_W / 2 / Math.tan(Math.PI / N)) + 4;
 const DRAG_FACTOR = 0.35;
+
+interface CtaGroupProps {
+  onBook: (e: ReactMouseEvent<HTMLAnchorElement>) => void;
+  onLearnMore: () => void;
+  className?: string;
+}
+
+function CtaGroup({ onBook, onLearnMore, className }: CtaGroupProps) {
+  return (
+    <div className={`${styles.ctaGroup} ${className ?? ''}`}>
+      <a href="#agendar" className={styles.bookButton} onClick={onBook}>
+        BOOK NOW
+      </a>
+      <button type="button" className={styles.learnMore} onClick={onLearnMore}>
+        Saiba mais
+      </button>
+    </div>
+  );
+}
 
 export function Catalog() {
   const [step, setStep] = useState(0);
@@ -91,7 +110,7 @@ export function Catalog() {
       <div
         aria-hidden="true"
         className={styles.texture}
-        style={{ backgroundImage: `url(${textura})` }}
+        style={{ backgroundImage: `url("${textura}")` }}
       />
 
       <div className={styles.inner}>
@@ -157,6 +176,15 @@ export function Catalog() {
               →
             </button>
           </div>
+
+          <CtaGroup
+            className={styles.ctaCarousel}
+            onBook={(e) => {
+              e.preventDefault();
+              openBook(active);
+            }}
+            onLearnMore={() => openDetail(current)}
+          />
         </div>
 
         <div className={styles.infoColumn}>
@@ -190,22 +218,18 @@ export function Catalog() {
           <p className={styles.description}>{current.desc}</p>
 
           <div className={styles.priceRow}>
-            <span className={styles.price}>{current.price}</span>
-            <div className={styles.ctaGroup}>
-              <a
-                href="#agendar"
-                className={styles.bookButton}
-                onClick={(e: ReactMouseEvent<HTMLAnchorElement>) => {
-                  e.preventDefault();
-                  openBook(active);
-                }}
-              >
-                BOOK NOW
-              </a>
-              <button type="button" className={styles.learnMore} onClick={() => openDetail(current)}>
-                Saiba mais
-              </button>
-            </div>
+            <span className={styles.price}>
+              {current.price.split('R$')[0].trim()}{' '}
+              <span className={styles.priceValue}>R$ {current.price.split('R$')[1]?.trim()}</span>
+            </span>
+            <CtaGroup
+              className={styles.ctaInfo}
+              onBook={(e) => {
+                e.preventDefault();
+                openBook(active);
+              }}
+              onLearnMore={() => openDetail(current)}
+            />
           </div>
         </div>
       </div>

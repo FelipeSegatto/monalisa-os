@@ -27,7 +27,7 @@ export function CalendarPage() {
   const cellCount = Math.ceil((startWeekday + total) / 7) * 7;
 
   return (
-    <PageShell side="left" bg="#EEEEEE" color="#161515">
+    <PageShell side="left" bg="#F7F2E7" color="#161515">
       <img src={bkCouple} alt="" style={{ position: 'absolute', right: '1.5cqw', top: '3cqw', width: '19cqw', display: 'block' }} />
 
       <div style={{ position: 'relative', marginTop: '6.4cqw', marginRight: '3cqw', display: 'flex', alignItems: 'center', gap: '.4cqw' }}>
