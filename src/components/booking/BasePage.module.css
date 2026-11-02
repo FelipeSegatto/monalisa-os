@@ -1,0 +1,58 @@
+.stamp {
+  position: relative;
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-weight: 700;
+  font-size: 4.4cqw;
+  letter-spacing: 0.08em;
+  color: #f6b900;
+  border: 0.6cqw double #f6b900;
+  padding: 1.2cqw 2.4cqw;
+  border-radius: 1cqw;
+  animation: stampIn 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) 0.9s both;
+}
+
+@keyframes stampIn {
+  0% {
+    opacity: 0;
+    transform: scale(2.2) rotate(-4deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(0.94) rotate(-12deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-12deg);
+  }
+}
+
+.backButton {
+  position: relative;
+  margin-top: 3cqw;
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-size: max(13px, 1.8cqw);
+  padding: 1cqw 2cqw;
+  border: 2px solid #161515;
+  border-radius: 4px;
+  background: #fefefe;
+  color: #161515;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #161515;
+  transition: background-color 0.15s ease;
+}
+
+.backButton:hover {
+  background: #f5b800;
+}
+
+.resetButton {
+  position: relative;
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-size: max(12px, 1.5cqw);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fefefe;
+  cursor: pointer;
+  text-decoration: underline;
+}

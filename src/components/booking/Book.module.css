@@ -1,0 +1,234 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  overflow: auto;
+  background: #eeeeee;
+  font-family: 'Riccione Serial', Georgia, serif;
+  color: #161515;
+}
+
+.topbar {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+}
+
+.backButton {
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-size: 18px;
+  padding: 8px 16px;
+  border: 2px solid #161515;
+  border-radius: 6px;
+  background: #fefefe;
+  color: #161515;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #161515;
+  transition: background-color 0.15s ease;
+}
+
+.backButton:hover {
+  background: #f5b800;
+}
+
+.brand {
+  font-family: 'Delikaaat', cursive;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.wrapper {
+  position: relative;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: clamp(12px, 3vw, 40px) clamp(40px, 5vw, 64px) 60px clamp(12px, 3vw, 40px);
+  box-sizing: border-box;
+}
+
+.book {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1262 / 838;
+  perspective: 2400px;
+  container-type: inline-size;
+  transition: transform 0.7s cubic-bezier(0.45, 0.05, 0.3, 1);
+}
+
+.base {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 50%;
+  height: 100%;
+  z-index: 1;
+  transition: opacity 0.4s;
+}
+
+.baseInner {
+  position: absolute;
+  inset: 0;
+  background: #321fee;
+  color: #fefefe;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3cqw;
+  padding: 4cqw;
+  box-sizing: border-box;
+}
+
+.leaf {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 50%;
+  height: 100%;
+  transform-origin: 0 50%;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.45, 0.05, 0.3, 1);
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  isolation: isolate;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.faceBack {
+  transform: rotateY(180deg);
+}
+
+.pageRight {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  padding: 5cqw 4.6cqw 4cqw;
+  display: flex;
+  flex-direction: column;
+}
+
+.pageLeft {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  padding: 5cqw 4cqw 4cqw;
+  display: flex;
+  flex-direction: column;
+}
+
+.spineRight {
+  position: absolute;
+  inset: 0;
+  z-index: 21;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0) 7%);
+}
+
+.spineLeft {
+  position: absolute;
+  inset: 0;
+  z-index: 21;
+  pointer-events: none;
+  background: linear-gradient(270deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0) 7%);
+}
+
+.spineCover {
+  position: absolute;
+  inset: 0;
+  z-index: 21;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0) 5%);
+}
+
+.pageTexture {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  background-size: 450px 450px;
+  mix-blend-mode: multiply;
+  opacity: 0.45;
+}
+
+.coverTexture {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  background-size: 450px 450px;
+  mix-blend-mode: multiply;
+  opacity: 0.12;
+}
+
+.navRow {
+  position: relative;
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.6cqw;
+}
+
+.navRowEnd {
+  position: relative;
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1.6cqw;
+}
+
+.navBtn {
+  width: 4.6cqw;
+  height: 4.6cqw;
+  min-width: 40px;
+  min-height: 40px;
+  flex: none;
+  border: 2px solid #161515;
+  border-radius: 6px;
+  background: #fefefe;
+  color: #161515;
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-size: max(18px, 2.2cqw);
+  cursor: pointer;
+  box-shadow: 0 2px 0 #161515;
+  transition: background-color 0.15s ease;
+}
+
+.navBtn:hover {
+  background: #f5b800;
+}
+
+.followLabel {
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-size: max(12px, 1.6cqw);
+}
+
+.tabs {
+  position: absolute;
+  top: 12%;
+  right: -20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 60;
+  transition: opacity 0.4s;
+}
+
+.tab {
+  writing-mode: vertical-rl;
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-size: clamp(11px, 1.2vw, 15px);
+  padding: 14px 6px;
+  border: 2px solid #161515;
+  border-left: 0;
+  border-radius: 0 6px 6px 0;
+  color: #161515;
+  transition: transform 0.3s, border-width 0.2s, box-shadow 0.2s;
+}

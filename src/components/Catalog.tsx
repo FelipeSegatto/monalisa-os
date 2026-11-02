@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react';
-import type { PointerEvent as ReactPointerEvent } from 'react';
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
 import { CATALOG_ITEMS, soften } from '../data/catalog';
 import type { CatalogItem } from '../data/catalog';
 import { DetailPage } from './DetailPage';
 import { tearPage } from '../lib/paperTear';
+import { useBooking } from '../context/BookingContext';
 import textura from '../assets/images/textura-papel.png';
 import styles from './Catalog.module.css';
 
@@ -21,6 +22,7 @@ export function Catalog() {
   const moved = useRef(false);
 
   const [detailItem, setDetailItem] = useState<CatalogItem | null>(null);
+  const { openBook } = useBooking();
 
   const active = ((step % N) + N) % N;
   const current = CATALOG_ITEMS[active];
@@ -190,7 +192,14 @@ export function Catalog() {
           <div className={styles.priceRow}>
             <span className={styles.price}>{current.price}</span>
             <div className={styles.ctaGroup}>
-              <a href="#agendar" className={styles.bookButton}>
+              <a
+                href="#agendar"
+                className={styles.bookButton}
+                onClick={(e: ReactMouseEvent<HTMLAnchorElement>) => {
+                  e.preventDefault();
+                  openBook(active);
+                }}
+              >
                 BOOK NOW
               </a>
               <button type="button" className={styles.learnMore} onClick={() => openDetail(current)}>

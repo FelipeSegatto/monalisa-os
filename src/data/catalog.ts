@@ -19,6 +19,12 @@ import ultrassomStar from '../assets/images/carinha-monalisa.png';
 import ladyBody from '../assets/images/mulher-plus-mona.svg';
 import peelingStar from '../assets/images/estrela-monalisa.png';
 
+export interface AreaOption {
+  name: string;
+  /** null = "sob avaliação" (no fixed price, needs a quote). */
+  price: number | null;
+}
+
 export interface CatalogItem {
   name: string;
   price: string;
@@ -51,12 +57,14 @@ export interface CatalogItem {
   body: string;
   /** Detail page: "O que esperar" bullets. */
   bullets: [string, string];
+  /** Booking flow: areas/options that can be chosen for this procedure, each with its own price; the first is pre-selected. */
+  areas: AreaOption[];
 }
 
 export const CATALOG_ITEMS: CatalogItem[] = [
   {
     name: 'Depilação a laser',
-    price: 'a partir de R$ 189',
+    price: 'a partir de R$ 50',
     desc: 'Redução dos pelos com laser, segura para todos os tons de pele.',
     image: depilacaoLaser,
     bg: '#8650D8',
@@ -69,10 +77,25 @@ export const CATALOG_ITEMS: CatalogItem[] = [
     intro: 'Pele livre de pelos, sem desconforto.',
     body: 'Sessões de depilação a laser seguras para todos os tons de pele, com tecnologia que respeita cada tipo de corpo e cada identidade.',
     bullets: ['Resultados visíveis já nas primeiras sessões', 'Atendimento individual, sem julgamentos'],
+    areas: [
+      { name: 'pernas', price: 300 },
+      { name: 'meia perna', price: 190 },
+      { name: 'axilas', price: 90 },
+      { name: 'virilha', price: 120 },
+      { name: 'buço', price: 50 },
+      { name: 'barba', price: 90 },
+      { name: 'rosto', price: 100 },
+      { name: 'braços', price: 200 },
+      { name: 'costas', price: 220 },
+      { name: 'peitoral', price: 200 },
+      { name: 'glúteos', price: 120 },
+      { name: 'íntima', price: 100 },
+      { name: 'perianal', price: 80 },
+    ],
   },
   {
     name: 'Remoção de tatuagem',
-    price: 'a partir de R$ 350',
+    price: 'a partir de R$ 100',
     desc: 'Clareamento gradual da tinta da tatuagem com laser, em sessões.',
     image: remocaoTatuagem,
     bg: '#FF3B4E',
@@ -86,10 +109,18 @@ export const CATALOG_ITEMS: CatalogItem[] = [
     intro: 'Nova página, no seu ritmo.',
     body: 'Clareamento gradual da tinta da tatuagem com laser, em sessões espaçadas para preservar a saúde da pele.',
     bullets: ['Avaliação personalizada antes de começar', 'Protocolo indolor e acompanhado de perto'],
+    areas: [
+      { name: '0 a 5cm', price: 100 },
+      { name: '5 a 10cm', price: 190 },
+      { name: '10 a 15cm', price: 260 },
+      { name: '15 a 20cm', price: 320 },
+      { name: '20 a 30cm', price: 380 },
+      { name: 'maior que 30cm', price: null },
+    ],
   },
   {
     name: 'Ultrassom microfocado',
-    price: 'a partir de R$ 1.200',
+    price: 'a partir de R$ 600',
     desc: 'Estímulo de colágeno nas camadas profundas da pele, para firmeza e efeito lifting.',
     image: ultrassomMicrofocado,
     bg: '#FF3D7F',
@@ -104,10 +135,18 @@ export const CATALOG_ITEMS: CatalogItem[] = [
     intro: 'Firmeza que vem de dentro.',
     body: 'Estímulo de colágeno nas camadas profundas da pele, para firmeza e efeito lifting sem procedimentos invasivos.',
     bullets: ['Efeito lifting natural, sem cortes', 'Resultados que evoluem nas semanas seguintes'],
+    areas: [
+      { name: 'terço superior', price: 600 },
+      { name: 'arqueamento de sobrancelhas', price: 600 },
+      { name: 'papada', price: 900 },
+      { name: 'pescoço', price: 900 },
+      { name: 'full face', price: 1600 },
+      { name: 'full face e pescoço', price: 2000 },
+    ],
   },
   {
     name: 'Criolipólise',
-    price: 'a partir de R$ 490',
+    price: 'a partir de R$ 300',
     desc: 'Redução de gordura localizada por resfriamento controlado, sem cortes.',
     image: criolipolise,
     bg: '#EEEEEE',
@@ -121,6 +160,14 @@ export const CATALOG_ITEMS: CatalogItem[] = [
     intro: 'Gordura localizada, resfriada.',
     body: 'Redução de gordura localizada por resfriamento controlado, sem cortes e sem tempo de recuperação.',
     bullets: ['Sem cirurgia, sem cicatrizes', 'Ideal para áreas resistentes a dieta e exercício'],
+    areas: [
+      { name: 'abdômen', price: 300 },
+      { name: 'flancos', price: 300 },
+      { name: 'culote', price: 300 },
+      { name: 'braços', price: 300 },
+      { name: 'papada', price: 300 },
+      { name: 'costas', price: 300 },
+    ],
   },
   {
     name: 'Peeling de carbono',
@@ -138,11 +185,12 @@ export const CATALOG_ITEMS: CatalogItem[] = [
     intro: 'Pele renovada, poro a poro.',
     body: 'Limpeza profunda com carvão e laser para poros, oleosidade e luminosidade da pele.',
     bullets: ['Resultado visível logo na primeira sessão', 'Indicado para peles oleosas e com poros dilatados'],
+    areas: [{ name: 'rosto', price: 280 }],
   },
   {
     name: 'Clareamento',
     price: 'a partir de R$ 220',
-    desc: 'Uniformização de manchas e do tom da pele em áreas como axilas, virilha e rosto.',
+    desc: 'Uniformização de manchas e do tom da pele em axilas, virilha e região íntima.',
     image: clareamento,
     bg: '#3A22E8',
     face: '#FF3B4E',
@@ -152,8 +200,13 @@ export const CATALOG_ITEMS: CatalogItem[] = [
     illus: ladyBody,
     illusAR: '132 / 329',
     intro: 'Uniformidade sem julgamento.',
-    body: 'Uniformização de manchas e do tom da pele em áreas como axilas, virilha e rosto, com acompanhamento dedicado.',
+    body: 'Uniformização de manchas e do tom da pele em axilas, virilha e região íntima, com acompanhamento dedicado.',
     bullets: ['Protocolo seguro para peles sensíveis', 'Resultado gradual e natural'],
+    areas: [
+      { name: 'axilas', price: 220 },
+      { name: 'virilha', price: 220 },
+      { name: 'região íntima', price: 220 },
+    ],
   },
 ];
 

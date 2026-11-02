@@ -4,17 +4,22 @@ import { Welcome } from './components/Welcome';
 import { Catalog } from './components/Catalog';
 import { MonalisaBanner } from './components/MonalisaBanner';
 import { Devices } from './components/Devices';
+import { BookingProvider } from './context/BookingContext';
+import { BookingOverlay } from './components/booking/BookingOverlay';
 
 function App() {
   return (
-    <div className="page">
-      <Nav />
-      <Hero />
-      <Welcome />
-      <Catalog />
-      <MonalisaBanner />
-      <Devices />
-    </div>
+    <BookingProvider>
+      <div className="page">
+        <Nav />
+        <Hero />
+        <Welcome />
+        <Catalog />
+        <MonalisaBanner />
+        <Devices />
+      </div>
+      <BookingOverlay />
+    </BookingProvider>
   );
 }
 

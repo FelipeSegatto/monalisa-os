@@ -1,7 +1,9 @@
+import type { MouseEvent as ReactMouseEvent } from 'react';
 import type { CatalogItem } from '../data/catalog';
-import { soften } from '../data/catalog';
+import { CATALOG_ITEMS, soften } from '../data/catalog';
 import { CollageTitle } from './CollageTitle';
 import { IllustrationRing } from './IllustrationRing';
+import { useBooking } from '../context/BookingContext';
 import paperTexture from '../assets/images/textura-papel.png';
 import styles from './DetailPage.module.css';
 
@@ -13,6 +15,14 @@ interface DetailPageProps {
 }
 
 export function DetailPage({ item, onClose, withTear = true }: DetailPageProps) {
+  const { openBook } = useBooking();
+
+  const handleBookNow = (e: ReactMouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    onClose();
+    openBook(CATALOG_ITEMS.indexOf(item));
+  };
+
   return (
     <div className={styles.overlay} style={{ background: item.detailBg ?? soften(item.bg), color: item.ink }}>
       <div className={styles.texture} style={{ backgroundImage: `url(${paperTexture})` }} />
@@ -35,8 +45,12 @@ export function DetailPage({ item, onClose, withTear = true }: DetailPageProps) 
 
         <div className={styles.textColumn}>
           <div className={styles.titleRow}>
-            <CollageTitle text={item.name} titleDiv={item.titleDiv} baseDelay={withTear ? 0.95 : 0.25} />
-            <a href="#agendar" className={styles.bookButton}>
+            <CollageTitle
+              text={item.name}
+              fontSize={`min(84px, calc(100cqi / ${item.titleDiv ?? item.name.length * 0.78 + 0.6}))`}
+              baseDelay={withTear ? 0.95 : 0.25}
+            />
+            <a href="#agendar" className={styles.bookButton} onClick={handleBookNow}>
               BOOK NOW
             </a>
           </div>

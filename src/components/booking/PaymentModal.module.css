@@ -1,0 +1,218 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: rgba(22, 21, 21, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  max-width: 880px;
+  background: #fefefe;
+  color: #161515;
+  border: 2px solid #161515;
+  border-radius: 10px;
+  box-shadow: 8px 8px 0 #161515;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  overflow: hidden;
+  font-family: 'Riccione Serial', Georgia, serif;
+}
+
+.left {
+  padding: 28px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.subtitle {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.closeBtn {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #161515;
+  border-radius: 6px;
+  background: #fefefe;
+  font-size: 20px;
+  cursor: pointer;
+  flex: none;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 2px solid #161515;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.tab {
+  font-size: 15px;
+  padding: 12px 6px;
+  border: 0;
+  border-right: 1px solid #161515;
+  cursor: pointer;
+  font-family: 'Riccione Serial', Georgia, serif;
+}
+
+.tab:last-child {
+  border-right: 0;
+}
+
+.qr {
+  width: 168px;
+  height: 168px;
+  flex: none;
+  border: 2px solid #161515;
+  border-radius: 6px;
+  background: repeating-conic-gradient(#161515 0 25%, #fefefe 0 50%) 0 0 / 16px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qrLabel {
+  background: #fefefe;
+  font-size: 12px;
+  padding: 4px 8px;
+  border: 1.5px solid #161515;
+}
+
+.pixInput {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-size: 13px;
+  padding: 10px;
+  border: 2px solid #161515;
+  border-radius: 6px;
+  background: #fefefe;
+  color: #161515;
+  outline: none;
+}
+
+.copyBtn {
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-size: 14px;
+  padding: 0 14px;
+  border: 2px solid #161515;
+  border-radius: 6px;
+  background: #f6b900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-size: 17px;
+  padding: 12px 14px;
+  border: 2px solid #161515;
+  border-radius: 6px;
+  background: #fefefe;
+  color: #161515;
+  outline: none;
+}
+
+.brand {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: 700;
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.localBox {
+  font-size: 15px;
+  line-height: 1.45;
+  border: 2px dashed #161515;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.error {
+  font-size: 13px;
+  color: #c8102e;
+}
+
+.cta {
+  font-family: 'Riccione Serial', Georgia, serif;
+  font-size: 19px;
+  padding: 15px;
+  border: 2px solid #161515;
+  border-radius: 6px;
+  background: #161515;
+  color: #eeeeee;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.cta:hover {
+  background: #ff394a;
+  color: #161515;
+}
+
+.right {
+  position: relative;
+  background: #eeeeee;
+  border-left: 2px solid #161515;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 15px;
+}
+
+.totalRow {
+  margin-top: auto;
+  border-top: 2px solid #161515;
+  padding-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.texture {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-size: 450px 450px;
+  mix-blend-mode: multiply;
+  opacity: 0.45;
+}

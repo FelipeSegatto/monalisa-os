@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ElementType } from 'react';
 import styles from './CollageTitle.module.css';
 
 const COLLAGE: Array<[string, string]> = [
@@ -22,23 +22,24 @@ interface LetterStyle extends CSSProperties {
 
 interface CollageTitleProps {
   text: string;
-  /** Column-width divisor for font-size: min(84px, 100cqi / titleDiv). */
-  titleDiv?: number;
+  /** CSS font-size value, e.g. "min(84px, calc(100cqi / 10))" or "5.4cqw". */
+  fontSize: string;
   /** Seconds before the first letter starts falling in. */
   baseDelay: number;
+  as?: ElementType;
+  className?: string;
 }
 
-export function CollageTitle({ text, titleDiv, baseDelay }: CollageTitleProps) {
-  const div = titleDiv ?? text.length * 0.78 + 0.6;
+export function CollageTitle({ text, fontSize, baseDelay, as: As = 'h1', className }: CollageTitleProps) {
   let letterIndex = 0;
 
   return (
-    <h1 className={styles.title} style={{ fontSize: `min(84px, calc(100cqi / ${div}))` }}>
+    <As className={[styles.title, className].filter(Boolean).join(' ')} style={{ fontSize }} aria-label={text}>
       {text.split('').map((ch, charIndex) => {
         if (ch === ' ') {
           return (
-            <span key={charIndex} className={styles.space}>
-              {' '}
+            <span key={charIndex} className={styles.space} aria-hidden="true">
+              {' '}
             </span>
           );
         }
@@ -58,11 +59,11 @@ export function CollageTitle({ text, titleDiv, baseDelay }: CollageTitleProps) {
         };
 
         return (
-          <span key={charIndex} className={styles.letter} style={style}>
+          <span key={charIndex} className={styles.letter} style={style} aria-hidden="true">
             {ch}
           </span>
         );
       })}
-    </h1>
+    </As>
   );
 }
