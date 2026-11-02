@@ -4,6 +4,7 @@ import { Welcome } from './components/Welcome';
 import { Catalog } from './components/Catalog';
 import { MonalisaBanner } from './components/MonalisaBanner';
 import { Devices } from './components/Devices';
+import { DemoBadge } from './components/DemoBadge';
 import { BookingProvider } from './context/BookingContext';
 import { BookingOverlay } from './components/booking/BookingOverlay';
 
@@ -19,6 +20,7 @@ function App() {
         <Devices />
       </div>
       <BookingOverlay />
+      <DemoBadge />
     </BookingProvider>
   );
 }
