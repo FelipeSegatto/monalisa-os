@@ -1,3 +1,5 @@
+import { AccountProvider } from './context/AccountProvider';
+import { AccountModal } from './components/account/AccountModal';
 import { Nav } from './components/Nav';
 import { Hero } from './components/Hero';
 import { Welcome } from './components/Welcome';
@@ -10,18 +12,21 @@ import { BookingOverlay } from './components/booking/BookingOverlay';
 
 function App() {
   return (
-    <BookingProvider>
-      <div className="page">
-        <Nav />
-        <Hero />
-        <Welcome />
-        <Catalog />
-        <MonalisaBanner />
-        <Devices />
-      </div>
-      <BookingOverlay />
-      <DemoBadge />
-    </BookingProvider>
+    <AccountProvider>
+      <BookingProvider>
+        <div className="page">
+          <Nav />
+          <Hero />
+          <Welcome />
+          <Catalog />
+          <MonalisaBanner />
+          <Devices />
+        </div>
+        <BookingOverlay />
+        <AccountModal />
+        <DemoBadge />
+      </BookingProvider>
+    </AccountProvider>
   );
 }
 

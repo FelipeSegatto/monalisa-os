@@ -15,7 +15,7 @@ import detailPeeling from '../assets/images/peeling-img.png';
 import laserGuy from '../assets/images/homem-musculoso.svg';
 import tattooLady from '../assets/images/mulher-pose-monalisa-pb.svg';
 import crioLady from '../assets/images/mulher-deitada-monalisa.png';
-import ultrassomStar from '../assets/images/carinha-monalisa.png';
+import ultrassomMan from '../assets/images/homem-sentado-mona.svg';
 import ladyBody from '../assets/images/mulher-plus-mona.svg';
 import peelingStar from '../assets/images/estrela-monalisa.png';
 
@@ -129,8 +129,8 @@ export const CATALOG_ITEMS: CatalogItem[] = [
     ink: '#161515',
     detailPhoto: detailUltrassom,
     detailBg: '#E65889',
-    illus: ultrassomStar,
-    illusAR: '119 / 136',
+    illus: ultrassomMan,
+    illusAR: '1047 / 696',
     titleDiv: 14,
     intro: 'Firmeza que vem de dentro.',
     body: 'Estímulo de colágeno nas camadas profundas da pele, para firmeza e efeito lifting sem procedimentos invasivos.',

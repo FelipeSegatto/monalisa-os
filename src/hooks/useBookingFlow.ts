@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useAccount } from '../context/AccountContext';
 import { CATALOG_ITEMS } from '../data/catalog';
 import { EXTRAS, lineBreakdown } from '../data/booking';
 import type { CartLine } from '../data/booking';
@@ -14,6 +15,7 @@ const BASE_YEAR = 2026;
 const BASE_MONTH = 10; // November (0-indexed)
 
 export function useBookingFlow() {
+  const { user } = useAccount();
   const [bookOpen, setBookOpen] = useState(false);
   const [bkS, setBkS] = useState(0);
   const [bkFlip, setBkFlip] = useState(-1);
@@ -33,6 +35,14 @@ export function useBookingFlow() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [note, setNote] = useState('');
+
+  useEffect(() => {
+    if (!user) return;
+    // Only fill empty fields. Reservation edits never change the account profile.
+    setName((current) => current || user.name);
+    setPhone((current) => current || user.phone);
+    setEmail((current) => current || user.email);
+  }, [user]);
 
   const [payOpen, setPayOpen] = useState(false);
   const [payMethod, setPayMethod] = useState<PayMethod>('pix');
@@ -321,6 +331,7 @@ export function useBookingFlow() {
     setPhone('');
     setEmail('');
     setNote('');
+    if (user) { setName(user.name); setPhone(user.phone); setEmail(user.email); }
     setPaidWith(null);
     setPayOpen(false);
     setPayBusy(false);
