@@ -43,6 +43,7 @@ export function Catalog() {
   const dragStartX = useRef<number | null>(null);
   const dragStartY = useRef<number | null>(null);
   const moved = useRef(false);
+  const touchGesture = useRef(false);
 
   const [detailItem, setDetailItem] = useState<CatalogItem | null>(null);
   const { openBook } = useBooking();
@@ -76,6 +77,7 @@ export function Catalog() {
   const handlePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
     if (e.pointerType === 'mouse') e.preventDefault();
+    touchGesture.current = e.pointerType === 'touch';
     dragStartX.current = e.clientX;
     dragStartY.current = e.clientY;
     moved.current = false;
@@ -89,7 +91,10 @@ export function Catalog() {
     const dx = e.clientX - dragStartX.current;
     const dy = e.clientY - (dragStartY.current ?? e.clientY);
     if (Math.hypot(dx, dy) > 8) moved.current = true;
-    if (Math.abs(dx) > Math.abs(dy)) setDrag(dx * DRAG_FACTOR);
+    if (Math.abs(dx) > Math.abs(dy)) {
+      const rotation = dx * (touchGesture.current ? .85 : DRAG_FACTOR);
+      setDrag(touchGesture.current ? Math.max(-60, Math.min(60, rotation)) : rotation);
+    }
   };
 
   const clearDrag = () => {
@@ -103,9 +108,9 @@ export function Catalog() {
     if (dragStartX.current === null) return;
     const dx = e.clientX - dragStartX.current;
     const dy = e.clientY - (dragStartY.current ?? e.clientY);
-    const horizontal = moved.current && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 12;
+    const horizontal = moved.current && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > (touchGesture.current ? 10 : 12);
     if (horizontal) {
-      const steps = -Math.round((dx * DRAG_FACTOR) / (360 / N)) || (dx < 0 ? 1 : -1);
+      const steps = touchGesture.current ? (dx < 0 ? 1 : -1) : -Math.round((dx * DRAG_FACTOR) / (360 / N)) || (dx < 0 ? 1 : -1);
       setStep((s) => s + steps);
     } else if (!moved.current) {
       if (window.matchMedia('(max-width: 640px)').matches) setZoomed((value) => !value);

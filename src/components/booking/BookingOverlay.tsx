@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMobileBooking } from '../../hooks/useMobileBooking';
 import { MobileAgenda } from './MobileAgenda';
 import { useBooking } from '../../context/BookingContext';
@@ -32,7 +32,8 @@ function leafProps(k: number, bkS: number, bkFlip: number) {
 
 export function BookingOverlay() {
   const isMobile = useMobileBooking();
-  const { bookOpen, bkS, bkFlip, closeBook, bkGo, payOpen, bkPhase, bkFast, bkStamped, stampLanded } = useBooking();
+  const [returning, setReturning] = useState(false);
+  const { bookOpen, bkS, bkFlip, closeBook, bkGo, payOpen, bkPhase, bkFast, bkStamped, stampLanded, bkReset } = useBooking();
   useEffect(() => {
     // Load both bindings before the user starts a cover turn, including on a cold visit.
     [cover, spiralOpen, spiralClosed, stampAsset].forEach((src) => {
@@ -78,12 +79,13 @@ export function BookingOverlay() {
   const stamped = (side: 'left' | 'right') => bkStamped && <div className={`${styles.pageStamp} ${side === 'left' ? styles.stampLeft : styles.stampRight}`}><BookingStamp /></div>;
 
   return (
-    <div className={styles.overlay} data-booking-overlay onScroll={isMobile ? (event) => { if (event.currentTarget.scrollLeft !== 0) event.currentTarget.scrollLeft = 0; } : undefined}>
+    <div className={styles.overlay} data-booking-overlay data-book-phase={bkPhase ?? 'idle'} onScroll={isMobile ? (event) => { if (event.currentTarget.scrollLeft !== 0) event.currentTarget.scrollLeft = 0; } : undefined}>
       <div className={styles.topbar}>
         <button type="button" className={styles.backButton} onClick={closeBook}>← voltar ao site</button>
         <span className={styles.brand}>monalisa</span>
       </div>
-      <div ref={stageRef} className={styles.wrapper}>
+      <div ref={stageRef} className={`${styles.wrapper} ${bkPhase === 'final' ? styles.confirmationWrapper : returning ? styles.returningBook : ''}`} onAnimationEnd={(event) => { if (event.target === event.currentTarget) setReturning(false); }}>
+        {bkPhase === 'final' ? <BookingCelebration onRestart={() => { setReturning(true); bkReset(); }} /> : (<>
         {isMobile ? <MobileAgenda bookRef={bookRef} /> : (
         <div ref={bookRef} className={`${styles.book} ${bkFast ? styles.fast : ''}`} data-book-spread={bkS} data-book-phase={bkPhase ?? 'idle'} inert={!canInteract} style={{ transform, transition: leaving ? 'transform .85s cubic-bezier(.55,0,.8,.25)' : undefined, pointerEvents: canInteract ? 'auto' : 'none' }}>
           <Leaf {...leafProps(0, bkS, bkFlip)} cover front={<CoverPage onOpen={() => bkS === 0 && bkGo(1)} />} back={<ProceduresPage />} />
@@ -97,7 +99,7 @@ export function BookingOverlay() {
           <div style={{ visibility: bkPhase ? 'hidden' : 'visible' }}><ProgressTabs /></div>
         </div>
         )}
-        {bkPhase === 'final' && <BookingCelebration />}
+        </>)}
       </div>
       {payOpen && <PaymentModal />}
       {bkPhase === 'stamp' && !bkStamped && <div ref={stampRef} className={styles.flyingStamp}><BookingStamp /></div>}

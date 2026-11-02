@@ -7,14 +7,13 @@ interface PageShellProps {
   className?: string;
   bg: string;
   color?: string;
-  textureOpacity?: number;
   spine?: 'left' | 'right' | 'cover' | 'none';
   children: ReactNode;
   onClick?: MouseEventHandler<HTMLDivElement>;
   style?: CSSProperties;
 }
 
-export function PageShell({ side, bg, color, textureOpacity = 0.58, spine, children, onClick, style, className }: PageShellProps) {
+export function PageShell({ side, bg, color, spine, children, onClick, style, className }: PageShellProps) {
   const spineClass =
     (spine ?? side) === 'right'
       ? styles.spineRight
@@ -27,16 +26,12 @@ export function PageShell({ side, bg, color, textureOpacity = 0.58, spine, child
   return (
     <div
       className={`${side === 'right' ? styles.pageRight : styles.pageLeft} ${className ?? ''}`}
-      style={{ background: bg, color, ...style }}
+      style={{ backgroundColor: bg, backgroundImage: `url("${paperTexture}")`, backgroundSize: '256px 256px', backgroundBlendMode: 'soft-light', color, ...style }}
       onClick={onClick}
     >
       {children}
       {spine !== 'none' && spineClass && <div aria-hidden="true" className={spineClass} />}
-      <div
-        aria-hidden="true"
-        className={styles.pageTexture}
-        style={{ backgroundImage: `url("${paperTexture}")`, opacity: textureOpacity }}
-      />
+
     </div>
   );
 }

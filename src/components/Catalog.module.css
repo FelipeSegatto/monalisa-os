@@ -282,3 +282,6 @@
   .zoomControls { display: flex; padding-top: 32px; }
 }
 @media (prefers-reduced-motion: reduce) { .ringViewport { transition: none; } }
+
+@media (max-width: 640px) { .ring { transition-duration: .45s !important; } }
+@media (prefers-reduced-motion: reduce) { .ring { transition: none !important; } }

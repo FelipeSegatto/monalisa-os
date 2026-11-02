@@ -29,6 +29,7 @@ export function Devices() {
   const [active, setActive] = useState(0);
   const [hoverIndex, setHoverIndex] = useState(-1);
   const [devTip, setDevTip] = useState(-1);
+  const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
   const spinLock = useRef<number[]>(DEVICES.map(() => 0));
   const isMobile = useIsMobile();
   const dragStartX = useRef<number | null>(null);
@@ -93,6 +94,10 @@ export function Devices() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile, active]);
 
+  useEffect(() => {
+    DEVICES.forEach(({ img }) => { const image = new Image(); image.src = img; });
+  }, []);
+
   const visibleIndices = isMobile ? [active] : DEVICES.map((_, i) => i);
 
   return (
@@ -148,8 +153,8 @@ export function Devices() {
                       className={styles.swayLayer}
                       style={{ animation: `cardSway ${(4.8 + i * 0.6).toFixed(2)}s ease-in-out ${(-i * 1.6).toFixed(2)}s infinite alternate` }}
                     >
-                      <img src={d.img} alt={d.name} className={styles.front} draggable={false} />
-                      {MID_LAYER_DEPTHS.map((z) => (
+                      <img data-device-face="front" src={d.img} alt={d.name} className={styles.front} draggable={false} onLoad={() => setLoadedImages((current) => current[d.name] ? current : { ...current, [d.name]: true })} />
+                      {loadedImages[d.name] && MID_LAYER_DEPTHS.map((z) => (
                         <div
                           key={z}
                           aria-hidden="true"
@@ -157,11 +162,11 @@ export function Devices() {
                           style={{ transform: `translateZ(${-z}px)`, background: '#8A6A42', mask, WebkitMask: mask }}
                         />
                       ))}
-                      <div
+                      {loadedImages[d.name] && <div
                         aria-hidden="true"
                         className={styles.layer}
                         style={{ transform: `translateZ(${-BACK_LAYER_DEPTH}px)`, background: '#B88F5C', mask, WebkitMask: mask }}
-                      />
+                      />}
                     </div>
                   </div>
                 </div>
