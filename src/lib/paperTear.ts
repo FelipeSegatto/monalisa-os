@@ -1,4 +1,4 @@
-import paperTexture from '../assets/images/textura-papel.png';
+import paperTexture from '../assets/images/textura-papel.webp';
 
 type Side = -1 | 1;
 type TearPoint = [x: number, y: number, fiber: number];

@@ -5,7 +5,7 @@ import styles from './Devices.module.css';
 
 const SPIN_LOCK_MS = 2400;
 const MOBILE_QUERY = '(max-width: 640px)';
-const MOBILE_AUTO_SPIN_MS = 3000;
+const MOBILE_AUTO_SPIN_MS = 4000;
 const SWIPE_THRESHOLD = 40;
 const N = DEVICES.length;
 
@@ -163,7 +163,7 @@ export function Devices() {
                           draggable={false}
                           aria-hidden="true"
                           className={styles.layer}
-                          style={{ transform: `translateZ(${-z}px) rotateY(180deg) scaleX(-1)` }}
+                          style={{ transform: `translateZ(${-z}px)` }}
                         />
                       ))}
                       {loadedImages[d.name] && <img
@@ -173,7 +173,7 @@ export function Devices() {
                         data-device-face="back"
                         aria-hidden="true"
                         className={styles.layer}
-                        style={{ transform: `translateZ(${-BACK_LAYER_DEPTH}px) rotateY(180deg) scaleX(-1)` }}
+                        style={{ transform: `translateZ(${-BACK_LAYER_DEPTH}px)` }}
                       />}
                     </div>
                   </div>

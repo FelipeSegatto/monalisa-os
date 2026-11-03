@@ -1,5 +1,5 @@
 import { useBooking } from '../../context/BookingContext';
-import paperTexture from '../../assets/images/textura-papel.png';
+import paperTexture from '../../assets/images/textura-papel.webp';
 import bookStyles from './Book.module.css';
 import styles from './BasePage.module.css';
 

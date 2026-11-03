@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode, MouseEventHandler } from 'react';
 // Keep grain rasterized: SVG filters and blend modes can flash during iOS 3D repaints.
-import paperTexture from '../../assets/images/booking-paper-grain-flat.png';
+import paperTexture from '../../assets/images/booking-paper-grain-flat.webp';
 import styles from './Book.module.css';
 
 interface PageShellProps {

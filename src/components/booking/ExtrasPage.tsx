@@ -5,7 +5,7 @@ import mobileStyles from './MobileCards.module.css';
 import { CATALOG_ITEMS } from '../../data/catalog';
 import { EXTRAS, brl, priceNumber } from '../../data/booking';
 import { useBooking } from '../../context/BookingContext';
-import bkUau from '../../assets/images/bk-uau2.png';
+import bkUau from '../../assets/images/bk-uau2.webp';
 import { PageShell } from './PageShell';
 import styles from './Book.module.css';
 

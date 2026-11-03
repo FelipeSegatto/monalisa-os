@@ -3,7 +3,7 @@ import { CATALOG_ITEMS } from '../../data/catalog';
 import { brl, formatDateLabel, summaryLines, WEEK, weekdayOf } from '../../data/booking';
 import { useBooking } from '../../context/BookingContext';
 import type { PayMethod } from '../../hooks/useBookingFlow';
-import paperTexture from '../../assets/images/textura-papel.png';
+import paperTexture from '../../assets/images/textura-papel.webp';
 import styles from './PaymentModal.module.css';
 
 const PAY_TABS: Array<{ k: PayMethod; label: string }> = [

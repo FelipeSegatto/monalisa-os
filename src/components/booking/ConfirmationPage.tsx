@@ -1,7 +1,7 @@
 import { WEEK, formatDateLabel, weekdayOf } from '../../data/booking';
 import { useBooking } from '../../context/BookingContext';
 import { CollageTitle } from '../CollageTitle';
-import bkLogo from '../../assets/images/bk-logo.png';
+import bkLogo from '../../assets/images/bk-logo.webp';
 import { PageShell } from './PageShell';
 
 const PAID_TEXT: Record<string, string> = {

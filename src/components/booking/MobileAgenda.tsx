@@ -9,8 +9,8 @@ import { TimeSlotsPage } from './TimeSlotsPage';
 import { UserInfoPage } from './UserInfoPage';
 import { SummaryPage } from './SummaryPage';
 import { BookingStamp } from './BookingStamp';
-import spiral from '../../assets/images/bk-spiral-closed.png';
-import grain from '../../assets/images/booking-paper-grain-flat.png';
+import spiral from '../../assets/images/bk-spiral-closed.webp';
+import grain from '../../assets/images/booking-paper-grain-flat.webp';
 import styles from './Book.module.css';
 
 const LABELS = ['Capa', 'algo a mais?', 'carrinho', 'calendário', 'horário', 'seus dados', 'resumo'];
@@ -94,7 +94,18 @@ export function MobileAgenda({ bookRef }: { bookRef: RefObject<HTMLDivElement | 
         </div>
         {step >= 1 && !bkPhase && <nav className={styles.mobileNavigation} aria-label="Páginas da agenda">
           <button type="button" className={styles.navBtn} aria-label="Página anterior" disabled={!!motion} onClick={() => navigate(-1)}>←</button>
-          <span aria-live="polite">{step} / 6 · {LABELS[step]}</span>
+          <div className={styles.mobileNavCenter}>
+            <div className={styles.mobileDots} aria-hidden="true">
+              {LABELS.slice(1).map((label, i) => (
+                <span key={label} className={styles.mobileDot} data-active={step === i + 1} />
+              ))}
+            </div>
+            {step < 6 && (
+              <span aria-live="polite" className={styles.mobileNavLabel}>
+                próxima: {LABELS[step + 1]}
+              </span>
+            )}
+          </div>
           {step < 6 ? <button type="button" className={styles.navBtn} aria-label="Próxima página" disabled={!canContinue || !!motion} onClick={() => navigate(1)}>→</button> : <span className={styles.mobileNavSpacer} />}
         </nav>}
       </div>

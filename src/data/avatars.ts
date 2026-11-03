@@ -1,13 +1,13 @@
 import seatedMan from '../assets/images/homem-sentado-mona.svg';
-import lying from '../assets/images/mulher-deitada-monalisa.png';
-import sitting from '../assets/images/bk-sitting2.png';
+import lying from '../assets/images/mulher-deitada-monalisa.webp';
+import sitting from '../assets/images/bk-sitting2.webp';
 import cloud from '../assets/images/nuvem-sorrindo-monalisa.svg';
 import heart from '../assets/images/coracao-monalisa.svg';
 import laser from '../assets/images/homem-musculoso.svg';
 import pose from '../assets/images/mulher-pose-monalisa.svg';
 import body from '../assets/images/mulher-plus-mona.svg';
-import star from '../assets/images/estrela-monalisa.png';
-import smile from '../assets/images/carinha-monalisa.png';
+import star from '../assets/images/estrela-monalisa.webp';
+import smile from '../assets/images/carinha-monalisa.webp';
 
 export const AVATARS = [
   { id: 'heart', name: 'Coração', image: heart, color: '#FF5179' },

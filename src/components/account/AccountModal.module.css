@@ -56,6 +56,15 @@
   font: 18px 'Riccione Serial', Georgia, serif;
 }
 .field input::placeholder { color: #554321; opacity: .85; }
+.field input:invalid { box-shadow: none; outline: none; }
+.field input:-webkit-autofill,
+.field input:-webkit-autofill:hover,
+.field input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #161515;
+  -webkit-box-shadow: 0 0 0 1000px transparent inset;
+  box-shadow: 0 0 0 1000px transparent inset;
+  transition: background-color 600000s 0s, color 600000s 0s;
+}
 .password { display: flex; align-items: center; border-bottom: 2px solid #161515; gap: 8px; }
 .password input { border-bottom: 0; }
 .password button { border: 0; background: transparent; text-decoration: underline; font: 14px 'Riccione Serial', Georgia, serif; cursor: pointer; color: #161515; padding: 8px 0 8px 8px; }

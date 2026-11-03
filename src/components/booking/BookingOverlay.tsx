@@ -14,10 +14,10 @@ import { ProgressTabs } from './ProgressTabs';
 import { PaymentModal } from './PaymentModal';
 import { BookingStamp } from './BookingStamp';
 import { BookingCelebration } from './BookingCelebration';
-import cover from '../../assets/images/bk-cover.png';
+import cover from '../../assets/images/bk-cover.webp';
 import stampAsset from '../../assets/images/confirmado.svg';
-import spiralClosed from '../../assets/images/bk-spiral-closed.png';
-import spiralOpen from '../../assets/images/bk-spiral.png';
+import spiralClosed from '../../assets/images/bk-spiral-closed.webp';
+import spiralOpen from '../../assets/images/bk-spiral.webp';
 import styles from './Book.module.css';
 
 function leafProps(k: number, bkS: number, bkFlip: number) {

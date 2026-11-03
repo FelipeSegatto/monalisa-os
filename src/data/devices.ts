@@ -1,15 +1,15 @@
-import devUltramedCardboard from '../assets/images/dev-ultramed-cardboard.png';
-import devUltramedCore from '../assets/images/dev-ultramed-core.png';
-import devQcleanCardboard from '../assets/images/dev-qclean-cardboard.png';
-import devQcleanCore from '../assets/images/dev-qclean-core.png';
-import devFiberCardboard from '../assets/images/dev-fiber-cardboard.png';
-import devFiberCore from '../assets/images/dev-fiber-core.png';
-import devBeautyCardboard from '../assets/images/dev-beauty-cardboard.png';
-import devBeautyCore from '../assets/images/dev-beauty-core.png';
-import devBeauty from '../assets/images/dev-beauty.png';
-import devFiber from '../assets/images/dev-fiber.png';
-import devQclean from '../assets/images/dev-qclean.png';
-import devUltramed from '../assets/images/dev-ultramed.png';
+import devUltramedCardboard from '../assets/images/dev-ultramed-cardboard.webp';
+import devUltramedCore from '../assets/images/dev-ultramed-core.webp';
+import devQcleanCardboard from '../assets/images/dev-qclean-cardboard.webp';
+import devQcleanCore from '../assets/images/dev-qclean-core.webp';
+import devFiberCardboard from '../assets/images/dev-fiber-cardboard.webp';
+import devFiberCore from '../assets/images/dev-fiber-core.webp';
+import devBeautyCardboard from '../assets/images/dev-beauty-cardboard.webp';
+import devBeautyCore from '../assets/images/dev-beauty-core.webp';
+import devBeauty from '../assets/images/dev-beauty.webp';
+import devFiber from '../assets/images/dev-fiber.webp';
+import devQclean from '../assets/images/dev-qclean.webp';
+import devUltramed from '../assets/images/dev-ultramed.webp';
 
 export interface Device {
   name: string;

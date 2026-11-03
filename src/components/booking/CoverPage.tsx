@@ -1,4 +1,4 @@
-import cover from '../../assets/images/bk-cover.png';
+import cover from '../../assets/images/bk-cover.webp';
 import styles from './Book.module.css';
 
 export function CoverPage({ onOpen }: { onOpen: () => void }) {

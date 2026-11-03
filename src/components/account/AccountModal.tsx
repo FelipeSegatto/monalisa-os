@@ -27,8 +27,16 @@ export function AccountModal() {
       cancelAnimationFrame(focus);
       element.close();
       document.body.style.overflow = location.hash === '#agendar' ? 'hidden' : previousOverflow;
-      if (trigger?.isConnected) trigger.focus();
-      else document.querySelector<HTMLElement>('[aria-label="Minha conta"]')?.focus();
+      const restored = trigger?.isConnected ? trigger : document.querySelector<HTMLElement>('[aria-label="Minha conta"]');
+      if (restored) {
+        restored.focus({ preventScroll: true });
+        // This focus restore is programmatic, not a real keyboard navigation, so the
+        // browser's focus-visible heuristic still lights up the ring; suppress it until
+        // the element naturally loses and regains focus (e.g. a later real Tab press).
+        restored.style.outline = 'none';
+        const clearOverride = () => { restored.style.outline = ''; restored.removeEventListener('blur', clearOverride); };
+        restored.addEventListener('blur', clearOverride, { once: true });
+      }
     };
     // Keep the dialog and focus trap mounted when switching between forms.
   }, [isOpen]);

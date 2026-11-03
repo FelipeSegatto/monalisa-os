@@ -1,7 +1,7 @@
 import { daysInMonth, isDayOff, MONTH_NAMES, weekdayOf } from '../../data/booking';
 import { useBooking } from '../../context/BookingContext';
 import { CollageTitle } from '../CollageTitle';
-import bkCouple from '../../assets/images/bk-couple.png';
+import bkCouple from '../../assets/images/bk-couple.webp';
 import { PageShell } from './PageShell';
 import styles from './Book.module.css';
 

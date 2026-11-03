@@ -1,23 +1,23 @@
-import depilacaoLaser from '../assets/images/depilacao-a-laser.png';
-import remocaoTatuagem from '../assets/images/remocao-de-tatuagem.png';
-import criolipolise from '../assets/images/criolipolose.png';
-import ultrassomMicrofocado from '../assets/images/ultrassom-microfocado.png';
-import clareamento from '../assets/images/clareamento-intimo.png';
-import peelingCarbono from '../assets/images/peeling-de-carbono.png';
+import depilacaoLaser from '../assets/images/depilacao-a-laser.webp';
+import remocaoTatuagem from '../assets/images/remocao-de-tatuagem.webp';
+import criolipolise from '../assets/images/criolipolose.webp';
+import ultrassomMicrofocado from '../assets/images/ultrassom-microfocado.webp';
+import clareamento from '../assets/images/clareamento-intimo.webp';
+import peelingCarbono from '../assets/images/peeling-de-carbono.webp';
 
-import detailDepilacao from '../assets/images/depilacao-img.png';
-import detailTatuagem from '../assets/images/remocao-img.png';
-import detailCrio from '../assets/images/criolipolise-img.png';
-import detailUltrassom from '../assets/images/ultrassom-img.png';
-import detailClareamento from '../assets/images/clareamento-img.png';
-import detailPeeling from '../assets/images/peeling-img.png';
+import detailDepilacao from '../assets/images/depilacao-img.webp';
+import detailTatuagem from '../assets/images/remocao-img.webp';
+import detailCrio from '../assets/images/criolipolise-img.webp';
+import detailUltrassom from '../assets/images/ultrassom-img.webp';
+import detailClareamento from '../assets/images/clareamento-img.webp';
+import detailPeeling from '../assets/images/peeling-img.webp';
 
 import laserGuy from '../assets/images/homem-musculoso.svg';
 import tattooLady from '../assets/images/mulher-pose-monalisa-pb.svg';
-import crioLady from '../assets/images/mulher-deitada-monalisa.png';
+import crioLady from '../assets/images/mulher-deitada-monalisa.webp';
 import ultrassomMan from '../assets/images/homem-sentado-mona.svg';
 import ladyBody from '../assets/images/mulher-plus-mona.svg';
-import peelingStar from '../assets/images/estrela-monalisa.png';
+import peelingStar from '../assets/images/estrela-monalisa.webp';
 
 export interface AreaOption {
   name: string;

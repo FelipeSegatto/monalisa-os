@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Ref } from 'react';
-import logoAmarelo from '../assets/images/logo-amarelo.png';
-import logoVermelho from '../assets/images/logo-vermelho.png';
-import logoAzul from '../assets/images/logo-azul.png';
-import logoRoxo from '../assets/images/logo-roxo.png';
-import logoRosa from '../assets/images/logo-rosa.png';
-import homemMusculoso from '../assets/images/homem-musculoso.png';
+import logoAmarelo from '../assets/images/logo-amarelo.webp';
+import logoVermelho from '../assets/images/logo-vermelho.webp';
+import logoAzul from '../assets/images/logo-azul.webp';
+import logoRoxo from '../assets/images/logo-roxo.webp';
+import logoRosa from '../assets/images/logo-rosa.webp';
+import homemMusculoso from '../assets/images/homem-musculoso.webp';
 import mulherPose from '../assets/images/mulher-pose-monalisa.svg';
-import estrela from '../assets/images/estrela-monalisa.png';
+import estrela from '../assets/images/estrela-monalisa.webp';
 import styles from './Hero.module.css';
 
 const PALETTE = [
@@ -19,9 +19,11 @@ const PALETTE = [
 ];
 
 const MOBILE_QUERY = '(max-width: 640px)';
-const LOGO_SPEED_DESKTOP = 0.8;
-const LOGO_SPEED_MOBILE = 0.61;
-const MARQUEE_SPEED = 0.6;
+// Speeds are px/second.
+const LOGO_SPEED_DESKTOP = 72;
+const LOGO_SPEED_MOBILE = 40.3;
+const MARQUEE_SPEED = 40;
+const MAX_FRAME_DELTA_MS = 50;
 
 const MARQUEE_COPIES = 6;
 
@@ -82,8 +84,12 @@ export function Hero() {
     let vy = 1;
     let idx = 0;
     let trackOffset = 0;
+    let lastTime: number | null = null;
 
-    const tick = () => {
+    const tick = (time: number) => {
+      const dt = lastTime === null ? 0 : Math.min(time - lastTime, MAX_FRAME_DELTA_MS) / 1000;
+      lastTime = time;
+
       const box = headerRef.current;
       const el = logoRef.current;
       const track = trackRef.current;
@@ -91,8 +97,8 @@ export function Hero() {
       if (box && el) {
         const maxX = box.clientWidth - el.offsetWidth;
         const maxY = box.clientHeight - el.offsetHeight;
-        x += vx * logoSpeedRef.current;
-        y += vy * logoSpeedRef.current;
+        x += vx * logoSpeedRef.current * dt;
+        y += vy * logoSpeedRef.current * dt;
 
         let hit = false;
         if (x <= 0) {
@@ -123,7 +129,7 @@ export function Hero() {
       }
 
       if (track) {
-        trackOffset -= MARQUEE_SPEED;
+        trackOffset -= MARQUEE_SPEED * dt;
         const unit = groupRef.current?.offsetWidth ?? 0;
         if (unit > 0 && -trackOffset >= unit) trackOffset += unit;
         track.style.transform = `translateX(${trackOffset}px)`;

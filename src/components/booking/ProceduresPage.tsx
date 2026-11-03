@@ -9,7 +9,7 @@ import type { CatalogItem } from '../../data/catalog';
 import type { CartLine } from '../../data/booking';
 import { brl, lineBreakdown } from '../../data/booking';
 import { useBooking } from '../../context/BookingContext';
-import bkSitting from '../../assets/images/bk-sitting2.png';
+import bkSitting from '../../assets/images/bk-sitting2.webp';
 import { PageShell } from './PageShell';
 import styles from './Book.module.css';
 

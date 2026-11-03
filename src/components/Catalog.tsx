@@ -12,6 +12,10 @@ const N = CATALOG_ITEMS.length;
 const FACE_W = 240;
 const RING_RADIUS = Math.round(FACE_W / 2 / Math.tan(Math.PI / N)) + 4;
 const DRAG_FACTOR = 0.35;
+const STEP_ANGLE = 360 / N;
+// Capped below one full step so a swipe of any length always leaves a visible
+// distance for the release animation to settle through (the "spin" never collapses to zero).
+const TOUCH_DRAG_CLAMP = STEP_ANGLE * 0.75;
 
 interface CtaGroupProps {
   onBook: (e: ReactMouseEvent<HTMLAnchorElement>) => void;
@@ -93,7 +97,7 @@ export function Catalog() {
     if (Math.hypot(dx, dy) > 8) moved.current = true;
     if (Math.abs(dx) > Math.abs(dy)) {
       const rotation = dx * (touchGesture.current ? .7 : DRAG_FACTOR);
-      setDrag(touchGesture.current ? Math.max(-60, Math.min(60, rotation)) : rotation);
+      setDrag(touchGesture.current ? Math.max(-TOUCH_DRAG_CLAMP, Math.min(TOUCH_DRAG_CLAMP, rotation)) : rotation);
     }
   };
 
