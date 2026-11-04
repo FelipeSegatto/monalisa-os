@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Put, Query, Req } from '@nestjs/common';
+import { Inject, BadRequestException, Body, Controller, Get, Param, Patch, Post, Put, Query, Req } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { Admin, Public } from '../auth/auth.guard';
 import { categoryLabels, dateKey, iso, money, num, parse, required, requiredId } from '../common/util';
@@ -13,7 +13,7 @@ const formatVariation=(v:any)=>({id:v.id,groupName:v.groupName,name:v.name,refer
 function formatProcedure(p:any){const variations=(p.variations||[]).map(formatVariation);return {id:p.id,name:p.name,description:p.description,coverImageUrl:p.coverImageUrl,detailImageUrl:p.detailImageUrl,durationMinutes:p.durationMinutes,price:money(p.price),active:p.active,displayPrice:variations.filter((x:any)=>x.active).length?Math.min(...variations.filter((x:any)=>x.active).map((x:any)=>x.price)):money(p.price),hasVariations:variations.length>0,variations,categoryId:p.categoryId,categoryName:p.category?.name||''};}
 @Controller('api/v1')
 export class CatalogController{
- constructor(private readonly db:PrismaService){}
+ constructor(@Inject(PrismaService) private readonly db:PrismaService){}
  @Get('professionals') async professionals(){const all=await this.db.professional.findMany({orderBy:{name:'asc'},include:{_count:{select:{appointments:true}}}}); const now=new Date();const month=new Date(Date.UTC(now.getFullYear(),now.getMonth(),1));return {professionals:await Promise.all(all.map(async p=>({id:p.id,name:p.name,phone:p.phone,email:p.email,color:p.color,active:p.active,upcomingAppointments:await this.db.appointment.count({where:{professionalId:p.id,startsAt:{gte:now},status:{in:['SCHEDULED','CONFIRMED']}}}),appointmentsThisMonth:await this.db.appointment.count({where:{professionalId:p.id,startsAt:{gte:month}}})})))};}
  @Get('professionals/:id') async professional(@Param('id') id:string){const {professionals}=await this.professionals();return required(professionals.find(p=>p.id===requiredId(id)));}
  @Admin() @Post('professionals') async createProfessional(@Body() body:unknown){const p=parse(professionalInput,body);const created=await this.db.professional.create({data:{name:p.name,phone:p.phone,email:p.email,color:p.color||'#0d9488',active:p.active}});return this.professional(String(created.id));}

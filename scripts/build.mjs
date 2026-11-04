@@ -1,6 +1,9 @@
+import { assertSupportedNode } from "./check-node.mjs";
 import { spawnSync } from "node:child_process";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
+assertSupportedNode();
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";

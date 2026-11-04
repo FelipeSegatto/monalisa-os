@@ -5,16 +5,25 @@
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "build": "tsc -p tsconfig.json",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.tools.json",
     "start": "node dist/src/main.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev --name full_clinic",
+    "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
-    "db:seed": "tsx prisma/seed.ts",
-    "test": "tsx --test test/*.test.ts test/equipments/*.test.ts",
+    "db:seed": "tsx prisma/seed-bootstrap.ts",
+    "test": "tsx --test test/*.test.ts test/equipments/*.test.ts test/contracts/*.test.ts",
     "test:e2e": "node scripts/e2e-smoke.mjs",
-    "db:seed:equipment": "tsx prisma/seed-equipment.ts"
+    "db:seed:equipment": "tsx prisma/seed-equipment.ts",
+    "predev": "node ../scripts/check-node.mjs",
+    "prebuild": "node ../scripts/check-node.mjs",
+    "prestart": "node ../scripts/check-node.mjs",
+    "pretest": "node ../scripts/check-node.mjs",
+    "preinstall": "node ../scripts/check-node.mjs",
+    "db:status": "prisma migrate status",
+    "db:studio": "prisma studio",
+    "db:seed:demo": "tsx prisma/seed.ts",
+    "test:contracts:compiled": "npm run build && node scripts/run-contracts.mjs compiled"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.0",
@@ -37,6 +46,8 @@
     "typescript": "^5.8.3"
   },
   "engines": {
-    "node": ">=20"
-  }
+    "node": ">=24.19.0 <25",
+    "npm": ">=11.9.0 <12"
+  },
+  "packageManager": "npm@11.9.0"
 }

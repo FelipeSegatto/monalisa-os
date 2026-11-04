@@ -1,4 +1,4 @@
-import { BadRequestException, Body, ConflictException, Controller, Get, Param, Post, Query, Req, ForbiddenException } from '@nestjs/common';
+import { Inject, BadRequestException, Body, ConflictException, Controller, Get, Param, Post, Query, Req, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { Admin } from '../auth/auth.guard';
 import { dayRange, expenseLabels, iso, money, parse, required, requiredId } from '../common/util';
@@ -15,7 +15,7 @@ const range=(start?:string,end?:string)=>{const now=new Date();const s=dayRange(
 const includeSale={customer:true,professional:true,items:true,payments:{orderBy:{paidAt:'desc' as const}}};
 @Controller('api/v1')
 export class FinanceController{
- constructor(private readonly db:PrismaService){}
+ constructor(@Inject(PrismaService) private readonly db:PrismaService){}
  @Get('finance/sales')async sales(@Query('start')start?:string,@Query('end')end?:string,@Req()req?:any){const data=await this.db.sale.findMany({where:{createdAt:range(start,end),...(req?.actor?.role==='FUNCIONARIO'?{professionalId:req.actor.professionalId}:{})},include:includeSale,orderBy:{createdAt:'desc'}});return {sales:data.map(s=>toSale(s))};}
  @Get('customers/:id/sales')async customerSales(@Param('id')id:string,@Req()req:any){const data=await this.db.sale.findMany({where:{customerId:requiredId(id),...(req.actor.role==='FUNCIONARIO'?{professionalId:req.actor.professionalId}:{})},include:includeSale,orderBy:{createdAt:'desc'}});return {sales:data.map(s=>toSale(s))};}
  @Get('finance/sales/:id')async sale(@Param('id')id:string,@Req()req:any){const s=required(await this.db.sale.findUnique({where:{id:requiredId(id)},include:includeSale}));if(req.actor.role==='FUNCIONARIO'&&s.professionalId!==req.actor.professionalId)throw new ForbiddenException('Venda de outro profissional');return toSale(s,true);}

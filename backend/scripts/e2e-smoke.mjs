@@ -1,7 +1,9 @@
+import { assertTestDataAllowed } from './test-data-guard.mjs';
 // Integração HTTP: use somente em banco de desenvolvimento; cria dados reais.
 import 'dotenv/config';
 import assert from 'node:assert/strict';
-const BASE=process.env.TEST_URL||'http://localhost:3333';
+assertTestDataAllowed(process.argv, process.env.TEST_URL, process.env.NODE_ENV);
+const BASE=process.env.TEST_URL;
 const email=process.env.ADMIN_EMAIL,password=process.env.ADMIN_PASSWORD;
 if(!email||!password)throw new Error('Defina ADMIN_EMAIL e ADMIN_PASSWORD no backend/.env');
 let cookie='';

@@ -1,4 +1,4 @@
-import { BadRequestException, Body, ConflictException, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Inject, BadRequestException, Body, ConflictException, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { Public } from '../auth/auth.guard';
 import { dateKey, dayRange, iso, parse, required, requiredId } from '../common/util';
@@ -11,7 +11,7 @@ const officeSlots=(date:string)=>{const wd=new Date(date+'T12:00:00Z').getUTCDay
 const leadMap=(l:any)=>({...l,createdAt:iso(l.createdAt),procedureCategoryName:l.procedureCategory?.name||null});
 @Controller('api/v1')
 export class LeadsBookingController{
- constructor(private readonly db:PrismaService,private readonly scheduling:SchedulingService){}
+ constructor(@Inject(PrismaService) private readonly db:PrismaService,@Inject(SchedulingService) private readonly scheduling:SchedulingService){}
  @Public() @Post('public/leads') async create(@Body()body:unknown){const p=parse(leadInput,body);return leadMap(await this.db.lead.create({data:p,include:{procedureCategory:true}}));}
  @Get('leads') async list(){const all=await this.db.lead.findMany({include:{procedureCategory:true},orderBy:{createdAt:'desc'}});return {leads:all.map(leadMap)};}
  @Patch('leads/:id/status') async status(@Param('id')id:string,@Body()body:unknown){const p=parse(z.object({status:z.enum(['NEW','CONTACTED'])}),body);return leadMap(await this.db.lead.update({where:{id:requiredId(id)},data:{status:p.status},include:{procedureCategory:true}}));}

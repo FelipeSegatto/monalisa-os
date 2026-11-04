@@ -1,4 +1,4 @@
-import { BadRequestException, Body, ConflictException, Controller, Delete, Get, Param, Patch, Post, Query, Req } from '@nestjs/common';
+import { Inject, BadRequestException, Body, ConflictException, Controller, Delete, Get, Param, Patch, Post, Query, Req } from '@nestjs/common';
 import { Prisma, AppointmentStatus } from '@prisma/client';
 import { PrismaService } from '../common/prisma.service';
 import { Public } from '../auth/auth.guard';
@@ -12,7 +12,7 @@ const full={customer:true,professional:true,procedure:true};
 const output=(a:any)=>({id:a.id,startsAt:iso(a.startsAt),endsAt:iso(a.endsAt),status:a.status,customerName:a.customer.name,procedureName:a.procedure.name,professionalId:a.professionalId,professionalName:a.professional.name,professionalColor:a.professional.color});
 @Controller('api/v1')
 export class AgendaController{
- constructor(private readonly db:PrismaService,private readonly scheduling:SchedulingService){}
+ constructor(@Inject(PrismaService) private readonly db:PrismaService,@Inject(SchedulingService) private readonly scheduling:SchedulingService){}
  @Get('agenda') async daily(@Query('date')date?:string,@Req()req?:any){const {start,end}=dayRange(date||dateKey(new Date()));const all=await this.db.appointment.findMany({where:{startsAt:{gte:start,lt:end},...(req?.actor?.role==='FUNCIONARIO'&&req.actor.professionalId?{professionalId:req.actor.professionalId}:{})},include:full,orderBy:{startsAt:'asc'}});const pros=await this.db.professional.findMany({where:{active:true},orderBy:{name:'asc'}});return {date:date||dateKey(new Date()),professionals:pros.map(p=>({id:p.id,name:p.name,color:p.color})),appointments:all.map(output)};}
  @Get('agenda/week') async week(@Query('date')date?:string){const day=date||dateKey(new Date());const {start}=dayRange(day);const localWeekday=new Date(day+'T12:00:00Z').getUTCDay();const offset=(localWeekday+6)%7;const monday=new Date(start.getTime()-offset*86400000);let days=[];for(let i=0;i<7;i++){const s=new Date(monday.getTime()+i*86400000),e=new Date(s.getTime()+86400000);const count=await this.db.appointment.count({where:{startsAt:{gte:s,lt:e},status:{not:'CANCELLED'}}});days.push({date:dateKey(s),count});}return {weekStart:days[0].date,days};}
  @Get('agenda/month') async month(@Query('date')date?:string){const day=date||dateKey(new Date());const first=day.slice(0,7)+'-01';const daysInMonth=new Date(Number(day.slice(0,4)),Number(day.slice(5,7)),0).getDate();const days=[];for(let i=1;i<=daysInMonth;i++){const d=first.slice(0,8)+String(i).padStart(2,'0');const {start,end}=dayRange(d);const count=await this.db.appointment.count({where:{startsAt:{gte:start,lt:end},status:{not:'CANCELLED'}}});days.push({date:d,count});}return {monthStart:first,monthStartWeekday:new Date(first+'T12:00:00Z').getUTCDay(),days};}

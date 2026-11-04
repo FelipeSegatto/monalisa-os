@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predev": "node ../scripts/check-node.mjs",
+    "prebuild": "node ../scripts/check-node.mjs",
+    "preinstall": "node ../scripts/check-node.mjs",
+    "typecheck": "tsc -b --pretty false"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -26,5 +30,10 @@
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vite": "^8.3.0"
-  }
+  },
+  "engines": {
+    "node": ">=24.19.0 <25",
+    "npm": ">=11.9.0 <12"
+  },
+  "packageManager": "npm@11.9.0"
 }

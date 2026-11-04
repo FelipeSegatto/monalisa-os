@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { Inject, BadRequestException, Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { Admin } from '../auth/auth.guard';
 import { iso, parse, required, requiredId } from '../common/util';
@@ -7,7 +7,7 @@ const input=z.object({name:z.string().trim().min(2).max(150),unit:z.string().tri
 const itemOut=(s:any)=>({id:s.id,name:s.name,unit:s.unit,quantity:String(s.quantity),minQuantity:String(s.minQuantity),active:s.active,isLow:Number(s.quantity)<=Number(s.minQuantity)});
 @Controller('api/v1/stock')
 export class StockController{
- constructor(private readonly db:PrismaService){}
+ constructor(@Inject(PrismaService) private readonly db:PrismaService){}
  @Get('items')async list(){const data=await this.db.stockItem.findMany({orderBy:{name:'asc'}});return {items:data.map(itemOut)};}
  @Get('items/:id')async detail(@Param('id')id:string){const s=required(await this.db.stockItem.findUnique({where:{id:requiredId(id)},include:{movements:{orderBy:{createdAt:'desc'}}}}));return {...itemOut(s),movements:s.movements.map(m=>({id:m.id,type:m.type,quantityDelta:String(m.quantityDelta),note:m.note,createdAt:iso(m.createdAt)}))};}
  @Admin()@Post('items')async create(@Body()body:unknown){const {initialQuantity=0,...p}=parse(input,body);const s=await this.db.stockItem.create({data:{...p,quantity:initialQuantity,movements:initialQuantity?{create:{type:'IN',quantityDelta:initialQuantity,note:'Saldo inicial'}}:undefined}});return itemOut(s);}

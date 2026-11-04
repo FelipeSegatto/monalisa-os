@@ -1,9 +1,9 @@
-import { Controller, Get, Req } from '@nestjs/common';
+import { Inject, Controller, Get, Req } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { dateKey, dayRange, expenseLabels, iso, money } from '../common/util';
 @Controller('api/v1')
 export class DashboardController {
- constructor(private readonly db:PrismaService){}
+ constructor(@Inject(PrismaService) private readonly db:PrismaService){}
  @Get('dashboard') async overview(@Req()req:any){
   const now=new Date(),today=dateKey(now),day=dayRange(today);const month=today.slice(0,7),monthStart=dayRange(month+'-01').start;const monthEnd=dayRange(new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5,7)),1)).toISOString().slice(0,10)).start;
   const isAdmin=req.actor.role==='ADMIN',professionalId=req.actor.professionalId;

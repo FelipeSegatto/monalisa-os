@@ -1,3 +1,5 @@
+> Este documento descreve o seed demonstrativo legado, já incluído no repositório. Não extraia ZIPs sobre o projeto atual. Use somente banco isolado. O comando atual em backend é `npm run db:seed:demo -- --confirm-demo`; `db:seed` agora prepara apenas o administrador e preserva contas existentes. Consulte `../docs/fase-1-ambiente.md`.
+
 # Seed completo — Agenda Clínica (NestJS / Prisma / MySQL)
 
 Este pacote recupera os **11 procedimentos originais e suas imagens** e acrescenta dados fictícios para testar o frontend **sem alterar nenhum arquivo React**.
@@ -34,7 +36,7 @@ DEMO_EMPLOYEE_PASSWORD="OUTRA_SENHA_FORTE_DE_12_OU_MAIS_CARACTERES"
 
 ```powershell
 npm run db:generate
-npm run db:seed
+npm run db:seed:demo -- --confirm-demo
 npm run dev
 ```
 
@@ -47,7 +49,7 @@ Só execute `npm run db:push` se o schema ainda não tiver sido aplicado a esse 
 - **Administrador:** email `ADMIN_EMAIL` e senha `ADMIN_PASSWORD`, definidos no `.env` do backend.
 - **Funcionária:** email `DEMO_EMPLOYEE_EMAIL` (padrão `carolina.demo@clinica.local`). Senha `DEMO_EMPLOYEE_PASSWORD`. Se não configurar esta senha, o seed vai gerar uma senha forte e **mostrá-la no terminal** durante a execução.
 
-Não reutilize senhas que já compartilhou em screenshots. Altere sua senha de admin no `.env` e rode `npm run db:seed` novamente. Após o login, o navegador guarda um cookie de sessão `HttpOnly`.
+Não reutilize senhas que já compartilhou em screenshots. Altere sua senha de admin no `.env` e rode `npm run db:seed:demo -- --confirm-demo` novamente. Após o login, o navegador guarda um cookie de sessão `HttpOnly`.
 
 ## Segurança dos dados existentes
 
@@ -71,4 +73,4 @@ npx prisma studio
 
 Confira as tabelas `User`, `ProcedureCategory`, `Procedure`, `ProcedureVariation`, `Professional`, `Customer` e `Appointment`.
 
-Se `npm run db:seed` apresentar P1001, verifique `docker compose ps` e a porta no `.env`. Se apresentar P1000, o usuário/senha do MySQL não conferem. Se apresentar erro de tabela inexistente, verifique se o `db:push` foi feito no banco correto.
+Se `npm run db:seed:demo -- --confirm-demo` apresentar P1001, verifique `docker compose ps` e a porta no `.env`. Se apresentar P1000, o usuário/senha do MySQL não conferem. Se apresentar erro de tabela inexistente, verifique se o `db:push` foi feito no banco correto.

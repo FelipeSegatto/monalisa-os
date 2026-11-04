@@ -9,19 +9,29 @@
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:backend": "npm run dev --prefix backend",
     "build": "node scripts/build.mjs",
-    "typecheck": "npm run typecheck --prefix backend",
+    "typecheck": "npm run typecheck --prefix backend && npm run typecheck --prefix frontend",
     "smoke": "node scripts/smoke-test.mjs",
     "db:up": "docker compose up -d mysql",
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f mysql",
-    "db:migrate": "npm run db:migrate --prefix backend",
-    "db:migrate:apply": "npm run db:migrate:apply --prefix backend",
+    "db:migrate": "npm run db:migrate --prefix backend --",
+    "db:migrate:apply": "npm run db:deploy --prefix backend",
     "db:studio": "npm run db:studio --prefix backend",
-    "db:demo": "npm run db:demo --prefix backend",
+    "db:demo": "npm run db:seed:demo --prefix backend --",
     "db:status": "npm run db:status --prefix backend",
-    "db:generate": "npm run db:generate --prefix backend"
+    "db:generate": "npm run db:generate --prefix backend",
+    "check:node": "node scripts/check-node.mjs",
+    "pretest": "node scripts/check-node.mjs",
+    "test": "node --test test/scripts/*.test.mjs && npm run test --prefix backend",
+    "test:contracts:compiled": "npm run test:contracts:compiled --prefix backend",
+    "verify": "npm run typecheck && npm run build && npm test && npm run test:contracts:compiled",
+    "db:deploy": "npm run db:deploy --prefix backend",
+    "db:seed": "npm run db:seed --prefix backend",
+    "db:seed:equipment": "npm run db:seed:equipment --prefix backend --"
   },
   "engines": {
-    "node": ">=22"
-  }
+    "node": ">=24.19.0 <25",
+    "npm": ">=11.9.0 <12"
+  },
+  "packageManager": "npm@11.9.0"
 }

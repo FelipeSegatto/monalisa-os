@@ -1,13 +1,16 @@
+import { assertSupportedNode } from "./check-node.mjs";
 import { spawnSync } from "node:child_process";
 import { existsSync, copyFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+assertSupportedNode();
+
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";
 const tasks = [
   { folder: "frontend", args: ["ci", "--no-audit", "--no-fund"] },
-  { folder: "backend", args: ["install", "--no-audit", "--no-fund"] },
+  { folder: "backend", args: ["ci", "--no-audit", "--no-fund"] },
 ];
 
 for (const { folder, args } of tasks) {
@@ -19,7 +22,9 @@ for (const { folder, args } of tasks) {
     shell: process.platform === "win32",
   });
   if (result.error || result.status !== 0) {
-    console.error(`Falha ao instalar ${folder}. Verifique a internet, versao do Node e o erro acima.`);
+    console.error(
+      `Falha ao instalar ${folder}. Verifique a internet, versao do Node e o erro acima.`,
+    );
     process.exit(result.status || 1);
   }
 }
@@ -38,4 +43,6 @@ for (const [source, target] of [
   }
 }
 
-console.log("\nPreparacao concluida. Execute: npm run dev");
+console.log(
+  "\nPreparação concluída. Configure o backend/.env, gere o Prisma Client e confira as migrations antes de iniciar a API. Consulte docs/fase-1-ambiente.md.",
+);

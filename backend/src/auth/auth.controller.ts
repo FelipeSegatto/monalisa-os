@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Post, Req, Res, UnauthorizedException } from '@nestjs/common';
+import { Inject, Body, Controller, Get, HttpCode, Post, Req, Res, UnauthorizedException } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { PrismaService } from '../common/prisma.service';
 import { Public } from './auth.guard';
@@ -10,7 +10,7 @@ const COOKIE_NAME='clinic_session';
 const cookieOptions={httpOnly:true,secure:process.env.COOKIE_SECURE==='true',sameSite:'lax' as const,path:'/',maxAge:7*86400000};
 @Controller('api/v1')
 export class AuthController{
- constructor(private readonly db:PrismaService){}
+ constructor(@Inject(PrismaService) private readonly db:PrismaService){}
  @Public() @Post('auth/login') @HttpCode(200)
  async login(@Body() body:unknown,@Req()req:Request,@Res({passthrough:true})res:Response){
   const input=parse(z.object({email:z.string().email(),password:z.string().min(1)}),body);

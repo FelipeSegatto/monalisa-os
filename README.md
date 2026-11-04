@@ -1,21 +1,38 @@
-# Agenda Clínica — Full Stack NestJS
+# Monalisa OS — Agenda Clínica
 
-**Frontend React/Vite preservado integralmente**, backend refeito com NestJS, TypeScript, Prisma e MySQL 8.4.
+Sistema de gestão com frontend React/Vite e backend NestJS, TypeScript, Prisma e MySQL 8.4. A refatoração do backend é incremental por domínio, preservando os contratos e a interface existentes.
 
-## Começando
+## Ambiente
 
-1. Abra o Docker Desktop e rode `docker compose up -d` na raiz.
-2. Na pasta `backend`, copie `.env.example` para `.env` e configure `ADMIN_PASSWORD` com uma senha forte (12+ caracteres).
-3. Na pasta `backend`: `npm install`, `npm run db:generate`, `npm run db:push`, `npm run db:seed`, `npm run dev`.
-4. Na pasta `frontend`: `npm install`, `npm run dev`.
-5. Acesse `http://localhost:5199/login`. O usuário administrador está definido em `backend/.env`.
+Referência: **Node 24.19.0, npm 11.9.0**. Consulte `.nvmrc`, `.node-version` e [Fase 1](docs/fase-1-ambiente.md).
 
-Leia `backend/README.md` para funcionamento e limites; `docs/contrato-api.md` para endpoints.
+1. Selecione o Node indicado e execute `npm run setup` na raiz. Os dois projetos são instalados com seus lockfiles; arquivos `.env` existentes são preservados.
+2. Configure `backend/.env` e `frontend/.env.local` a partir dos exemplos. Nunca publique credenciais.
+3. Inicie MySQL local: `npm run db:up`. O Compose usa a porta local 3307 e volume persistente.
+4. Execute `npm run db:generate` e `npm run db:status`.
+5. Em banco novo de desenvolvimento, aplique migrations com `npm run db:deploy`. Em banco existente, confira baseline e backup antes de aplicar qualquer mudança.
+6. `npm run db:seed` prepara somente o administrador inicial, sem redefinir contas existentes.
+7. Execute `npm run dev` e acesse `http://localhost:5199/login`.
 
-**Observação:** O código fonte original do frontend permanece intocado; foi acrescentado apenas `frontend/.env` para apontar para a API local.
+Não há seed demo ou migration automática na inicialização. O cadastro inicial não cria procedimentos ou clientes fictícios.
 
-## Equipamentos e manutenção
+## Verificação sem banco real
 
-A etapa inicial de recursos operacionais está descrita em [docs/equipamentos-etapa-1.md](docs/equipamentos-etapa-1.md), incluindo APIs, seed opcional e aplicação revisada da mudança de banco. O cadastro não presume saldos de disparos nem instala equipamentos fictícios automaticamente.
+```sh
+npm run verify
+```
 
-A organização por domínio e os exemplos de comportamento das entidades estão em [docs/arquitetura-equipamentos.md](docs/arquitetura-equipamentos.md).
+Verifica tipos, builds, testes de domínio/serviços e contratos HTTP com persistência simulada, tanto em source/tsx quanto no backend compilado. Não substitui testes de integração MySQL.
+
+Com API e banco disponíveis, `npm run smoke` faz somente consultas. Testes que gravam dados e seeds demo exigem comandos explícitos e banco isolado; consulte a [documentação de ambiente](docs/fase-1-ambiente.md).
+
+## Documentação
+
+- [Ambiente, comandos e seeds](docs/fase-1-ambiente.md)
+- [Matriz de acesso atual e decisões pendentes](docs/permissoes-atuais.md)
+- [Backend e limites](backend/README.md)
+- [Contrato da API](docs/contrato-api.md)
+- [Equipamentos e manutenção](docs/equipamentos-etapa-1.md)
+- [Arquitetura do domínio de equipamentos](docs/arquitetura-equipamentos.md)
+
+Equipamentos ainda não possuem ledger de disparos; esse registro será conectado aos atendimentos em etapa posterior. Documentos históricos das aulas descrevem versões anteriores e não substituem os comandos atuais.

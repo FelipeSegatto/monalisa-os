@@ -1,3 +1,4 @@
+import { assertDemoSeedAllowed } from './seed-safety';
 import 'dotenv/config';
 import { randomBytes, createHash } from 'node:crypto';
 import { copyFile, mkdir, stat } from 'node:fs/promises';
@@ -278,6 +279,7 @@ async function seedLeads(categoryIds:Map<string,number>){
 }
 
 async function main(){
+  assertDemoSeedAllowed(process.argv,process.env.NODE_ENV);
   const env=process.env.NODE_ENV||'development';
   if(env==='production')throw new Error('Este seed contém DADOS FICTÍCIOS e é proibido em NODE_ENV=production.');
   const professionalIds=await seedProfessionals();

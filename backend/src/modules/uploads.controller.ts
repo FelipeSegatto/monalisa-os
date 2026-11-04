@@ -1,4 +1,4 @@
-import { BadRequestException, Controller, Get, Param, Post, Query, Req, Res, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { Inject, BadRequestException, Controller, Get, Param, Post, Query, Req, Res, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { PrismaService } from '../common/prisma.service';
 import { Public, Admin } from '../auth/auth.guard';
@@ -15,7 +15,7 @@ async function store(file:Express.Multer.File,prefix:string,onlyImage=false){if(
 const fileOptions={...storage,fileFilter:(_req:any,file:any,cb:any)=>{cb(null,!!allowed[file.mimetype]);}};
 @Controller()
 export class UploadsController{
- constructor(private readonly db:PrismaService){}
+ constructor(@Inject(PrismaService) private readonly db:PrismaService){}
  @Get('uploads/:kind/:filename')async file(@Param('kind')kind:string,@Param('filename')filename:string,@Req()req:Request,@Res()res:Response){if(!['procedure','document','photo'].includes(kind)||! /^[a-f0-9-]{36}\.(png|jpg|webp|pdf)$/.test(filename))throw new BadRequestException('Arquivo inválido');const data=await readFile(resolve(ROOT,kind,filename)).catch(()=>null);if(!data)return res.status(404).send('Não encontrado');const ext=filename.split('.').pop();res.type(ext==='jpg'?'image/jpeg':ext==='pdf'?'application/pdf':ext==='png'?'image/png':'image/webp').setHeader('Cache-Control','private, max-age=600');res.send(data);}
  @Get('api/v1/customers/:id/documents')async docs(@Param('id')id:string){const data=await this.db.customerDocument.findMany({where:{customerId:requiredId(id)},orderBy:{createdAt:'desc'}});return {documents:data.map(x=>({...x,createdAt:iso(x.createdAt),signedAt:iso(x.signedAt)}))};}
  @Post('api/v1/customers/:id/documents')@UseInterceptors(FileInterceptor('file',{...fileOptions,limits:{fileSize:8*1024*1024}}))async uploadDoc(@Param('id')id:string,@Req()req:any){const info=await store(req.file,'document');const b=req.body;const customerId=requiredId(id);await this.db.customer.findUniqueOrThrow({where:{id:customerId}});if(b.appointmentId){const ap=required(await this.db.appointment.findUnique({where:{id:requiredId(b.appointmentId)}}));if(ap.customerId!==customerId)throw new BadRequestException('Agendamento não pertence ao cliente');}const procedureId=b.procedureId?requiredId(b.procedureId):null;const proc=procedureId?await this.db.procedure.findUnique({where:{id:procedureId}}):null;await this.db.customerDocument.create({data:{customerId,appointmentId:b.appointmentId?requiredId(b.appointmentId):null,procedureId,procedureName:proc?.name||null,type:['ANAMNESIS','CONTRACT','OTHER'].includes(b.type)?b.type:'OTHER',status:['AWAITING_SIGNATURE','SIGNED'].includes(b.status)?b.status:'AWAITING_SIGNATURE',...info,signedBy:b.signedBy||null,signedAt:b.signedAt?new Date(b.signedAt):null,note:b.note||null}});return this.docs(id);}
