@@ -4,7 +4,7 @@
 
 `Equipment` é a raiz do agregado. Seus componentes têm identidade própria, pertencem a um aparelho e não podem ser transferidos. Não há instalação, posição ou reserva de equipamento nesta etapa. As relações com procedimentos são opcionais e muitos-para-muitos. Insumos continuam em `ProcedureMaterial`.
 
-O controller adapta HTTP/valida Zod, `EquipmentService` coordena os casos de uso e acessa o Prisma (como o serviço de agendamento existente); regras puras de calendário e lembretes ficam em `domain/equipment-policy.ts`. O AppModule registra controller/service sem refatorar os domínios antigos. A extração de persistência específica pode ocorrer conforme os casos de uso crescerem; não foi criado repositório genérico.
+O domínio agora está organizado em `src/equipments`, com entidades e objetos de valor independentes de framework, serviço de aplicação, contratos de persistência/consulta e implementações Prisma. O AppModule importa o módulo de equipamentos e compartilha o provider Prisma com os domínios antigos. Consulte [arquitetura-equipamentos.md](arquitetura-equipamentos.md).
 
 Não há registro de disparos, saldo calculado, manutenção automática de cartuchos, faturamento ou alocação na agenda. `shotTracking` apenas declara onde o futuro contador será vinculado: nenhum/aparelho/componente. `nominalCapacity` é capacidade de referência, nunca saldo. O ledger será implementado junto do registro de uso nos atendimentos.
 
@@ -76,6 +76,6 @@ Datas são AAAA-MM-DD. Situação é ACTIVE/MAINTENANCE/RETIRED. As APIs de dado
 
 ## Validação e limites
 
-Testes automatizados de calendário, lembretes, validação, autorização, serviços e seed em `backend/test/equipment.test.ts`. As fixtures de serviço verificam coordenação e rejeições; não substituem teste concorrente real em MySQL.
+Testes automatizados de calendário, lembretes, validação, autorização, serviços e seed em `backend/test/equipments/`. As fixtures de serviço verificam coordenação e rejeições; não substituem teste concorrente real em MySQL.
 
 Antes de uso real, exercitar em banco descartável: duas atualizações concorrentes do mesmo aparelho, aposentadoria concorrente com criação de componente (sem escrita posterior à aposentadoria), compatibilidade concorrente com aposentadoria, execução repetida do seed, falha de evento com rollback, datas nas fronteiras e sessões ADMIN/FUNCIONARIO/ausente. Não foi executada uma migration no banco da clínica.

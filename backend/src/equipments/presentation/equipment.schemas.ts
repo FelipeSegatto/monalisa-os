@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { validDate } from "../domain/equipment-policy";
+import { CivilDate } from "../domain/civil-date";
 const text = z.string().trim().min(1).max(150);
 const optionalText = z.string().trim().min(1).max(120).nullable().optional();
 export const calendarDate = z
   .string()
-  .refine(validDate, "Data inválida (AAAA-MM-DD)");
+  .refine(CivilDate.isValid, "Data inválida (AAAA-MM-DD)");
 export const equipmentInput = z
   .object({
     name: text,

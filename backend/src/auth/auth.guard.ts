@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException, SetMetadata } from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Inject, Injectable, UnauthorizedException, SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../common/prisma.service';
 import { hashToken } from './security';
@@ -7,7 +7,7 @@ export const Admin=()=>SetMetadata('adminOnly',true);
 export type Actor={id:number;name:string;role:'ADMIN'|'FUNCIONARIO';professionalId:number|null};
 @Injectable()
 export class SessionGuard implements CanActivate {
- constructor(private readonly db:PrismaService,private readonly reflector:Reflector){}
+ constructor(@Inject(PrismaService) private readonly db:PrismaService,@Inject(Reflector) private readonly reflector:Reflector){}
  async canActivate(context:ExecutionContext):Promise<boolean>{
   const req=context.switchToHttp().getRequest();
   const origin=String(req.headers.origin||'');

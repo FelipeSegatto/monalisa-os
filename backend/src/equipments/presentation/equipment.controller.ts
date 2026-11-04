@@ -1,5 +1,7 @@
+import { EquipmentErrorFilter } from "./equipment-error.filter";
 import {
   Body,
+  Inject,
   Controller,
   Get,
   Param,
@@ -8,10 +10,11 @@ import {
   Put,
   Query,
   Req,
+  UseFilters,
 } from "@nestjs/common";
-import { Admin, Actor } from "../auth/auth.guard";
-import { parse, requiredId } from "../common/util";
-import { EquipmentService } from "./equipment.service";
+import { Admin, Actor } from "../../auth/auth.guard";
+import { parse, requiredId } from "../../common/util";
+import { EquipmentService } from "../application/equipment.service";
 import {
   compatibilityInput,
   componentInput,
@@ -19,11 +22,14 @@ import {
   maintenanceInput,
   scheduleInput,
   statusInput,
-} from "./equipment.inputs";
+} from "./equipment.schemas";
 
+@UseFilters(EquipmentErrorFilter)
 @Controller("api/v1")
 export class EquipmentController {
-  constructor(private readonly equipment: EquipmentService) {}
+  constructor(
+    @Inject(EquipmentService) private readonly equipment: EquipmentService,
+  ) {}
   @Get("equipment") list() {
     return this.equipment.list();
   }

@@ -3,7 +3,7 @@ import { z } from "zod";
 import {
   equipmentInput,
   componentInput,
-} from "../src/modules/equipment.inputs";
+} from "../src/equipments/presentation/equipment.schemas";
 const code = z.string().regex(/^[A-Z0-9-]{1,50}$/);
 export const equipmentManifest = z
   .object({

@@ -17,3 +17,5 @@ Leia `backend/README.md` para funcionamento e limites; `docs/contrato-api.md` pa
 ## Equipamentos e manutenção
 
 A etapa inicial de recursos operacionais está descrita em [docs/equipamentos-etapa-1.md](docs/equipamentos-etapa-1.md), incluindo APIs, seed opcional e aplicação revisada da mudança de banco. O cadastro não presume saldos de disparos nem instala equipamentos fictícios automaticamente.
+
+A organização por domínio e os exemplos de comportamento das entidades estão em [docs/arquitetura-equipamentos.md](docs/arquitetura-equipamentos.md).
