@@ -1,3 +1,5 @@
+import { EquipmentPage } from "./pages/equipment/EquipmentPage";
+import { EquipmentDetailPage } from "./pages/equipment/EquipmentDetailPage";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout } from "./layouts/AppLayout";
 import { DashboardPage } from "./pages/dashboard/DashboardPage";
@@ -37,6 +39,8 @@ export default function App() {
         <Route path="profissionais/novo" element={<ProfessionalDetailPage isNew />} />
         <Route path="profissionais/:id" element={<ProfessionalDetailPage />} />
         <Route path="financeiro" element={<FinancePage />} />
+        <Route path="equipamentos" element={<EquipmentPage />} />
+        <Route path="equipamentos/:id" element={<EquipmentDetailPage />} />
         <Route path="estoque" element={<StockPage />} />
         <Route path="leads" element={<LeadsPage />} />
       </Route>

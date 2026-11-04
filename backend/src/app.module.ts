@@ -1,3 +1,5 @@
+import { EquipmentController } from './modules/equipment.controller';
+import { EquipmentService } from './modules/equipment.service';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { PrismaService } from './common/prisma.service';
@@ -12,5 +14,5 @@ import { FinanceController } from './modules/finance.controller';
 import { DashboardController } from './modules/dashboard.controller';
 import { UploadsController } from './modules/uploads.controller';
 import { SchedulingService } from './modules/scheduling.service';
-@Module({controllers:[AuthController,CatalogController,CustomersController,AgendaController,LeadsBookingController,StockController,FinanceController,DashboardController,UploadsController],providers:[PrismaService,SchedulingService,{provide:APP_GUARD,useClass:SessionGuard}]})
+@Module({controllers:[EquipmentController,AuthController,CatalogController,CustomersController,AgendaController,LeadsBookingController,StockController,FinanceController,DashboardController,UploadsController],providers:[EquipmentService,PrismaService,SchedulingService,{provide:APP_GUARD,useClass:SessionGuard}]})
 export class AppModule{}

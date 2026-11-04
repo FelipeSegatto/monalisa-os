@@ -1104,3 +1104,42 @@ export function registerStockMovement(
 ): Promise<StockItemDetail> {
   return sendJSON<StockItemDetail>("POST", `/api/v1/stock/items/${id}/movements`, input);
 }
+
+export type EquipmentStatus = 'ACTIVE' | 'MAINTENANCE' | 'RETIRED';
+export type MaintenanceState = 'UNKNOWN' | 'OVERDUE' | 'DUE_SOON' | 'OK' | 'NOT_APPLICABLE';
+export interface EquipmentComponent {
+  id: number; code: string; name: string; serialNumber: string | null;
+  specification: string | null; nominalCapacity: number | null; status: EquipmentStatus;
+}
+export interface Equipment {
+  id: number; code: string; name: string; manufacturer: string | null; model: string | null;
+  serialNumber: string | null; status: EquipmentStatus; shotTracking: 'NONE' | 'EQUIPMENT' | 'COMPONENT';
+  maintenanceIntervalMonths: number; lastMaintenanceDate: string | null; nextMaintenanceDate: string | null;
+  maintenanceState: MaintenanceState; components: EquipmentComponent[];
+}
+export interface EquipmentDetail extends Equipment {
+  procedures: { procedure: { id: number; name: string } }[];
+  events: { id: number; type: string; reason: string | null; createdAt: string; occurredOn: string | null;
+    actor: { id: number; name: string }; details: Record<string, unknown> }[];
+}
+export interface EquipmentInput {
+  name: string; manufacturer: string | null; model: string | null; serialNumber: string | null;
+  shotTracking: Equipment['shotTracking']; maintenanceIntervalMonths: number;
+}
+export interface ComponentInput {
+  name: string; serialNumber: string | null; specification: string | null; nominalCapacity: number | null;
+}
+export interface ProcedureEquipmentResources { reviewedAt: string | null; materialsReviewedAt: string | null; equipment: Equipment[] }
+export const getEquipment = () => getJSON<{equipment: Equipment[]}>('/api/v1/equipment');
+export const getEquipmentDetail = (id: number) => getJSON<EquipmentDetail>(`/api/v1/equipment/${id}`);
+export const createEquipment = (data: EquipmentInput) => sendJSON<EquipmentDetail>('POST', '/api/v1/equipment', data);
+export const updateEquipment = (id: number, data: EquipmentInput) => sendJSON<EquipmentDetail>('PUT', `/api/v1/equipment/${id}`, data);
+export const createEquipmentComponent = (id: number, data: ComponentInput) => sendJSON<EquipmentDetail>('POST', `/api/v1/equipment/${id}/components`, data);
+export const updateEquipmentComponent = (id: number, componentId: number, data: ComponentInput) => sendJSON<EquipmentDetail>('PUT', `/api/v1/equipment/${id}/components/${componentId}`, data);
+export const changeEquipmentStatus = (id: number, status: EquipmentStatus, reason: string, componentId?: number) => sendJSON<EquipmentDetail>('PATCH', `/api/v1/equipment/${id}${componentId === undefined ? '' : `/components/${componentId}`}/status`, { status, reason });
+export const scheduleEquipmentMaintenance = (id: number, nextDate: string, reason: string) => sendJSON<EquipmentDetail>('POST', `/api/v1/equipment/${id}/maintenance/schedule`, { nextDate, reason });
+export const recordEquipmentMaintenance = (id: number, performedOn: string, reason: string, nextDate?: string) => sendJSON<EquipmentDetail>('POST', `/api/v1/equipment/${id}/maintenance`, { performedOn, reason, ...(nextDate ? {nextDate} : {}) });
+export const getProcedureEquipment = (id: number) => getJSON<ProcedureEquipmentResources>(`/api/v1/procedures/${id}/equipment`);
+export const setProcedureEquipment = (id: number, equipmentIds: number[]) => sendJSON<ProcedureEquipmentResources>('PUT', `/api/v1/procedures/${id}/equipment`, { equipmentIds });
+
+export const getEquipmentHistory = (id: number, before: number) => getJSON<{events: EquipmentDetail['events']}>(`/api/v1/equipment/${id}/events?before=${before}`);

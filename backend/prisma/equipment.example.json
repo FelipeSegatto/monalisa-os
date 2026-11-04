@@ -1,0 +1,8 @@
+{
+  "equipment": [
+    { "code": "EQ-001", "name": "Beauty Shape Duo", "shotTracking": "NONE", "components": [] },
+    { "code": "EQ-002", "name": "Q-Clean", "shotTracking": "EQUIPMENT", "components": [] },
+    { "code": "EQ-003", "name": "Fiber Evo", "shotTracking": "EQUIPMENT", "components": [] },
+    { "code": "EQ-004", "name": "Ultramed Hifu", "shotTracking": "COMPONENT", "components": [] }
+  ]
+}

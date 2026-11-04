@@ -73,6 +73,8 @@ model User {
  role Role @default(FUNCIONARIO)
  professionalId Int? @unique
  professional Professional? @relation(fields:[professionalId],references:[id],onDelete:SetNull)
+ equipmentReviews Procedure[] @relation("EquipmentReviewer")
+ equipmentEvents EquipmentEvent[]
  sessions Session[]
  blocks AgendaBlock[]
  createdAt DateTime @default(now())
@@ -123,6 +125,11 @@ model ProcedureCategory {
  leads Lead[]
 }
 model Procedure {
+  equipmentLinks ProcedureEquipment[]
+  equipmentReviewedAt DateTime?
+  equipmentReviewedById Int?
+  equipmentReviewedBy User? @relation("EquipmentReviewer",fields:[equipmentReviewedById],references:[id],onDelete:Restrict)
+  materialsReviewedAt DateTime?
   saleItems SaleItem[]
  id Int @id @default(autoincrement())
  categoryId Int
@@ -303,4 +310,72 @@ model ProcedureMaterial {
  stockItem StockItem @relation(fields:[stockItemId],references:[id])
  quantity Decimal @db.Decimal(12,3)
  @@id([procedureId,stockItemId])
+}
+
+enum EquipmentStatus {
+  ACTIVE
+  MAINTENANCE
+  RETIRED
+}
+enum ShotTracking {
+  NONE
+  EQUIPMENT
+  COMPONENT
+}
+model Equipment {
+  id Int @id @default(autoincrement())
+  code String @unique @db.VarChar(50)
+  name String @db.VarChar(150)
+  manufacturer String? @db.VarChar(120)
+  model String? @db.VarChar(120)
+  serialNumber String? @db.VarChar(120)
+  status EquipmentStatus @default(ACTIVE)
+  shotTracking ShotTracking @default(NONE)
+  maintenanceIntervalMonths Int @default(12)
+  lastMaintenanceDate DateTime? @db.Date
+  nextMaintenanceDate DateTime? @db.Date
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  components EquipmentComponent[]
+  procedures ProcedureEquipment[]
+  events EquipmentEvent[]
+  @@index([status,nextMaintenanceDate])
+}
+model EquipmentComponent {
+  id Int @id @default(autoincrement())
+  equipmentId Int
+  equipment Equipment @relation(fields:[equipmentId],references:[id],onDelete:Restrict)
+  code String @unique @db.VarChar(50)
+  name String @db.VarChar(150)
+  serialNumber String? @db.VarChar(120)
+  specification String? @db.VarChar(500)
+  nominalCapacity Int?
+  status EquipmentStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  events EquipmentEvent[]
+  @@index([equipmentId,status])
+}
+model ProcedureEquipment {
+  procedureId Int
+  procedure Procedure @relation(fields:[procedureId],references:[id],onDelete:Restrict)
+  equipmentId Int
+  equipment Equipment @relation(fields:[equipmentId],references:[id],onDelete:Restrict)
+  active Boolean @default(true)
+  @@id([procedureId,equipmentId])
+}
+model EquipmentEvent {
+  id Int @id @default(autoincrement())
+  equipmentId Int
+  equipment Equipment @relation(fields:[equipmentId],references:[id],onDelete:Restrict)
+  componentId Int?
+  component EquipmentComponent? @relation(fields:[componentId],references:[id],onDelete:Restrict)
+  actorId Int
+  actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
+  type String @db.VarChar(50)
+  reason String? @db.VarChar(1000)
+  details Json
+  occurredOn DateTime? @db.Date
+  createdAt DateTime @default(now())
+  @@index([equipmentId,createdAt])
 }

@@ -1,3 +1,4 @@
+import { MaintenanceReminders } from "../equipment/MaintenanceReminders";
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { useDashboardOverview } from "./hooks/useDashboardOverview";
@@ -35,6 +36,7 @@ export function DashboardPage() {
     <div className="page">
       <DashboardHeader onNewAppointment={() => setShowNewAppointment(true)} user={user} />
       <TodaySection overview={data} />
+      <MaintenanceReminders />
       <AgendaAndAttentionSection overview={data} />
       {user?.role === "FUNCIONARIO" ? (
         <MyFinanceSection overview={data} />

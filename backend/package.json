@@ -13,7 +13,8 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "test": "tsx --test test/*.test.ts",
-    "test:e2e": "node scripts/e2e-smoke.mjs"
+    "test:e2e": "node scripts/e2e-smoke.mjs",
+    "db:seed:equipment": "tsx prisma/seed-equipment.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.0",

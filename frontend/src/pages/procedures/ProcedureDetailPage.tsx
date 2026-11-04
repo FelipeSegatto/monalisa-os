@@ -1,3 +1,4 @@
+import { ProcedureEquipmentPanel } from "../equipment/ProcedureEquipmentPanel";
 import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import {
@@ -106,6 +107,7 @@ export function ProcedureDetailPage({ isNew = false }: Props) {
 
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
   const [materials, setMaterials] = useState<MaterialRow[]>([]);
+  const [resourceRevision, setResourceRevision] = useState(0);
   const [materialsEditing, setMaterialsEditing] = useState(false);
   const [materialsSaving, setMaterialsSaving] = useState(false);
   const [materialsSaveError, setMaterialsSaveError] = useState<string | null>(null);
@@ -221,6 +223,7 @@ export function ProcedureDetailPage({ isNew = false }: Props) {
         })),
       );
       setMaterials(toMaterialRows(saved));
+      setResourceRevision(v => v + 1);
       setMaterialsEditing(false);
     } catch (err) {
       setMaterialsSaveError(
@@ -356,6 +359,7 @@ export function ProcedureDetailPage({ isNew = false }: Props) {
 
       <div className="procedure-detail">
         <main>
+          {!isNew && procedureId && <ProcedureEquipmentPanel key={resourceRevision} procedureId={procedureId} canManage={canManage} />}
           <div className="section-header">
             <span className="section-label">Informações gerais</span>
           </div>

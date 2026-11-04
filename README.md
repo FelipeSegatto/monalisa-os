@@ -13,3 +13,7 @@
 Leia `backend/README.md` para funcionamento e limites; `docs/contrato-api.md` para endpoints.
 
 **Observação:** O código fonte original do frontend permanece intocado; foi acrescentado apenas `frontend/.env` para apontar para a API local.
+
+## Equipamentos e manutenção
+
+A etapa inicial de recursos operacionais está descrita em [docs/equipamentos-etapa-1.md](docs/equipamentos-etapa-1.md), incluindo APIs, seed opcional e aplicação revisada da mudança de banco. O cadastro não presume saldos de disparos nem instala equipamentos fictícios automaticamente.
