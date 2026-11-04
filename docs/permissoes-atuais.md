@@ -31,3 +31,7 @@ Testes HTTP em `backend/test/contracts/` usam controllers/guard reais com persis
 ## Fase 2
 
 A política da tabela foi preservada. AuthModule fornece o guard global e a autenticação passa por services/repositories. Erros são tratados pelo ApiExceptionFilter global. Testes HTTP caracterizam acesso e ausência de escalada de papel pelo body; detalhes em [autenticacao-fase-2.md](autenticacao-fase-2.md).
+
+## Fase 3
+
+Clientes e profissionais passaram a módulos próprios sem mudar a matriz acima. Criação e troca de conta profissional continuam ADMIN; autoria de nota vem da sessão. Desativação profissional não implica bloqueio automático do login nesta fase.

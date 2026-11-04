@@ -11,12 +11,16 @@ export class SessionService {
     @Inject(SessionTokenCodec) private readonly tokens: SessionTokenCodec,
     @Inject(AuthClock) private readonly clock: AuthClock,
   ) {}
-  async issue(userId: number): Promise<SessionToken> {
+  async issue(
+    userId: number,
+    expectedPasswordHash: string,
+  ): Promise<SessionToken> {
     const token = this.tokens.generate();
     await this.sessions.create(
       this.tokens.hash(token),
       userId,
       this.clock.now() + SESSION_LIFETIME_MS,
+      expectedPasswordHash,
     );
     return token;
   }

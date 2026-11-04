@@ -1,3 +1,6 @@
+import { EmployeeAccountService } from "./application/employee-account.service";
+import { EmployeeAccountRepository } from "./domain/employee-account.repository";
+import { PrismaEmployeeAccountRepository } from "./infrastructure/prisma-employee-account.repository";
 import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { PrismaModule } from "../shared/infrastructure/prisma/prisma.module";
@@ -25,6 +28,11 @@ import { SessionGuard } from "./presentation/session.guard";
   imports: [PrismaModule],
   controllers: [AuthController],
   providers: [
+    EmployeeAccountService,
+    {
+      provide: EmployeeAccountRepository,
+      useClass: PrismaEmployeeAccountRepository,
+    },
     AuthService,
     SessionService,
     { provide: UserRepository, useClass: PrismaUserRepository },
@@ -39,6 +47,11 @@ import { SessionGuard } from "./presentation/session.guard";
     },
     { provide: APP_GUARD, useClass: SessionGuard },
   ],
-  exports: [AuthService, SessionService, AuthConfiguration],
+  exports: [
+    AuthService,
+    SessionService,
+    AuthConfiguration,
+    EmployeeAccountService,
+  ],
 })
 export class AuthModule {}

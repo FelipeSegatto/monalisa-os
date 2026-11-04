@@ -24,7 +24,7 @@ export class AuthService {
       throw new AuthError("INVALID_CREDENTIALS", "Email ou senha inválidos");
     }
     this.attempts.succeeded(source);
-    const token = await this.sessions.issue(user.id);
+    const token = await this.sessions.issue(user.id, user.passwordHash);
     return { profile: user.publicProfile(), token };
   }
 }

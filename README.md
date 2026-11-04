@@ -31,6 +31,8 @@ Com API e banco disponíveis, `npm run smoke` faz somente consultas. Testes que 
 - [Ambiente, comandos e seeds](docs/fase-1-ambiente.md)
 - [Matriz de acesso atual e decisões pendentes](docs/permissoes-atuais.md)
 - [Autenticação, configuração e erros — Fase 2](docs/autenticacao-fase-2.md)
+- [Clientes, profissionais e contas — Fase 3](docs/clientes-profissionais-fase-3.md)
+- [Roteiro de migrations para o Claude](docs/roteiro-migrations-claude.md)
 - [Backend e limites](backend/README.md)
 - [Contrato da API](docs/contrato-api.md)
 - [Equipamentos e manutenção](docs/equipamentos-etapa-1.md)

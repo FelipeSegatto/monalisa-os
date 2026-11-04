@@ -67,11 +67,12 @@ test("login e logout usam as dependências reais e mantêm cookie HttpOnly e has
     const password = "SenhaFicticiaSomenteTeste123!";
     let saved: any;
     let deletions = 0;
+    const storedHash = hashPassword(password);
     app.db.user.findUnique = async () => ({
       id: 7,
       name: "Administrador de teste",
       email: "admin@example.test",
-      passwordHash: hashPassword(password),
+      passwordHash: storedHash,
       role: "ADMIN",
       professionalId: null,
     });
@@ -83,6 +84,11 @@ test("login e logout usam as dependências reais e mantêm cookie HttpOnly e has
       deletions++;
       return { count: 1 };
     };
+    app.db.$transaction = async (work: any) =>
+      work({
+        ...app.db,
+        $queryRaw: async () => [{ id: 7, passwordHash: storedHash }],
+      });
     await app.start();
     const login = await app.request("/api/v1/auth/login", {
       method: "POST",

@@ -17,6 +17,15 @@ export function verifyPassword(password: string, stored: string): boolean {
 }
 @Injectable()
 export class ScryptPasswordHasher extends PasswordHasher {
+  async hash(password: string): Promise<string> {
+    const salt = randomBytes(16).toString("hex");
+    const key = await new Promise<Buffer>((resolve, reject) =>
+      scrypt(password, salt, 64, (error, value) =>
+        error ? reject(error) : resolve(value),
+      ),
+    );
+    return `scrypt:${salt}:${key.toString("hex")}`;
+  }
   async verify(password: string, stored: string | null): Promise<boolean> {
     const parsed = stored ? FORMAT.exec(stored) : null;
     const actual = await new Promise<Buffer>((resolve, reject) =>

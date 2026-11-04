@@ -1,3 +1,5 @@
+import { CustomersModule } from "./customers/customers.module";
+import { ProfessionalsModule } from "./professionals/professionals.module";
 import { EquipmentsModule } from "./equipments/equipments.module";
 import { PrismaModule } from "./shared/infrastructure/prisma/prisma.module";
 import { Module } from "@nestjs/common";
@@ -5,7 +7,6 @@ import { APP_FILTER } from "@nestjs/core";
 import { AuthModule } from "./auth/auth.module";
 import { ApiExceptionFilter } from "./shared/presentation/api-exception.filter";
 import { CatalogController } from "./modules/catalog.controller";
-import { CustomersController } from "./modules/customers.controller";
 import { AgendaController } from "./modules/agenda.controller";
 import { LeadsBookingController } from "./modules/leads-booking.controller";
 import { StockController } from "./modules/stock.controller";
@@ -14,10 +15,15 @@ import { DashboardController } from "./modules/dashboard.controller";
 import { UploadsController } from "./modules/uploads.controller";
 import { SchedulingService } from "./modules/scheduling.service";
 @Module({
-  imports: [PrismaModule, AuthModule, EquipmentsModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    EquipmentsModule,
+    CustomersModule,
+    ProfessionalsModule,
+  ],
   controllers: [
     CatalogController,
-    CustomersController,
     AgendaController,
     LeadsBookingController,
     StockController,

@@ -8,6 +8,7 @@ export abstract class SessionRepository {
     tokenHash: string,
     userId: number,
     expiresAt: number,
+    expectedPasswordHash: string,
   ): Promise<void>;
   abstract findByHash(tokenHash: string): Promise<AuthSession | null>;
   abstract deleteByHash(tokenHash: string): Promise<void>;

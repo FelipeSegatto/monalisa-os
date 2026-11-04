@@ -1,3 +1,4 @@
+import { AuthError } from "../domain/auth-error";
 import { Inject, Injectable } from "@nestjs/common";
 import { PrismaService } from "../../shared/infrastructure/prisma/prisma.service";
 import { UserRepository, SessionRepository } from "../domain/auth.repositories";
@@ -22,11 +23,19 @@ export class PrismaSessionRepository extends SessionRepository {
     tokenHash: string,
     userId: number,
     expiresAt: number,
+    expectedPasswordHash: string,
   ): Promise<void> {
-    await this.db.session.create({
-      data: { tokenHash, userId, expiresAt: new Date(expiresAt) },
+    const data = { tokenHash, userId, expiresAt: new Date(expiresAt) };
+    await this.db.$transaction(async (tx) => {
+      const [user] = await tx.$queryRaw<
+        Array<{ id: number; passwordHash: string }>
+      >`SELECT id, passwordHash FROM \`User\` WHERE id = ${userId} FOR UPDATE`;
+      if (!user || user.passwordHash !== expectedPasswordHash)
+        throw new AuthError("INVALID_CREDENTIALS", "Email ou senha inválidos");
+      await tx.session.create({ data });
     });
   }
+
   async findByHash(tokenHash: string): Promise<AuthSession | null> {
     const session = await this.db.session.findUnique({
       where: { tokenHash },

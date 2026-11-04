@@ -3,6 +3,7 @@ export abstract class AuthClock {
   abstract now(): number;
 }
 export abstract class PasswordHasher {
+  abstract hash(password: string): Promise<string>;
   abstract verify(password: string, encoded: string | null): Promise<boolean>;
 }
 export abstract class SessionTokenCodec {

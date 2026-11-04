@@ -48,6 +48,12 @@ async function fixture() {
   app.db.customer.findMany = async () => [];
   app.db.lead.findMany = async () => [];
   app.db.stockItem.findMany = async () => [];
+  app.db.$transaction = async (work: any) =>
+    work({
+      ...app.db,
+      $queryRaw: async (_strings: TemplateStringsArray, id: number) =>
+        users.filter((user) => user.id === id),
+    });
   await app.start();
   const login = async (email: string, extra: object = {}) =>
     app.request("/api/v1/auth/login", {

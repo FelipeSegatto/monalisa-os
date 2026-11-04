@@ -1,11 +1,10 @@
-import { Inject, BadRequestException, Body, Controller, Get, Param, Patch, Post, Put, Query, Req } from '@nestjs/common';
+import { Inject, BadRequestException, Body, Controller, Get, Param, Patch, Post, Put } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { Admin, Public } from '../auth/auth.guard';
-import { categoryLabels, dateKey, iso, money, num, parse, required, requiredId } from '../common/util';
+import { money, parse, required, requiredId } from '../common/util';
 import { z } from 'zod';
 const text=z.string().trim().min(1).max(190);
 const nullableText=z.string().trim().max(4000).nullable();
-const professionalInput=z.object({name:text,phone:z.string().nullable(),email:z.string().email().nullable(),color:z.string().nullable(),active:z.boolean()});
 const variationInput=z.object({groupName:z.string().nullable(),name:text,reference:z.string().nullable(),price:z.number().nonnegative(),active:z.boolean()});
 const procedureInput=z.object({categoryId:z.number().int().positive(),name:text,description:nullableText,durationMinutes:z.number().int().min(5).max(720),price:z.number().nonnegative(),active:z.boolean(),variations:z.array(variationInput)});
 const procedureInclude={category:true,variations:{orderBy:{sortOrder:'asc' as const}}};
@@ -14,12 +13,6 @@ function formatProcedure(p:any){const variations=(p.variations||[]).map(formatVa
 @Controller('api/v1')
 export class CatalogController{
  constructor(@Inject(PrismaService) private readonly db:PrismaService){}
- @Get('professionals') async professionals(){const all=await this.db.professional.findMany({orderBy:{name:'asc'},include:{_count:{select:{appointments:true}}}}); const now=new Date();const month=new Date(Date.UTC(now.getFullYear(),now.getMonth(),1));return {professionals:await Promise.all(all.map(async p=>({id:p.id,name:p.name,phone:p.phone,email:p.email,color:p.color,active:p.active,upcomingAppointments:await this.db.appointment.count({where:{professionalId:p.id,startsAt:{gte:now},status:{in:['SCHEDULED','CONFIRMED']}}}),appointmentsThisMonth:await this.db.appointment.count({where:{professionalId:p.id,startsAt:{gte:month}}})})))};}
- @Get('professionals/:id') async professional(@Param('id') id:string){const {professionals}=await this.professionals();return required(professionals.find(p=>p.id===requiredId(id)));}
- @Admin() @Post('professionals') async createProfessional(@Body() body:unknown){const p=parse(professionalInput,body);const created=await this.db.professional.create({data:{name:p.name,phone:p.phone,email:p.email,color:p.color||'#0d9488',active:p.active}});return this.professional(String(created.id));}
- @Admin() @Put('professionals/:id') async updateProfessional(@Param('id')id:string,@Body()body:unknown){const p=parse(professionalInput,body);await this.db.professional.update({where:{id:requiredId(id)},data:{...p,color:p.color||'#0d9488'}});return this.professional(id);}
- @Admin() @Get('professionals/:id/account') async account(@Param('id')id:string){await this.db.professional.findUniqueOrThrow({where:{id:requiredId(id)}});const user=await this.db.user.findUnique({where:{professionalId:requiredId(id)}});return {hasAccount:!!user,email:user?.email??null};}
- @Admin() @Post('professionals/:id/account') async createAccount(@Param('id')id:string,@Body()body:unknown){const input=parse(z.object({email:z.string().email(),password:z.string().min(10).max(200)}),body);const prof=required(await this.db.professional.findUnique({where:{id:requiredId(id)}}));const {hashPassword}=await import('../auth/security');const existing=await this.db.user.findUnique({where:{professionalId:prof.id}});if(existing){await this.db.user.update({where:{id:existing.id},data:{email:input.email.toLowerCase(),passwordHash:hashPassword(input.password)}});await this.db.session.deleteMany({where:{userId:existing.id}});}else{await this.db.user.create({data:{name:prof.name,email:input.email.toLowerCase(),passwordHash:hashPassword(input.password),role:'FUNCIONARIO',professionalId:prof.id}});}return this.account(id);}
  @Get('procedure-categories') async categories(){const cats=await this.db.procedureCategory.findMany({orderBy:{name:'asc'},include:{procedures:{orderBy:{name:'asc'},include:{variations:{orderBy:{sortOrder:'asc'}}}}}});return {categories:cats.map(c=>({id:c.id,name:c.name,procedures:c.procedures.map(p=>formatProcedure({...p,category:c}))}))};}
  @Public() @Get('public/catalog') async publicCatalog(){const {categories}=await this.categories();return {categories:categories.map(c=>({...c,procedures:c.procedures.filter(p=>p.active)})).filter(c=>c.procedures.length)};}
  @Get('procedures/:id') async procedure(@Param('id')id:string){return formatProcedure(required(await this.db.procedure.findUnique({where:{id:requiredId(id)},include:procedureInclude})));}
