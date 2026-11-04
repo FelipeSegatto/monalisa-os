@@ -1,0 +1,88 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(36, 35, 31, 0.38);
+  z-index: 60;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.side-panel {
+  width: min(530px, 94vw);
+  height: 100%;
+  background: var(--bg);
+  padding: 38px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  animation: side-panel-slide-in 0.25s ease-out;
+  overflow: hidden;
+}
+
+.side-panel--wide {
+  width: min(720px, 96vw);
+}
+
+@keyframes side-panel-slide-in {
+  from {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--line-dark);
+  padding-bottom: 25px;
+  flex: none;
+}
+
+.panel-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 34px;
+  margin: 8px 0 0;
+  color: var(--ink);
+}
+
+.panel-body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 0 -10px;
+  padding: 0 10px;
+  flex: 1;
+}
+
+.panel-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--line);
+  padding-top: 22px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex: none;
+}
+
+.panel-back {
+  margin: 18px 0 0;
+}
+
+.panel-section {
+  padding: 24px 0 8px;
+}
+
+.panel-section + .panel-section {
+  border-top: 1px solid var(--line-dark);
+}
+
+@media (max-width: 760px) {
+  .side-panel {
+    padding: 24px 20px;
+  }
+
+  .side-panel--wide {
+    width: 100%;
+  }
+}

@@ -1,0 +1,306 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "mysql"
+  url = env("DATABASE_URL")
+}
+enum Role {
+  ADMIN
+  FUNCIONARIO
+}
+enum AcquisitionSource {
+  INDICACAO
+  INSTAGRAM
+  WHATSAPP
+  GOOGLE
+  OUTRO
+}
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+enum LeadStatus {
+  NEW
+  CONTACTED
+}
+enum PaymentMethod {
+  PIX
+  CASH
+  CARD
+}
+enum ExpenseCategory {
+  INSUMOS
+  EQUIPAMENTOS_MANUTENCAO
+  MARKETING
+  ALUGUEL_ESTRUTURA
+  SERVICOS
+  PESSOAL
+  OUTROS
+}
+enum ExpenseRecurrence {
+  ONCE
+  RECURRING
+}
+enum MovementType {
+  IN
+  ADJUSTMENT
+  CONSUMPTION
+}
+enum DocumentType {
+  ANAMNESIS
+  CONTRACT
+  OTHER
+}
+enum DocumentStatus {
+  AWAITING_SIGNATURE
+  SIGNED
+}
+enum PhotoLabel {
+  BEFORE
+  AFTER
+  EVOLUTION
+  OTHER
+}
+model User {
+ id Int @id @default(autoincrement())
+ name String @db.VarChar(120)
+ email String @unique @db.VarChar(190)
+ passwordHash String @db.VarChar(255)
+ role Role @default(FUNCIONARIO)
+ professionalId Int? @unique
+ professional Professional? @relation(fields:[professionalId],references:[id],onDelete:SetNull)
+ sessions Session[]
+ blocks AgendaBlock[]
+ createdAt DateTime @default(now())
+}
+model Session {
+ id Int @id @default(autoincrement())
+ tokenHash String @unique @db.VarChar(64)
+ userId Int
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ expiresAt DateTime
+ createdAt DateTime @default(now())
+ @@index([userId,expiresAt])
+}
+model Professional {
+ id Int @id @default(autoincrement())
+ name String @db.VarChar(120)
+ phone String? @db.VarChar(30)
+ email String? @db.VarChar(190)
+ color String @default("#0d9488") @db.VarChar(16)
+ active Boolean @default(true)
+ user User?
+ appointments Appointment[]
+ blocks AgendaBlock[]
+ sales Sale[]
+}
+model Customer {
+ id Int @id @default(autoincrement())
+ name String @db.VarChar(120)
+ phone String @db.VarChar(30)
+ email String? @db.VarChar(190)
+ birthDate DateTime? @db.Date
+ acquisitionSource AcquisitionSource @default(OUTRO)
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ appointments Appointment[]
+ notes CustomerNote[]
+ documents CustomerDocument[]
+ photos CustomerPhoto[]
+ sales Sale[]
+ @@index([name])
+ @@index([phone])
+ @@map("customers")
+}
+model ProcedureCategory {
+ id Int @id @default(autoincrement())
+ name String @unique @db.VarChar(120)
+ procedures Procedure[]
+ leads Lead[]
+}
+model Procedure {
+  saleItems SaleItem[]
+ id Int @id @default(autoincrement())
+ categoryId Int
+ category ProcedureCategory @relation(fields:[categoryId],references:[id])
+ name String @db.VarChar(150)
+ description String? @db.Text
+ coverImageUrl String? @db.VarChar(300)
+ detailImageUrl String? @db.VarChar(300)
+ durationMinutes Int
+ price Decimal @db.Decimal(12,2)
+ active Boolean @default(true)
+ variations ProcedureVariation[]
+ appointments Appointment[]
+ materials ProcedureMaterial[]
+ @@index([categoryId])
+}
+model ProcedureVariation {
+ id Int @id @default(autoincrement())
+ procedureId Int
+ procedure Procedure @relation(fields:[procedureId],references:[id],onDelete:Cascade)
+ groupName String? @db.VarChar(80)
+ name String @db.VarChar(140)
+ reference String? @db.VarChar(140)
+ price Decimal @db.Decimal(12,2)
+ active Boolean @default(true)
+ sortOrder Int @default(0)
+}
+model Appointment {
+ id Int @id @default(autoincrement())
+ customerId Int
+ customer Customer @relation(fields:[customerId],references:[id])
+ professionalId Int
+ professional Professional @relation(fields:[professionalId],references:[id])
+ procedureId Int
+ procedure Procedure @relation(fields:[procedureId],references:[id])
+ startsAt DateTime
+ endsAt DateTime
+ status AppointmentStatus @default(SCHEDULED)
+ documents CustomerDocument[]
+ photos CustomerPhoto[]
+ createdAt DateTime @default(now())
+ @@index([professionalId, startsAt, endsAt])
+ @@index([customerId,startsAt])
+}
+model AgendaBlock {
+ id Int @id @default(autoincrement())
+ professionalId Int
+ professional Professional @relation(fields:[professionalId],references:[id])
+ createdByUserId Int
+ createdBy User @relation(fields:[createdByUserId],references:[id])
+ startsAt DateTime
+ endsAt DateTime
+ reason String? @db.VarChar(250)
+ @@index([professionalId, startsAt, endsAt])
+}
+model CustomerNote {
+ id Int @id @default(autoincrement())
+ customerId Int
+ customer Customer @relation(fields:[customerId],references:[id],onDelete:Cascade)
+ title String @db.VarChar(150)
+ content String @db.Text
+ author String @db.VarChar(120)
+ createdAt DateTime @default(now())
+}
+model CustomerDocument {
+ id Int @id @default(autoincrement())
+ customerId Int
+ customer Customer @relation(fields:[customerId],references:[id],onDelete:Cascade)
+ appointmentId Int?
+ appointment Appointment? @relation(fields:[appointmentId],references:[id],onDelete:SetNull)
+ procedureId Int?
+ procedureName String? @db.VarChar(150)
+ type DocumentType
+ status DocumentStatus
+ fileUrl String @db.VarChar(320)
+ originalFilename String @db.VarChar(255)
+ signedBy String? @db.VarChar(120)
+ signedAt DateTime?
+ note String? @db.Text
+ createdAt DateTime @default(now())
+}
+model CustomerPhoto {
+ id Int @id @default(autoincrement())
+ customerId Int
+ customer Customer @relation(fields:[customerId],references:[id],onDelete:Cascade)
+ appointmentId Int?
+ appointment Appointment? @relation(fields:[appointmentId],references:[id],onDelete:SetNull)
+ procedureId Int?
+ procedureName String? @db.VarChar(150)
+ label PhotoLabel?
+ fileUrl String @db.VarChar(320)
+ originalFilename String @db.VarChar(255)
+ note String? @db.Text
+ createdAt DateTime @default(now())
+}
+model Sale {
+ id Int @id @default(autoincrement())
+ customerId Int
+ customer Customer @relation(fields:[customerId],references:[id])
+ professionalId Int?
+ professional Professional? @relation(fields:[professionalId],references:[id])
+ discount Decimal @db.Decimal(12,2) @default(0)
+ commissionPercent Decimal? @db.Decimal(5,2)
+ cancelled Boolean @default(false)
+ createdAt DateTime @default(now())
+ items SaleItem[]
+ payments SalePayment[]
+ @@index([createdAt])
+}
+model SaleItem {
+ procedureId Int
+ procedure Procedure @relation(fields:[procedureId],references:[id])
+ id Int @id @default(autoincrement())
+ saleId Int
+ sale Sale @relation(fields:[saleId],references:[id],onDelete:Cascade)
+ description String @db.VarChar(255)
+ sessions Int
+ unitPrice Decimal @db.Decimal(12,2)
+ finalPrice Decimal @db.Decimal(12,2)
+}
+model SalePayment {
+ id Int @id @default(autoincrement())
+ saleId Int
+ sale Sale @relation(fields:[saleId],references:[id],onDelete:Cascade)
+ paidAt DateTime @default(now())
+ method PaymentMethod
+ installments Int?
+ amount Decimal @db.Decimal(12,2)
+}
+model Expense {
+ id Int @id @default(autoincrement())
+ description String @db.VarChar(255)
+ category ExpenseCategory
+ supplier String? @db.VarChar(190)
+ amount Decimal @db.Decimal(12,2)
+ dueDate DateTime @db.Date
+ paid Boolean @default(false)
+ paidAt DateTime?
+ method PaymentMethod?
+ recurrence ExpenseRecurrence
+ cancelled Boolean @default(false)
+ createdAt DateTime @default(now())
+ @@index([dueDate])
+}
+model Lead {
+ id Int @id @default(autoincrement())
+ name String @db.VarChar(120)
+ phone String @db.VarChar(30)
+ procedureCategoryId Int?
+ procedureCategory ProcedureCategory? @relation(fields:[procedureCategoryId],references:[id])
+ message String? @db.Text
+ status LeadStatus @default(NEW)
+ createdAt DateTime @default(now())
+}
+model StockItem {
+ id Int @id @default(autoincrement())
+ name String @db.VarChar(150)
+ unit String @db.VarChar(30)
+ quantity Decimal @db.Decimal(12,3) @default(0)
+ minQuantity Decimal @db.Decimal(12,3) @default(0)
+ active Boolean @default(true)
+ movements StockMovement[]
+ materials ProcedureMaterial[]
+}
+model StockMovement {
+ id Int @id @default(autoincrement())
+ stockItemId Int
+ stockItem StockItem @relation(fields:[stockItemId],references:[id])
+ type MovementType
+ quantityDelta Decimal @db.Decimal(12,3)
+ note String? @db.VarChar(255)
+ createdAt DateTime @default(now())
+}
+model ProcedureMaterial {
+ procedureId Int
+ procedure Procedure @relation(fields:[procedureId],references:[id],onDelete:Cascade)
+ stockItemId Int
+ stockItem StockItem @relation(fields:[stockItemId],references:[id])
+ quantity Decimal @db.Decimal(12,3)
+ @@id([procedureId,stockItemId])
+}

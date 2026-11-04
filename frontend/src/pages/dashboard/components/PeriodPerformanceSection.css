@@ -1,0 +1,276 @@
+.management-intro {
+  margin: 0 0 32px;
+  padding-top: 36px;
+  border-top: 1px solid var(--ink);
+  position: relative;
+}
+
+.management-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(30px, 3vw, 40px);
+  margin: 12px 0 0;
+  color: var(--ink);
+}
+
+.management-period {
+  position: absolute;
+  right: 0;
+  bottom: 3px;
+}
+
+.management-period span {
+  margin-left: 22px;
+  color: var(--ink);
+}
+
+.period-range {
+  font-size: 13px;
+  color: var(--ink-2);
+  margin: 4px 0 0;
+}
+
+.management-section {
+  margin-bottom: 56px;
+}
+
+.management-columns {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 48px;
+}
+
+.management-side-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Financeiro --- */
+.finance-editorial {
+  display: grid;
+  grid-template-columns: 1.1fr 1.4fr;
+  gap: 32px;
+  min-height: 200px;
+}
+
+.finance-editorial-primary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  border-right: 1px solid var(--line);
+  padding-right: 32px;
+}
+
+.finance-editorial-primary strong {
+  font-size: clamp(36px, 4vw, 52px);
+  font-weight: 300;
+  color: var(--ink);
+}
+
+.finance-editorial-values {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 20px;
+  align-content: center;
+}
+
+.finance-editorial-values > div {
+  display: grid;
+  gap: 6px;
+}
+
+.finance-editorial-values b {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* --- Procedimentos --- */
+.procedure-performance {
+  display: flex;
+  flex-direction: column;
+}
+
+.statement {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.statement strong {
+  font-size: 44px;
+  font-weight: 300;
+  color: var(--ink);
+}
+
+.statement span {
+  max-width: 260px;
+  color: var(--ink-2);
+  font-size: 13px;
+}
+
+.performance-table {
+  margin-top: 8px;
+}
+
+.table-head,
+.table-line {
+  display: grid;
+  grid-template-columns: 1.4fr 0.8fr 0.5fr 0.7fr 0.6fr;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.performance-table--expenses .table-head,
+.performance-table--expenses .table-line {
+  grid-template-columns: 1.4fr 0.8fr 0.6fr;
+}
+
+.table-head {
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 9px;
+}
+
+.table-head span:not(:first-child),
+.table-line span:not(:first-child) {
+  text-align: right;
+}
+
+.change-badge {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+}
+
+.change-badge.is-up {
+  color: var(--status-ok);
+}
+
+.change-badge.is-down {
+  color: var(--status-urgent);
+}
+
+.change-badge.is-new {
+  color: var(--ink-2);
+}
+
+.performance-callout {
+  font-size: 13px;
+  color: var(--ink-2);
+  margin: 12px 0 0;
+}
+
+.performance-callout.is-up {
+  color: var(--status-ok);
+}
+
+.performance-callout.is-down {
+  color: var(--status-urgent);
+}
+
+/* --- Clientes --- */
+.client-numbers {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  align-items: end;
+  gap: 18px;
+  padding: 24px 0;
+}
+
+.client-numbers strong {
+  font-size: 44px;
+  font-weight: 300;
+  color: var(--ink);
+}
+
+.client-numbers b {
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.client-numbers > div {
+  display: grid;
+  gap: 5px;
+}
+
+.client-numbers-label {
+  margin: 8px 0 4px;
+}
+
+.new-customers-total {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 44px;
+  color: var(--ink);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.new-customers-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  margin: 6px 0 20px;
+}
+
+.new-customers-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.new-customers-row {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr) 32px;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+.new-customers-source {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.new-customers-count {
+  font-size: 13px;
+  color: var(--ink);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.new-customers-visual {
+  min-height: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.new-customers-units {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.new-customers-unit {
+  width: 9px;
+  height: 9px;
+  background: var(--ink);
+  flex: none;
+}
+
+.new-customers-bar-track {
+  width: 100%;
+  height: 2px;
+  background: var(--track);
+}
+
+.new-customers-bar-fill {
+  height: 2px;
+  background: var(--ink);
+}

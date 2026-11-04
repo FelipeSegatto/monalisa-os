@@ -1,0 +1,14 @@
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { z } from 'zod';
+export const money = (v: unknown) => Math.round(Number(v) * 100) / 100;
+export const num = (v: unknown) => Number(v);
+export const requiredId = (v: unknown) => { const n = Number(v); if (!Number.isSafeInteger(n) || n < 1) throw new BadRequestException('ID inválido'); return n; };
+export const required = <T>(item: T | null | undefined, title='Registro não encontrado'): T => { if (!item) throw new NotFoundException(title); return item; };
+export const parse = <T extends z.ZodTypeAny>(schema: T, value: unknown): z.infer<T> => { const result=schema.safeParse(value); if (!result.success) throw new BadRequestException(result.error.flatten()); return result.data; };
+export const iso = (d: Date | string | null | undefined) => d ? new Date(d).toISOString():null;
+export const dateKey = (d: Date) => new Date(d.getTime()-3*3600000).toISOString().slice(0,10);
+export const dayRange = (day: string) => { if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || Number.isNaN(Date.parse(day))) throw new BadRequestException('Data inválida'); const start=new Date(day+'T03:00:00Z'); return {start,end:new Date(start.getTime()+86400000)}; };
+export const monthStart=(date:string) => date.slice(0,7)+'-01';
+export const between = (start: Date, end: Date) => ({gte:start,lt:end});
+export const categoryLabels:Record<string,string>={INDICACAO:'Indicação',INSTAGRAM:'Instagram',WHATSAPP:'WhatsApp',GOOGLE:'Google',OUTRO:'Outro'};
+export const expenseLabels:Record<string,string>={INSUMOS:'Insumos',EQUIPAMENTOS_MANUTENCAO:'Equipamentos e manutenção',MARKETING:'Marketing',ALUGUEL_ESTRUTURA:'Aluguel e estrutura',SERVICOS:'Serviços',PESSOAL:'Pessoal',OUTROS:'Outros'};

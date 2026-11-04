@@ -1,0 +1,43 @@
+.today-stats {
+  overflow: hidden;
+}
+
+.today-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  /* Desloca a grade para a esquerda pela largura exata de borda+indentacao
+     de uma coluna; o overflow:hidden do pai recorta esse trecho, entao a
+     primeira coluna de cada linha nunca mostra divisoria nem indentacao. */
+  margin-left: -25px;
+}
+
+.today-stat {
+  border-left: 1px solid var(--line);
+  padding-left: 24px;
+}
+
+.today-stat-value {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 52px;
+  color: var(--ink);
+  margin: 0;
+  font-variant-numeric: lining-nums tabular-nums;
+  white-space: nowrap;
+}
+
+.today-stat-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  margin: 6px 0 0;
+}
+
+.today-stat-detail {
+  font-size: 13px;
+  color: var(--ink-2);
+  margin: 4px 0 0;
+}

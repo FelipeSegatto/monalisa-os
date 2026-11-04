@@ -1,0 +1,28 @@
+.client-table {
+  display: flex;
+  flex-direction: column;
+}
+
+.client-row {
+  display: grid;
+  grid-template-columns: 1.5fr 0.65fr 1fr 1fr 55px;
+  gap: 20px;
+  min-height: 76px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+
+.client-row--head {
+  min-height: 40px;
+  color: var(--ink-3);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.client-row-sub {
+  display: block;
+  color: var(--ink-2);
+  font-size: 12px;
+  margin: 4px 0 0;
+}

@@ -1,0 +1,157 @@
+/*
+ * Lista de agendamentos (filtros por profissional, linhas, marcador de
+ * "agora"). Usado pelo card "Agenda de hoje" do dashboard e pela pagina de
+ * Agenda - mantenha aqui para nao duplicar entre os dois.
+ */
+.agenda-filters {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.agenda-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-2);
+  background: none;
+  border: none;
+  border-bottom: 1px solid transparent;
+  padding: 0 0 2px;
+  cursor: pointer;
+}
+
+.agenda-filter.is-active {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+.agenda-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-3);
+  margin: 12px 0 0;
+  cursor: pointer;
+}
+
+.agenda-list {
+  margin-top: 8px;
+}
+
+.agenda-row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 172px;
+  column-gap: 20px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+  align-items: baseline;
+}
+
+.agenda-row.is-muted {
+  opacity: 0.55;
+}
+
+.agenda-time {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.agenda-customer {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  margin: 0;
+}
+
+.agenda-row.is-muted .agenda-customer {
+  text-decoration: line-through;
+}
+
+.agenda-procedure {
+  font-size: 13px;
+  color: var(--ink-2);
+  margin: 2px 0 0;
+}
+
+.agenda-side {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: flex-start;
+}
+
+.agenda-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.agenda-professional {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.agenda-now-marker {
+  border-top: 1px solid var(--ink);
+  margin: 10px 0;
+  padding-top: 4px;
+}
+
+.agenda-now-time {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.agenda-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 16px;
+}
+
+.agenda-footer-count {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.agenda-empty {
+  font-size: 13px;
+  color: var(--ink-3);
+  padding: 24px 0;
+}
+
+/* --- Navegacao por data (pagina de Agenda) --- */
+.agenda-date-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.agenda-date-nav-button {
+  font-size: 13px;
+  color: var(--ink);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.agenda-date-nav-current {
+  font-size: 13px;
+  color: var(--ink-2);
+  min-width: 160px;
+  text-align: center;
+}

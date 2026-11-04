@@ -1,0 +1,22 @@
+.app-layout {
+  display: grid;
+  grid-template-columns: 222px minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.app-content {
+  padding: 42px clamp(28px, 4vw, 72px) 100px;
+  max-width: 1700px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 880px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .app-content {
+    padding: 24px 20px 48px;
+  }
+}

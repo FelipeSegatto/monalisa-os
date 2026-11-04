@@ -1,0 +1,37 @@
+import { BadRequestException, Body, ConflictException, Controller, Delete, Get, Param, Patch, Post, Query, Req } from '@nestjs/common';
+import { Prisma, AppointmentStatus } from '@prisma/client';
+import { PrismaService } from '../common/prisma.service';
+import { Public } from '../auth/auth.guard';
+import { dayRange, dateKey, iso, parse, required, requiredId } from '../common/util';
+import { z } from 'zod';
+import { canTransition } from '../domain/appointment-policy';
+import { SchedulingService } from './scheduling.service';
+const APOINT=z.object({customerId:z.number().int().positive(),professionalId:z.number().int().positive(),procedureId:z.number().int().positive(),startsAt:z.string().datetime({offset:true}),status:z.enum(['SCHEDULED','CONFIRMED']).optional()});
+const BLOCK=z.object({professionalId:z.number().int().positive().optional(),startsAt:z.string().datetime({offset:true}),endsAt:z.string().datetime({offset:true}),reason:z.string().nullable()});
+const full={customer:true,professional:true,procedure:true};
+const output=(a:any)=>({id:a.id,startsAt:iso(a.startsAt),endsAt:iso(a.endsAt),status:a.status,customerName:a.customer.name,procedureName:a.procedure.name,professionalId:a.professionalId,professionalName:a.professional.name,professionalColor:a.professional.color});
+@Controller('api/v1')
+export class AgendaController{
+ constructor(private readonly db:PrismaService,private readonly scheduling:SchedulingService){}
+ @Get('agenda') async daily(@Query('date')date?:string,@Req()req?:any){const {start,end}=dayRange(date||dateKey(new Date()));const all=await this.db.appointment.findMany({where:{startsAt:{gte:start,lt:end},...(req?.actor?.role==='FUNCIONARIO'&&req.actor.professionalId?{professionalId:req.actor.professionalId}:{})},include:full,orderBy:{startsAt:'asc'}});const pros=await this.db.professional.findMany({where:{active:true},orderBy:{name:'asc'}});return {date:date||dateKey(new Date()),professionals:pros.map(p=>({id:p.id,name:p.name,color:p.color})),appointments:all.map(output)};}
+ @Get('agenda/week') async week(@Query('date')date?:string){const day=date||dateKey(new Date());const {start}=dayRange(day);const localWeekday=new Date(day+'T12:00:00Z').getUTCDay();const offset=(localWeekday+6)%7;const monday=new Date(start.getTime()-offset*86400000);let days=[];for(let i=0;i<7;i++){const s=new Date(monday.getTime()+i*86400000),e=new Date(s.getTime()+86400000);const count=await this.db.appointment.count({where:{startsAt:{gte:s,lt:e},status:{not:'CANCELLED'}}});days.push({date:dateKey(s),count});}return {weekStart:days[0].date,days};}
+ @Get('agenda/month') async month(@Query('date')date?:string){const day=date||dateKey(new Date());const first=day.slice(0,7)+'-01';const daysInMonth=new Date(Number(day.slice(0,4)),Number(day.slice(5,7)),0).getDate();const days=[];for(let i=1;i<=daysInMonth;i++){const d=first.slice(0,8)+String(i).padStart(2,'0');const {start,end}=dayRange(d);const count=await this.db.appointment.count({where:{startsAt:{gte:start,lt:end},status:{not:'CANCELLED'}}});days.push({date:d,count});}return {monthStart:first,monthStartWeekday:new Date(first+'T12:00:00Z').getUTCDay(),days};}
+ @Post('agenda') async create(@Body()body:unknown){const p=parse(APOINT,body);const start=new Date(p.startsAt);const proc=required(await this.db.procedure.findUnique({where:{id:p.procedureId}}));const prof=required(await this.db.professional.findUnique({where:{id:p.professionalId}}));if(!proc.active||!prof.active)throw new BadRequestException('Profissional ou procedimento inativo');await this.db.customer.findUniqueOrThrow({where:{id:p.customerId}});const end=new Date(+start+proc.durationMinutes*60000);this.scheduling.assertInterval(start,end);return this.db.$transaction(async tx=>{await this.scheduling.lockAndAssertAvailable(tx,p.professionalId,start,end);const a=await tx.appointment.create({data:{customerId:p.customerId,professionalId:p.professionalId,procedureId:p.procedureId,startsAt:start,endsAt:end,status:p.status||'SCHEDULED'}});return {id:a.id,startsAt:iso(a.startsAt),endsAt:iso(a.endsAt),status:a.status};},{timeout:12000});}
+ @Patch('agenda/:id/status') async status(@Param('id')id:string,@Body()body:unknown,@Req()req:any){const data=parse(z.object({status:z.enum(['SCHEDULED','CONFIRMED','CANCELLED','COMPLETED','NO_SHOW'])}),body);const previous=required(await this.db.appointment.findUnique({where:{id:requiredId(id)},include:{procedure:{include:{materials:true}}}}));if(req.actor.role==='FUNCIONARIO'&&req.actor.professionalId!==previous.professionalId)throw new BadRequestException('Agendamento pertence a outro profissional');if(!canTransition(previous.status,data.status))throw new BadRequestException('Transição de status inválida');if(data.status==='COMPLETED'&&previous.status!=='COMPLETED'){
+  await this.db.$transaction(async tx=>{
+   // Lock the appointment row to prevent double consumption by concurrent completion requests.
+   const locked=await tx.$queryRaw<Array<{id:number;status:string}>>`SELECT id, status FROM Appointment WHERE id = ${previous.id} FOR UPDATE`;
+   if(locked[0]?.status==='COMPLETED')return;
+   for(const item of previous.procedure.materials){
+     const stock=required(await tx.stockItem.findUnique({where:{id:item.stockItemId}}));
+     const updated=await tx.stockItem.updateMany({where:{id:stock.id,quantity:{gte:item.quantity}},data:{quantity:{decrement:item.quantity}}});
+     if(!updated.count)throw new ConflictException(`Estoque insuficiente: ${stock.name}`);
+     await tx.stockMovement.create({data:{stockItemId:stock.id,type:'CONSUMPTION',quantityDelta:-Number(item.quantity),note:`Atendimento #${previous.id}`}});
+   }
+   await tx.appointment.update({where:{id:previous.id},data:{status:'COMPLETED'}});
+  });
+ }else{await this.db.appointment.update({where:{id:previous.id},data:{status:data.status}});}return {id:previous.id,status:data.status};}
+ @Get('agenda/blocks') async blocks(@Query('date')date?:string,@Req()req?:any){const day=date||dateKey(new Date());const {start,end}=dayRange(day);const all=await this.db.agendaBlock.findMany({where:{startsAt:{lt:end},endsAt:{gt:start},...(req?.actor?.role==='FUNCIONARIO'&&req.actor.professionalId?{professionalId:req.actor.professionalId}:{})},include:{professional:true},orderBy:{startsAt:'asc'}});return {date:day,blocks:all.map(b=>({...b,startsAt:iso(b.startsAt),endsAt:iso(b.endsAt),professionalName:b.professional.name,professionalColor:b.professional.color}))};}
+ @Post('agenda/blocks') async createBlock(@Body()body:unknown,@Req()req:any){const p=parse(BLOCK,body);const pro=req.actor.role==='FUNCIONARIO'?req.actor.professionalId:p.professionalId;if(!pro)throw new BadRequestException('Selecione um profissional');const start=new Date(p.startsAt),end=new Date(p.endsAt);this.scheduling.assertInterval(start,end);return this.db.$transaction(async tx=>{await this.scheduling.lockAndAssertAvailable(tx,pro,start,end);const b=await tx.agendaBlock.create({data:{professionalId:pro,createdByUserId:req.actor.id,startsAt:start,endsAt:end,reason:p.reason}});return {id:b.id,professionalId:b.professionalId,startsAt:iso(b.startsAt),endsAt:iso(b.endsAt),reason:b.reason};});}
+ @Delete('agenda/blocks/:id') async removeBlock(@Param('id')id:string,@Req()req:any){const block=required(await this.db.agendaBlock.findUnique({where:{id:requiredId(id)}}));if(req.actor.role==='FUNCIONARIO'&&block.professionalId!==req.actor.professionalId)throw new BadRequestException('Sem permissão para excluir');await this.db.agendaBlock.delete({where:{id:block.id}});return {ok:true};}
+}

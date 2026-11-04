@@ -1,0 +1,358 @@
+/*
+ * Vocabulario visual compartilhado entre paginas (dashboard, agenda,
+ * procedimentos, profissionais). Qualquer classe usada em mais de uma pagina
+ * vive aqui para nao duplicar regras - edite neste unico lugar.
+ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.page-status {
+  font-size: 14px;
+  color: var(--ink-2);
+  padding: 40px 0;
+}
+
+/* --- Cabecalho de pagina: rotulo pequeno + titulo grande serifado --- */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.page-header-eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+  color: var(--ink-3);
+  margin: 0 0 8px;
+}
+
+.page-header-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(42px, 4vw, 58px);
+  line-height: 0.96;
+  color: var(--ink);
+  margin: 14px 0 0;
+}
+
+/* --- Cabecalho de secao: label a esquerda, meta/acao a direita --- */
+.section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 42px;
+  border-bottom: 1px solid var(--line-dark);
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+}
+
+.section-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+.section-meta {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.section-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* --- Indicadores reutilizaveis (status, profissional) --- */
+.status-dot {
+  display: inline-block;
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.status-dot.is-ok {
+  background: var(--status-ok);
+}
+
+.status-dot.is-wait {
+  background: transparent;
+  border: 1px solid var(--status-wait);
+  box-sizing: border-box;
+}
+
+.status-dot.is-urgent {
+  background: var(--status-urgent);
+}
+
+.status-dot.is-done {
+  background: var(--status-done);
+}
+
+.professional-mark {
+  display: inline-block;
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 0;
+}
+
+.page-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.primary-button {
+  background: var(--ink);
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 500;
+  min-height: 44px;
+  padding: 0 22px;
+  border-radius: 0;
+  border: none;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.primary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.primary-button-link {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.secondary-button {
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  min-height: 44px;
+  padding: 0 22px;
+  border: 1px solid var(--line-dark);
+  border-radius: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.text-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--ink-2);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.text-button:hover {
+  color: var(--ink);
+}
+
+.text-button.is-active {
+  color: var(--ink);
+}
+
+.text-button.is-danger {
+  color: var(--status-urgent);
+}
+
+/* --- Formularios: inputs, toolbars, filtros segmentados --- */
+.text-input,
+.select-input,
+.textarea-input {
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  padding: 0 12px;
+  min-width: 220px;
+  box-sizing: border-box;
+}
+
+.text-input:disabled,
+.select-input:disabled {
+  border-color: transparent;
+  padding-left: 0;
+  opacity: 1;
+  color: var(--ink);
+}
+
+.textarea-input {
+  height: auto;
+  min-height: 120px;
+  padding: 12px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  color: var(--ink-2);
+  font-size: 11px;
+}
+
+.field .text-input,
+.field .select-input,
+.field .textarea-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+
+.field-grid .field-full {
+  grid-column: 1 / -1;
+}
+
+.toolbar {
+  min-height: 72px;
+  border-top: 1px solid var(--line-dark);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px 0;
+  margin-bottom: 28px;
+}
+
+.segmented {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.segmented-item {
+  background: none;
+  border: none;
+  border-bottom: 1px solid transparent;
+  padding: 0 0 2px;
+  font-size: 13px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.segmented-item.is-active {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+/* --- Linhas de listagem (procedimentos, clientes, profissionais, vendas) --- */
+.row-title {
+  color: var(--ink);
+  font-weight: 500;
+  font-size: 14px;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.row-title:hover {
+  text-decoration: underline;
+}
+
+.list-footer {
+  color: var(--ink-3);
+  font-size: 12px;
+  padding-top: 18px;
+}
+
+.back-link {
+  display: inline-block;
+  margin: -10px 0 26px;
+  color: var(--ink-2);
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.back-link:hover {
+  color: var(--ink);
+}
+
+/* --- Conteudo de paineis laterais (notas, documentos, vendas, despesas) --- */
+.records-content {
+  padding: 24px 0 40px;
+}
+
+.records-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.record-form {
+  display: grid;
+  gap: 22px;
+}
+
+.record-form .field-grid {
+  padding: 0;
+}
+
+.pdf-drop {
+  padding: 16px;
+  background: var(--bg-sidebar);
+}
+
+.note-title {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 24px;
+  margin: 10px 0 8px;
+  color: var(--ink);
+}
+
+/* --- Badge generico de ativo/inativo (profissionais, procedimentos) --- */
+.active-badge {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+}
+
+.active-badge.is-active {
+  color: var(--status-ok);
+}

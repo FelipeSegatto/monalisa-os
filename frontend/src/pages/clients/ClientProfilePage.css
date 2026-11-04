@@ -1,0 +1,136 @@
+.profile-edit-grid {
+  padding: 8px 0 40px;
+}
+
+.profile-facts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--line-dark);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 52px;
+}
+
+.profile-facts > div {
+  padding: 22px 20px 22px 0;
+  display: grid;
+  gap: 8px;
+}
+
+.profile-facts > div + div {
+  border-left: 1px solid var(--line);
+  padding-left: 20px;
+}
+
+.next-appointment {
+  display: grid;
+  grid-template-columns: 1.2fr 0.6fr 1.2fr 1.1fr 50px;
+  align-items: center;
+  min-height: 110px;
+  gap: 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.next-appointment > div:first-child {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.next-appointment-day {
+  font-size: 48px;
+}
+
+.next-appointment > div:not(:first-child) {
+  display: grid;
+  gap: 7px;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 0.5fr;
+  gap: 60px;
+  margin-top: 55px;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.history-row {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr) auto;
+  gap: 22px;
+  min-height: 72px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+
+.history-row b {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.future {
+  display: flex;
+  flex-direction: column;
+}
+
+.relationship-link {
+  width: 100%;
+  min-height: 64px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  padding: 0;
+  text-align: left;
+  color: var(--ink);
+  font: inherit;
+}
+
+div.relationship-link {
+  opacity: 0.6;
+}
+
+button.relationship-link {
+  cursor: pointer;
+}
+
+.relationship-link > span {
+  display: grid;
+  gap: 5px;
+}
+
+.relationship-link small {
+  color: var(--ink-3);
+  font-size: 11px;
+}
+
+.relationship-link i {
+  color: var(--ink-3);
+  font-style: normal;
+  font-size: 11px;
+}
+
+@media (max-width: 1100px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .profile-facts {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .next-appointment {
+    grid-template-columns: 1fr 1fr;
+  }
+}

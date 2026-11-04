@@ -1,0 +1,27 @@
+{
+  "name": "agenda-clinica-fullstack-aula03",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Frontend preservado + Aula 03: MySQL, Prisma 6.19, migrations e Repository",
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "node scripts/dev.mjs",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "npm run dev --prefix backend",
+    "build": "node scripts/build.mjs",
+    "typecheck": "npm run typecheck --prefix backend",
+    "smoke": "node scripts/smoke-test.mjs",
+    "db:up": "docker compose up -d mysql",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f mysql",
+    "db:migrate": "npm run db:migrate --prefix backend",
+    "db:migrate:apply": "npm run db:migrate:apply --prefix backend",
+    "db:studio": "npm run db:studio --prefix backend",
+    "db:demo": "npm run db:demo --prefix backend",
+    "db:status": "npm run db:status --prefix backend",
+    "db:generate": "npm run db:generate --prefix backend"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

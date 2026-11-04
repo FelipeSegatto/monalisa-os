@@ -1,0 +1,24 @@
+# AMBIENTE DIDÁTICO LOCAL; não utilizar estas credenciais em produção.
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: agenda_clinica_mysql_aula03
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_dev_123
+      MYSQL_DATABASE: agenda_clinica_dev
+      MYSQL_USER: agenda_app
+      MYSQL_PASSWORD: agenda_dev_123
+    volumes:
+      - mysql_agenda_aula03:/var/lib/mysql
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+volumes:
+  mysql_agenda_aula03:

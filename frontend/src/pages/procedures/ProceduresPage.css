@@ -1,0 +1,60 @@
+.procedure-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.procedure-category-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.procedure-category-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 20px;
+  color: var(--ink);
+  margin: 0;
+}
+
+.procedure-empty {
+  font-size: 13px;
+  color: var(--ink-3);
+  padding: 8px 0 0;
+}
+
+.procedure-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.procedure-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 80px 150px 70px 60px;
+  column-gap: 20px;
+  align-items: baseline;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.procedure-description {
+  font-size: 13px;
+  color: var(--ink-2);
+  margin: 2px 0 0;
+}
+
+.procedure-duration {
+  font-size: 13px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.procedure-price {
+  font-size: 13px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}

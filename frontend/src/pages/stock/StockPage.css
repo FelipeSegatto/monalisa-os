@@ -1,0 +1,57 @@
+.stock-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.stock-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px 140px 110px auto;
+  column-gap: 20px;
+  align-items: baseline;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.stock-quantity {
+  font-size: 13px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.active-badge.is-low {
+  color: var(--status-urgent);
+}
+
+.stock-actions {
+  display: flex;
+  gap: 14px;
+  justify-self: end;
+}
+
+.stock-history-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.stock-history-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.stock-history-delta {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.stock-history-delta.is-positive {
+  color: var(--status-ok);
+}
+
+.stock-history-delta.is-negative {
+  color: var(--status-urgent);
+}

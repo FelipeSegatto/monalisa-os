@@ -1,0 +1,37 @@
+/*
+ * Design tokens do sistema. Paleta e tipografia portadas do navegável Figma
+ * Make ("Navegável para Gestão de Clínica") - este é o UNICO lugar a editar
+ * se a identidade visual mudar. Nomes de variável mantidos (--bg, --ink-2,
+ * --ink-3 etc.) para não exigir reescrever o CSS existente; os valores é que
+ * mudaram para a paleta terrosa do protótipo.
+ */
+:root {
+  --bg: #f3f1eb;
+  --bg-sidebar: #ebe8df;
+  --ink: #24231f;
+  --ink-2: #656158;
+  --ink-3: #656158;
+  --line: #ccc8bd;
+  --line-dark: #8e8a80;
+  --track: #ebe8df;
+  --white: #faf9f5;
+
+  --umber: #876444;
+  --olive: #66705b;
+  --rose: #88707a;
+
+  --status-ok: #4f6b55;
+  --status-wait: #876444;
+  --status-urgent: #8a4e46;
+  --status-done: #ccc8bd;
+
+  --font-display: "Newsreader", Georgia, serif;
+  --font-ui: "DM Sans", Arial, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 13px;
+}
