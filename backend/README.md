@@ -18,7 +18,7 @@ Backend novo criado para consumir **exatamente o contrato** do `frontend/src/lib
 - MySQL: 3307 (host) => 3306 (container)
 
 ## Organização
-- `src/auth`: login, senha com scrypt salgado, sessão opaca 256 bits hasheada no banco, cookie HttpOnly, guards de autenticação/papel.
+- `src/auth`: módulo com domínio, aplicação, infraestrutura e apresentação; login com scrypt, sessão opaca 256 bits hasheada no banco, cookie HttpOnly e guard global.
 - `src/modules/catalog.controller.ts`: profissionais, contas de funcionários, categorias, procedimentos, variações, materiais.
 - `customers.controller.ts`: clientes, histórico, notas.
 - `agenda.controller.ts`: agenda diária/semanal/mensal, criação, bloqueios, status, estoque consumido na conclusão.
@@ -59,3 +59,7 @@ O modelo `Customer` preserva o nome da tabela `customers` do schema anterior (Au
 ## Fase 1: comandos e sementes
 
 Veja [ambiente e comandos](../docs/fase-1-ambiente.md). `db:seed` é bootstrap administrativo sem reset de senha. Para dados fictícios use exclusivamente banco isolado e `npm run db:seed:demo -- --confirm-demo`; esse seed mantém o comportamento anterior de atualizar credenciais demo/admin. Não o confunda com o bootstrap.
+
+## Autenticação e configuração — Fase 2
+
+Veja [autenticacao-fase-2.md](../docs/autenticacao-fase-2.md). Em produção, COOKIE_SECURE=true e origens HTTPS explícitas são obrigatórias. O filtro global padroniza erros sem expor SQL ou segredos; o schema e as permissões de negócio foram preservados.

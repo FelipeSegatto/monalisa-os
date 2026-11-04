@@ -1,4 +1,3 @@
-import { EquipmentErrorFilter } from "./equipment-error.filter";
 import {
   Body,
   Inject,
@@ -10,7 +9,6 @@ import {
   Put,
   Query,
   Req,
-  UseFilters,
 } from "@nestjs/common";
 import { Admin, Actor } from "../../auth/auth.guard";
 import { parse, requiredId } from "../../common/util";
@@ -24,7 +22,6 @@ import {
   statusInput,
 } from "./equipment.schemas";
 
-@UseFilters(EquipmentErrorFilter)
 @Controller("api/v1")
 export class EquipmentController {
   constructor(

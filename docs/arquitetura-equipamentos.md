@@ -25,7 +25,6 @@ backend/src/equipments/
   presentation/
     equipment.controller.ts
     equipment.schemas.ts
-    equipment-error.filter.ts
   equipments.module.ts
 ```
 
@@ -35,7 +34,7 @@ O domínio não importa NestJS, Prisma, Zod ou camadas superiores. É executáve
 
 O `AppModule` importa `EquipmentsModule` e o módulo Prisma compartilhado. A implementação de Prisma passou para `shared/infrastructure/prisma`; `common/prisma.service.ts` é um reexport de compatibilidade, não outro provider. Equipamentos, guard e controllers antigos recebem a mesma instância.
 
-O controller valida o formato HTTP e exige as permissões já existentes. A entidade também valida os valores; chamar um caso de uso fora de HTTP não contorna as invariantes. O filtro do domínio traduz erros para `{error,statusCode}` com 400/404/409. Ele é aplicado somente ao controller de equipamentos.
+O controller valida o formato HTTP e exige as permissões já existentes. A entidade também valida os valores; chamar um caso de uso fora de HTTP não contorna as invariantes. EquipmentError especializa ApplicationError (contrato puro compartilhado). O filtro global ApiExceptionFilter traduz as categorias para `{error,statusCode}` com 400/404/409, preservando as respostas do módulo.
 
 A injeção dos providers novos e do guard usa tokens explícitos, compatíveis tanto com o build `tsc` quanto com o executor `tsx` de desenvolvimento.
 

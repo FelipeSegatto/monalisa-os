@@ -56,6 +56,7 @@ export async function contractApp() {
         options: {
           method?: string;
           body?: unknown;
+          headers?: Record<string, string>;
           role?: "ADMIN" | "FUNCIONARIO" | "ANONYMOUS";
         } = {},
       ) {
@@ -73,6 +74,7 @@ export async function contractApp() {
             ...(options.body !== undefined
               ? { "content-type": "application/json" }
               : {}),
+            ...options.headers,
           },
           ...(options.body !== undefined
             ? { body: JSON.stringify(options.body) }

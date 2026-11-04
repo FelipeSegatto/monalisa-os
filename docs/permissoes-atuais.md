@@ -27,3 +27,7 @@ Esta matriz caracteriza o código existente para proteger a refatoração. Não 
 Decisões pendentes para a próxima fase: acesso aos dados clínicos, delegação na agenda, funcionários sem vínculo profissional e alinhamento entre resumos/consultas. Não transformar divergências em novas proibições sem decisão da clínica.
 
 Testes HTTP em `backend/test/contracts/` usam controllers/guard reais com persistência simulada; não comprovam isolamento de dados ou concorrência em MySQL real.
+
+## Fase 2
+
+A política da tabela foi preservada. AuthModule fornece o guard global e a autenticação passa por services/repositories. Erros são tratados pelo ApiExceptionFilter global. Testes HTTP caracterizam acesso e ausência de escalada de papel pelo body; detalhes em [autenticacao-fase-2.md](autenticacao-fase-2.md).

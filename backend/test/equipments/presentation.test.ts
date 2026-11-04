@@ -2,7 +2,8 @@ import "reflect-metadata";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { EquipmentController } from "../../src/equipments/presentation/equipment.controller";
-import { EquipmentErrorFilter } from "../../src/equipments/presentation/equipment-error.filter";
+import { ApiExceptionFilter } from "../../src/shared/presentation/api-exception.filter";
+import { AuthConfiguration } from "../../src/auth/presentation/auth.configuration";
 import { EquipmentError } from "../../src/equipments/domain/equipment-error";
 import {
   componentInput,
@@ -65,7 +66,7 @@ test("erros de domínio preservam contrato HTTP sem importar Nest no domínio", 
         body = value;
       },
     };
-    new EquipmentErrorFilter().catch(new EquipmentError("Mensagem", kind), {
+    new ApiExceptionFilter().catch(new EquipmentError("Mensagem", kind), {
       switchToHttp: () => ({ getResponse: () => response }),
     } as any);
     assert.equal(status, expected);
@@ -76,19 +77,15 @@ test("guard rejeita funcionário antes de executar escrita administrativa", asyn
   const token = "a".repeat(64);
   const guard = new SessionGuard(
     {
-      session: {
-        findUnique: async () => ({
-          expiresAt: new Date(Date.now() + 60000),
-          user: {
-            id: 1,
-            name: "Equipe",
-            role: "FUNCIONARIO",
-            professionalId: 1,
-          },
-        }),
-      },
+      authenticate: async () => ({
+        id: 1,
+        name: "Equipe",
+        role: "FUNCIONARIO",
+        professionalId: 1,
+      }),
     } as any,
     { getAllAndOverride: (key: string) => key === "adminOnly" } as any,
+    AuthConfiguration.fromEnvironment({ NODE_ENV: "test" }),
   );
   const context = {
     switchToHttp: () => ({

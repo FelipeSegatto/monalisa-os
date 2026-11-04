@@ -1,9 +1,9 @@
 import { EquipmentsModule } from "./equipments/equipments.module";
 import { PrismaModule } from "./shared/infrastructure/prisma/prisma.module";
 import { Module } from "@nestjs/common";
-import { APP_GUARD } from "@nestjs/core";
-import { SessionGuard } from "./auth/auth.guard";
-import { AuthController } from "./auth/auth.controller";
+import { APP_FILTER } from "@nestjs/core";
+import { AuthModule } from "./auth/auth.module";
+import { ApiExceptionFilter } from "./shared/presentation/api-exception.filter";
 import { CatalogController } from "./modules/catalog.controller";
 import { CustomersController } from "./modules/customers.controller";
 import { AgendaController } from "./modules/agenda.controller";
@@ -14,9 +14,8 @@ import { DashboardController } from "./modules/dashboard.controller";
 import { UploadsController } from "./modules/uploads.controller";
 import { SchedulingService } from "./modules/scheduling.service";
 @Module({
-  imports: [PrismaModule, EquipmentsModule],
+  imports: [PrismaModule, AuthModule, EquipmentsModule],
   controllers: [
-    AuthController,
     CatalogController,
     CustomersController,
     AgendaController,
@@ -28,7 +27,7 @@ import { SchedulingService } from "./modules/scheduling.service";
   ],
   providers: [
     SchedulingService,
-    { provide: APP_GUARD, useClass: SessionGuard },
+    { provide: APP_FILTER, useClass: ApiExceptionFilter },
   ],
 })
 export class AppModule {}

@@ -12,7 +12,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed-bootstrap.ts",
-    "test": "tsx --test test/*.test.ts test/equipments/*.test.ts test/contracts/*.test.ts",
+    "test": "tsx --test test/*.test.ts test/equipments/*.test.ts test/contracts/*.test.ts test/auth/*.test.ts",
     "test:e2e": "node scripts/e2e-smoke.mjs",
     "db:seed:equipment": "tsx prisma/seed-equipment.ts",
     "predev": "node ../scripts/check-node.mjs",

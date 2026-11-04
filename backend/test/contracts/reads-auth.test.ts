@@ -72,6 +72,8 @@ test("login e logout usam as dependências reais e mantêm cookie HttpOnly e has
       name: "Administrador de teste",
       email: "admin@example.test",
       passwordHash: hashPassword(password),
+      role: "ADMIN",
+      professionalId: null,
     });
     app.db.session.create = async ({ data }: any) => {
       saved = data;
