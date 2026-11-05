@@ -1,3 +1,4 @@
+import {SessionReservationPanel} from "../commercial/SessionReservationPanel";
 import { AssignmentPanel } from "./AssignmentPanel";
 import { AttendancePanel } from "./AttendancePanel";
 import { SchedulingSettingsPanel } from "./SchedulingSettingsPanel";
@@ -82,6 +83,7 @@ const MONTH_WEEKDAY_HEADERS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
 
 export function AgendaPage() {
   const user = useOutletContext<CurrentUser | null>();
+  const [commercialLink,setCommercialLink]=useState<AgendaAppointment|null>(null);
   const [assignment, setAssignment] = useState<AgendaAppointment | null>(null);
   const [attendance, setAttendance] = useState<AgendaAppointment | null>(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -189,6 +191,7 @@ export function AgendaPage() {
 
   return (
     <div className="page">
+      {commercialLink&&<SessionReservationPanel appointment={commercialLink} close={()=>setCommercialLink(null)} onSaved={()=>{setCommercialLink(null);reload();}}/>}
       {assignment && (
         <AssignmentPanel
           appointment={assignment}
@@ -440,6 +443,7 @@ export function AgendaPage() {
                               />
                               {appointment.professionalName}
                             </span>
+                            {['SCHEDULED','CONFIRMED'].includes(appointment.status)&&!appointment.expired&&(user?.role==='ADMIN'||user?.professionalId===appointment.professionalId)&&<button type="button" className="agenda-block-remove" onClick={()=>setCommercialLink(appointment)}>{appointment.sessionReservation?.status==='ACTIVE'?'Sessão reservada':'Vínculo comercial'}</button>}
                             {user?.role === "ADMIN" &&
                               ["SCHEDULED", "CONFIRMED"].includes(
                                 appointment.status,

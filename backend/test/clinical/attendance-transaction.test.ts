@@ -23,6 +23,7 @@ test("failure posting shots rolls back executions and completion within the same
   const marker = Symbol("transaction");
   const db: any = {
     $queryRaw: async () => [{ id: 1 }],
+    sessionReservation:{findUnique:async()=>null},
     attendance: {
       findUnique: async () => state.attendance,
       update: async ({ data }: any) => Object.assign(state.attendance, data),

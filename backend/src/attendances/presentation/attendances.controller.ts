@@ -12,6 +12,7 @@ import { parse, requiredId } from "../../common/util";
 import { AttendanceService } from "../application/attendance.service";
 const id = z.number().int().positive();
 const execution = z.object({
+  entitlementId: id.nullable().optional(),
   procedureId: id,
   variationId: id.nullable().optional(),
   professionalId: id,

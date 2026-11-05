@@ -1,3 +1,4 @@
+import { PrismaSessionLedger } from "../commercial/infrastructure/prisma-session-ledger";
 import { isExpiredReservation } from "../scheduling/domain/reservation-hold";
 import { BookingService } from "../scheduling/application/booking.service";
 import {
@@ -29,6 +30,8 @@ import { z } from "zod";
 import { canTransition } from "../domain/appointment-policy";
 import { SchedulingService } from "./scheduling.service";
 const APOINT = z.object({
+  entitlementId: z.number().int().positive().optional(),
+  variationId: z.number().int().positive().nullable().optional(),
   customerId: z.number().int().positive(),
   professionalId: z.number().int().positive().optional(),
   durationMinutes: z.number().int().min(1).max(720).optional(),
@@ -42,9 +45,15 @@ const BLOCK = z.object({
   endsAt: z.string().datetime({ offset: true }),
   reason: z.string().nullable(),
 });
-const full = { customer: true, professional: true, procedure: true };
+const full = {
+  customer: true,
+  professional: true,
+  procedure: true,
+  sessionReservation: { include: { entitlement: true } },
+};
 const output = (a: any) => ({
   id: a.id,
+  sessionReservation: a.sessionReservation ?? null,
   expired: isExpiredReservation(a.status, a.expiresAt),
   startsAt: iso(a.startsAt),
   endsAt: iso(a.endsAt),
@@ -64,6 +73,7 @@ export class AgendaController {
     @Inject(PrismaService) private readonly db: PrismaService,
     @Inject(SchedulingService) private readonly scheduling: SchedulingService,
     @Inject(BookingService) private readonly booking: BookingService,
+    @Inject(PrismaSessionLedger) private readonly sessions: PrismaSessionLedger,
   ) {}
   @Get("agenda") async daily(@Query("date") date?: string, @Req() req?: any) {
     const { start, end } = dayRange(date || dateKey(new Date()));
@@ -202,6 +212,13 @@ export class AgendaController {
           where: { id: appointmentId },
           data: { status: data.status },
         });
+        if (data.status === "CANCELLED" || data.status === "NO_SHOW")
+          await this.sessions.release(
+            tx,
+            appointmentId,
+            req.actor.id,
+            "Reserva cancelada ou não comparecimento",
+          );
         return { id: appointmentId, status: data.status };
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted },

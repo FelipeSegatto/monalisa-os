@@ -40,5 +40,8 @@ Com API e banco disponíveis, `npm run smoke` faz somente consultas. Testes que 
 - [Arquitetura do domínio de equipamentos](docs/arquitetura-equipamentos.md)
 
 - [Operação clínica: habilitações, atribuição, atendimentos e ledgers](docs/operacao-clinica-fase-5.md)
+- [Comercial: ofertas, vendas, descontos auditados e sessões](docs/comercial-fase-6.md)
 
 Atendimentos registram disparos em ledger e confirmam o uso de materiais sem baixa automática de estoque. A nova migration precisa ser aplicada ao banco local antes de usar esses fluxos. Documentos históricos das aulas descrevem versões anteriores e não substituem os comandos atuais.
+
+O menu Comercial gerencia ofertas versionadas e vendas, com pacotes e reservas de sessões integrados à agenda e aos atendimentos. Aplicar as migrations pendentes antes de usar esses fluxos.

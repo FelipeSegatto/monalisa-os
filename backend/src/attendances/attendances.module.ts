@@ -1,3 +1,4 @@
+import { CommercialModule } from "../commercial/commercial.module";
 import { Module } from "@nestjs/common";
 import { PrismaModule } from "../shared/infrastructure/prisma/prisma.module";
 import { ShotLedgerModule } from "../shot-ledger/shot-ledger.module";
@@ -6,7 +7,7 @@ import { AttendanceRepository } from "./application/attendance.repository";
 import { PrismaAttendanceRepository } from "./infrastructure/prisma-attendance.repository";
 import { AttendancesController } from "./presentation/attendances.controller";
 @Module({
-  imports: [PrismaModule, ShotLedgerModule],
+  imports: [CommercialModule, PrismaModule, ShotLedgerModule],
   controllers: [AttendancesController],
   providers: [
     AttendanceService,

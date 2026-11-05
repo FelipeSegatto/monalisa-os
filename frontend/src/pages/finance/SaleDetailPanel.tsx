@@ -1,3 +1,4 @@
+import {Link} from "react-router-dom";
 import { SidePanel } from "../../components/SidePanel";
 import { formatPrice, formatLongDate } from "../../lib/format";
 import type { SaleDetail } from "../../lib/api";
@@ -41,6 +42,7 @@ export function SaleDetailPanel({ sale, close, onRegisterPayment, onCancel, canc
         </>
       }
     >
+      <Link className="section-link" to={`/comercial/vendas/${sale.id}`}>Ver condições, descontos e sessões no comercial →</Link>
       <div className="detail-lead">
         <h3 className="note-title">{sale.customerName}</h3>
         <span className="section-meta">{formatLongDate(sale.createdAt)}</span>
@@ -87,6 +89,7 @@ export function SaleDetailPanel({ sale, close, onRegisterPayment, onCancel, canc
               <span>
                 {formatLongDate(payment.paidAt)} · {METHOD_LABELS[payment.method]}
                 {payment.installments ? ` · ${payment.installments}x` : ""}
+                {payment.reversal?` · Estornado: ${payment.reversal.reason}`:""}
               </span>
               <b>{formatPrice(payment.amount)}</b>
             </div>

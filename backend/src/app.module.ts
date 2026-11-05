@@ -1,3 +1,4 @@
+import { CommercialModule } from "./commercial/commercial.module";
 import { ProcedureMetricsModule } from "./procedure-metrics/procedure-metrics.module";
 import { SchedulingModule } from "./scheduling/scheduling.module";
 import { AttendancesModule } from "./attendances/attendances.module";
@@ -30,6 +31,7 @@ import { SchedulingService } from "./modules/scheduling.service";
     AttendancesModule,
     InventoryModule,
     ProcedureMetricsModule,
+    CommercialModule,
   ],
   controllers: [
     AgendaController,

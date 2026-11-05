@@ -1,3 +1,4 @@
+import { PrismaSessionLedger } from "../../commercial/infrastructure/prisma-session-ledger";
 import { Prisma } from "@prisma/client";
 import { ProcedureExecution } from "../domain/procedure-execution";
 import { Inject, Injectable } from "@nestjs/common";
@@ -18,6 +19,7 @@ export class PrismaAttendanceRepository extends AttendanceRepository {
   constructor(
     @Inject(PrismaService) private readonly db: PrismaService,
     @Inject(PrismaShotLedger) private readonly shots: PrismaShotLedger,
+    @Inject(PrismaSessionLedger) private readonly sessions: PrismaSessionLedger,
   ) {
     super();
   }
@@ -124,6 +126,13 @@ export class PrismaAttendanceRepository extends AttendanceRepository {
             where: { id: a.appointmentId },
             data: { status: "CANCELLED" },
           });
+        if (a.appointmentId)
+          await this.sessions.release(
+            tx,
+            a.appointmentId,
+            actor.id,
+            "Atendimento cancelado",
+          );
         return result;
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted },
@@ -215,6 +224,20 @@ export class PrismaAttendanceRepository extends AttendanceRepository {
         ].sort((a, b) => a - b);
         for (const material of materialIds)
           await tx.$queryRaw`SELECT id FROM StockItem WHERE id=${material} FOR UPDATE`;
+        const hold = a.appointmentId
+          ? await tx.sessionReservation.findUnique({
+              where: { appointmentId: a.appointmentId },
+              include: { entitlement: true },
+            })
+          : null;
+        let reservedConsumed = false;
+        const rights = [
+          ...input.executions.flatMap((e) =>
+            e.entitlementId ? [e.entitlementId] : [],
+          ),
+          ...(hold?.status === "ACTIVE" ? [hold.entitlementId] : []),
+        ];
+        if (rights.length) await this.sessions.lock(tx, rights);
         for (let index = 0; index < input.executions.length; index++) {
           const e = input.executions[index];
           this.authorize(e.professionalId, actor);
@@ -275,6 +298,31 @@ export class PrismaAttendanceRepository extends AttendanceRepository {
               materials: { create: usages },
             },
           });
+          const entitlementId =
+            e.entitlementId ??
+            (!reservedConsumed &&
+            hold?.status === "ACTIVE" &&
+            hold.entitlement.procedureId === e.procedureId &&
+            hold.entitlement.variationId === (e.variationId ?? null)
+              ? hold.entitlementId
+              : null);
+          if (entitlementId && entitlementId === hold?.entitlementId)
+            reservedConsumed = true;
+          if (entitlementId)
+            await this.sessions.redeem(
+              tx,
+              entitlementId,
+              execution.id,
+              {
+                customerId: a.customerId,
+                procedureId: e.procedureId,
+                variationId: e.variationId ?? null,
+                at: end,
+                appointmentId: a.appointmentId,
+              },
+              actor.id,
+              `${input.requestKey}:session:${index}`,
+            );
           for (let j = 0; j < e.shots.length; j++) {
             const shot = e.shots[j];
             await this.shots.append(tx, {
@@ -287,6 +335,16 @@ export class PrismaAttendanceRepository extends AttendanceRepository {
               requestKey: `${input.requestKey}:${index}:${j}`,
             });
           }
+        }
+        if (a.appointmentId && hold?.status === "ACTIVE") {
+          const settled = await tx.sessionReservation.findUnique({
+            where: { appointmentId: a.appointmentId },
+          });
+          if (settled?.status === "ACTIVE")
+            throw new ApplicationError(
+              "A execução deve utilizar a sessão reservada; confira a área/opção",
+              "CONFLICT",
+            );
         }
         await tx.attendance.update({
           where: { id },

@@ -249,7 +249,7 @@ test("cancelling an in-progress attendance preserves the record and cancels its 
     },
   };
   db.$transaction = async (fn: any) => fn(db);
-  const repo = new PrismaAttendanceRepository(db, {} as any),
+  const repo = new PrismaAttendanceRepository(db, {} as any,{release:async()=>undefined} as any),
     actor = {
       id: 7,
       name: "Admin",

@@ -19,6 +19,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Profissionais", to: "/profissionais", available: true, adminOnly: true },
   { label: "Equipamentos", to: "/equipamentos", available: true },
   { label: "Estoque", to: "/estoque", available: true, adminOnly: true },
+  { label: "Comercial", to: "/comercial", available:true },
   { label: "Financeiro", to: "/financeiro", available: true },
   { label: "Leads", to: "/leads", available: true, adminOnly: true },
 ];

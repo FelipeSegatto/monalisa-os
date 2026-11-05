@@ -1,3 +1,4 @@
+import { PrismaSessionLedger } from "../../commercial/infrastructure/prisma-session-ledger";
 import { Inject, Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { Actor } from "../../auth/domain/actor";
@@ -24,7 +25,10 @@ export const occupiedWhere = (
 });
 @Injectable()
 export class PrismaSchedulingRepository extends SchedulingRepository {
-  constructor(@Inject(PrismaService) private readonly db: PrismaService) {
+  constructor(
+    @Inject(PrismaService) private readonly db: PrismaService,
+    @Inject(PrismaSessionLedger) private readonly sessions: PrismaSessionLedger,
+  ) {
     super();
   }
   async settings() {
@@ -403,6 +407,19 @@ export class PrismaSchedulingRepository extends SchedulingRepository {
             origin: input.origin ?? "INTERNAL",
           },
         });
+        if (input.entitlementId)
+          await this.sessions.reserve(
+            tx,
+            input.entitlementId,
+            a.id,
+            {
+              customerId: customer.id,
+              procedureId: proc.id,
+              variationId: input.variationId ?? null,
+              at: new Date(Math.max(Date.now(), +start)),
+            },
+            actor!.id,
+          );
         return {
           id: a.id,
           customerId: customer.id,

@@ -1,3 +1,4 @@
+import {getEntitlements,type Entitlement} from "../commercial/api";
 import { useEffect, useState } from "react";
 import { SidePanel } from "../../components/SidePanel";
 import { CustomerSearchSelect } from "../../components/CustomerSearchSelect";
@@ -27,6 +28,8 @@ export function NewAppointmentPanel({
   onCreated,
   defaultDateKey,
 }: Props) {
+  const [rights,setRights]=useState<Entitlement[]>([]);
+  const [entitlementId,setEntitlementId]=useState<number|"">("");
   const [customers, setCustomers] = useState<CustomerListItem[]>([]);
   const [professionals, setProfessionals] = useState<ProfessionalDetail[]>([]);
   const [procedures, setProcedures] = useState<Procedure[]>([]);
@@ -86,6 +89,8 @@ export function NewAppointmentPanel({
     };
   }, [procedureId, date, time, duration]);
 
+  useEffect(()=>{setEntitlementId('');setRights([]);if(!customerId)return;let cancelled=false;getEntitlements(customerId).then(r=>{if(!cancelled)setRights(r.entitlements);}).catch(e=>{if(!cancelled)setError(e.message);});return()=>{cancelled=true;};},[customerId]);
+  useEffect(()=>{setEntitlementId('');},[procedureId]);
   async function handleSave() {
     if (!customerId || !procedureId) {
       setError("Cliente e procedimento são obrigatórios.");
@@ -96,6 +101,8 @@ export function NewAppointmentPanel({
     try {
       await createAppointment({
         customerId,
+        entitlementId:entitlementId||undefined,
+        variationId:rights.find(r=>r.id===entitlementId)?.variationId,
         procedureId,
         professionalId: professionalId || undefined,
         durationMinutes: duration,
@@ -163,6 +170,7 @@ export function NewAppointmentPanel({
               ))}
             </select>
           </label>
+          <label className="field">Sessão adquirida (opcional)<select className="select-input" value={entitlementId} onChange={e=>setEntitlementId(e.target.value?Number(e.target.value):'')}><option value="">Sem vínculo comercial</option>{rights.filter(r=>r.procedureId===procedureId&&r.available>0).map(r=><option key={r.id} value={r.id}>{r.description} · Venda #{r.saleId} · {r.available} disponíveis</option>)}</select></label>
           <div className="field-grid">
             <label className="field">
               Data

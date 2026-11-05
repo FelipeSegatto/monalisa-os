@@ -56,7 +56,11 @@ export class DashboardController {
           createdAt: { gte: monthStart, lt: monthEnd },
           cancelled: false,
         },
-        include: { items: true, payments: true, professional: true },
+        include: {
+          items: true,
+          payments: { include: { reversal: true } },
+          professional: true,
+        },
       }),
       this.db.expense.findMany({
         where: { dueDate: { gte: monthStart, lt: monthEnd }, cancelled: false },
@@ -92,30 +96,26 @@ export class DashboardController {
         type: "awaiting_confirmation",
         count: pending.length,
         severity: "wait",
-        items: pending
-          .slice(0, 5)
-          .map((a) => ({
-            id: a.id,
-            customerName: a.customer.name,
-            procedureName: a.procedure.name,
-            startsAt: iso(a.startsAt),
-            isToday: true,
-          })),
+        items: pending.slice(0, 5).map((a) => ({
+          id: a.id,
+          customerName: a.customer.name,
+          procedureName: a.procedure.name,
+          startsAt: iso(a.startsAt),
+          isToday: true,
+        })),
       });
     if (low.length && isAdmin)
       attention.push({
         type: "low_stock",
         count: low.length,
         severity: "urgent",
-        items: low
-          .slice(0, 5)
-          .map((s) => ({
-            id: s.id,
-            name: s.name,
-            unit: s.unit,
-            quantity: String(s.quantity),
-            minQuantity: String(s.minQuantity),
-          })),
+        items: low.slice(0, 5).map((s) => ({
+          id: s.id,
+          name: s.name,
+          unit: s.unit,
+          quantity: String(s.quantity),
+          minQuantity: String(s.minQuantity),
+        })),
       });
     const counts = new Map<string, number>();
     for (const c of customers)
@@ -242,7 +242,10 @@ export class DashboardController {
         const subtotal = s.items.reduce((n, i) => n + Number(i.finalPrice), 0),
           total = money(Math.max(0, subtotal - Number(s.discount))),
           received = money(
-            s.payments.reduce((n, x) => n + Number(x.amount), 0),
+            s.payments.reduce(
+              (n, x) => n + (x.reversal ? 0 : Number(x.amount)),
+              0,
+            ),
           );
         return { total, received };
       });
@@ -281,7 +284,11 @@ export class DashboardController {
             sessions: 0,
           };
           x.revenue +=
-            sub > 0 ? Number(i.finalPrice) * (1 - Number(s.discount) / sub) : 0;
+            i.netAmount != null
+              ? Number(i.netAmount)
+              : sub > 0
+                ? Number(i.finalPrice) * (1 - Number(s.discount) / sub)
+                : 0;
           x.sessions += i.sessions;
           topMap.set(k, x);
         }

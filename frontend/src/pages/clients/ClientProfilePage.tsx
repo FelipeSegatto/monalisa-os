@@ -1,3 +1,4 @@
+import {EntitlementsSection} from "../commercial/EntitlementsSection";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -354,6 +355,7 @@ export function ClientProfilePage() {
         </aside>
       </div>
 
+      <EntitlementsSection customerId={customer.id}/>
       {recordsView ? (
         <ClientRecordsPanel
           customer={customer}

@@ -408,8 +408,9 @@ export function ClientRecordsPanel({ customer, initialView, close }: Props) {
         cancelling={cancelling}
         onRegisterPayment={() => setShowPaymentPanel(true)}
         onCancel={async () => {
+          const reason=window.prompt("Motivo do cancelamento da venda");if(!reason)return;
           setCancelling(true);
-          const updated = await cancelSale(openSale.id);
+          const updated = await cancelSale(openSale.id,reason);
           setCancelling(false);
           setOpenSale(updated);
           reloadSales();
@@ -422,9 +423,9 @@ export function ClientRecordsPanel({ customer, initialView, close }: Props) {
         balance={openSale.balance}
         saving={saving}
         close={() => setShowPaymentPanel(false)}
-        save={async (amount: number, method: PaymentMethod, installments: number | null) => {
+        save={async (amount: number, method: PaymentMethod, installments: number | null,requestKey:string) => {
           setSaving(true);
-          const updated = await registerSalePayment(openSale.id, { amount, method, installments });
+          const updated = await registerSalePayment(openSale.id, { amount, method, installments,requestKey });
           setSaving(false);
           setOpenSale(updated);
           setShowPaymentPanel(false);

@@ -23,6 +23,7 @@ export async function contractApp() {
       abortOnError: false,
     });
     const db: any = app.get(PrismaService);
+    db.sessionReservation.findUnique=async()=>null;
     const admin = "a".repeat(64),
       staff = "b".repeat(64);
     db.session.findUnique = async ({ where }: any) => {

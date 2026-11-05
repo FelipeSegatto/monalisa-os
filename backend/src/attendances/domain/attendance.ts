@@ -1,5 +1,6 @@
 import { ApplicationError } from "../../shared/domain/application-error";
 export interface ExecutionInput {
+  entitlementId?: number | null;
   procedureId: number;
   variationId?: number | null;
   professionalId: number;

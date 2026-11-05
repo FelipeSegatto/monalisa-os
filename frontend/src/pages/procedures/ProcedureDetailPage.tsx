@@ -1,3 +1,4 @@
+import {ProcedureOffersSection} from "../commercial/ProcedureOffersSection";
 import { ProcedureEquipmentPanel } from "../equipment/ProcedureEquipmentPanel";
 import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
@@ -618,6 +619,7 @@ export function ProcedureDetailPage({ isNew = false }: Props) {
           ) : null}
         </main>
         <aside>
+          {!isNew&&procedureId&&<ProcedureOffersSection procedureId={procedureId}/>}
           <div className="section-header">
             <span className="section-label">Prévia</span>
           </div>

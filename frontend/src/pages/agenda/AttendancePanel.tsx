@@ -1,3 +1,4 @@
+import {getEntitlements,type Entitlement} from "../commercial/api";
 import { useEffect, useState } from "react";
 import { SidePanel } from "../../components/SidePanel";
 import {
@@ -24,6 +25,8 @@ export function AttendancePanel({
   close: () => void;
   onCompleted: () => void;
 }) {
+  const [rights,setRights]=useState<Entitlement[]>([]);
+  const [entitlementId,setEntitlementId]=useState<number|"">(appointment.sessionReservation?.status==="ACTIVE"?appointment.sessionReservation.entitlementId:"");
   const [id, setId] = useState<number | null>(null),
     [procedure, setProcedure] = useState<ProcedureDetail | null>(null),
     [expected, setExpected] = useState<ProcedureMaterial[]>([]),
@@ -32,7 +35,7 @@ export function AttendancePanel({
   const [equipmentId, setEquipmentId] = useState<number | "">(
       appointment.equipmentId ?? "",
     ),
-    [variationId, setVariationId] = useState<number | "">(""),
+    [variationId, setVariationId] = useState<number | "">(appointment.sessionReservation?.entitlement.variationId??""),
     [answers, setAnswers] = useState<Record<number, MaterialUseAnswer | "">>(
       {},
     ),
@@ -64,6 +67,7 @@ export function AttendancePanel({
       cancelled = true;
     };
   }, [appointment.procedureId]);
+  useEffect(()=>{let cancelled=false;getEntitlements(appointment.customerId).then(r=>{if(!cancelled)setRights(r.entitlements.filter(e=>e.procedureId===appointment.procedureId));}).catch(e=>{if(!cancelled)setError(e.message);});return()=>{cancelled=true;};},[appointment.customerId,appointment.procedureId]);
   const selected = equipment.find((e) => e.id === equipmentId);
   const materials = [
     ...expected.map((m) => ({ id: m.stockItemId, name: m.itemName })),
@@ -141,6 +145,7 @@ export function AttendancePanel({
         executions: [
           {
             procedureId: procedure.id,
+            entitlementId:entitlementId||null,
             professionalId: appointment.professionalId,
             variationId: variationId || null,
             equipmentId: equipmentId || null,
@@ -225,6 +230,7 @@ export function AttendancePanel({
                   </select>
                 </label>
               )}
+              <label className="field">Sessão do pacote<select className="select-input" value={entitlementId} disabled={appointment.sessionReservation?.status==='ACTIVE'} onChange={e=>{const id=e.target.value?Number(e.target.value):'';setEntitlementId(id);const r=rights.find(r=>r.id===id);if(r)setVariationId(r.variationId??'');}}><option value="">Sem vínculo comercial</option>{rights.filter(r=>r.available>0||r.id===entitlementId).map(r=><option key={r.id} value={r.id}>{r.description} · Venda #{r.saleId}</option>)}</select></label>
               <label className="field">
                 Equipamento utilizado
                 <select

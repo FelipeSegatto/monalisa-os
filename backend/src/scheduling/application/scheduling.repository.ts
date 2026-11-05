@@ -1,5 +1,7 @@
 import { Actor } from "../../auth/domain/actor";
 export interface ReservationInput {
+  entitlementId?: number;
+  variationId?: number | null;
   customerId?: number;
   customer?: { name: string; phone: string };
   procedureId: number;

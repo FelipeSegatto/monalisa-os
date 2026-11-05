@@ -1,3 +1,6 @@
+import {OffersPage} from "./pages/commercial/OffersPage";
+import {SalesPage} from "./pages/commercial/SalesPage";
+import {CommercialSalePage} from "./pages/commercial/CommercialSalePage";
 import { EquipmentPage } from "./pages/equipment/EquipmentPage";
 import { EquipmentDetailPage } from "./pages/equipment/EquipmentDetailPage";
 import { Navigate, Route, Routes } from "react-router-dom";
@@ -38,6 +41,11 @@ export default function App() {
         <Route path="profissionais" element={<ProfessionalsPage />} />
         <Route path="profissionais/novo" element={<ProfessionalDetailPage isNew />} />
         <Route path="profissionais/:id" element={<ProfessionalDetailPage />} />
+        <Route path="comercial" element={<Navigate to="/comercial/ofertas" replace />} />
+        <Route path="comercial/ofertas" element={<OffersPage />} />
+        <Route path="comercial/ofertas/:id" element={<OffersPage />} />
+        <Route path="comercial/vendas" element={<SalesPage />} />
+        <Route path="comercial/vendas/:id" element={<CommercialSalePage />} />
         <Route path="financeiro" element={<FinancePage />} />
         <Route path="equipamentos" element={<EquipmentPage />} />
         <Route path="equipamentos/:id" element={<EquipmentDetailPage />} />

@@ -19,6 +19,7 @@ export class BookingService {
         origin: actor ? "INTERNAL" : "EXTERNAL",
         ...(!actor
           ? {
+              entitlementId: undefined,
               customerId: undefined,
               professionalId: undefined,
               durationMinutes: undefined,

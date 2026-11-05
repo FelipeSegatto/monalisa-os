@@ -110,10 +110,11 @@ export function FinancePage() {
     amount: number,
     method: PaymentMethod,
     installments: number | null,
+    requestKey:string,
   ) {
     setSaving(true);
     try {
-      const sale = await registerSalePaymentApi(saleId, { amount, method, installments });
+      const sale = await registerSalePaymentApi(saleId, { amount, method, installments,requestKey });
       setSaving(false);
       setPanel({ type: "sale-detail", sale });
       reload();
@@ -135,9 +136,10 @@ export function FinancePage() {
   }
 
   async function handleCancelSale(saleId: number) {
+    const reason=window.prompt("Motivo do cancelamento da venda");if(!reason)return;
     setCancelling(true);
     try {
-      const sale = await cancelSaleApi(saleId);
+      const sale = await cancelSaleApi(saleId,reason);
       setCancelling(false);
       setPanel({ type: "sale-detail", sale });
       reload();
@@ -520,8 +522,8 @@ export function FinancePage() {
           balance={panel.sale.balance}
           close={() => setPanel({ type: "sale-detail", sale: panel.sale })}
           saving={saving}
-          save={(amount, method, installments) =>
-            handleRegisterSalePayment(panel.sale.id, amount, method, installments)
+          save={(amount, method, installments,requestKey) =>
+            handleRegisterSalePayment(panel.sale.id, amount, method, installments,requestKey)
           }
         />
       ) : null}

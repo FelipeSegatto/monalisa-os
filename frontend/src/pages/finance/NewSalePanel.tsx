@@ -60,6 +60,8 @@ export function NewSalePanel({ close, save, saving, currentUser }: Props) {
   const [customerId, setCustomerId] = useState<number | "">("");
   const [professionalId, setProfessionalId] = useState<number | "">(lockedProfessionalId ?? "");
   const [items, setItems] = useState<DraftItem[]>([]);
+  const [requestKey]=useState(()=>crypto.randomUUID());
+  const [discountReason,setDiscountReason]=useState("");
   const [discount, setDiscount] = useState(0);
   const [withCommission, setWithCommission] = useState(false);
   const [commission, setCommission] = useState(10);
@@ -115,6 +117,7 @@ export function NewSalePanel({ close, save, saving, currentUser }: Props) {
     if (!customerId || items.length === 0) return;
     const input: CreateSaleInput = {
       customerId,
+      requestKey,discountReason,
       professionalId: professionalId || null,
       discount: Math.max(0, discount),
       commissionPercent: withCommission ? commission : null,
@@ -160,6 +163,7 @@ export function NewSalePanel({ close, save, saving, currentUser }: Props) {
         </>
       }
     >
+      <label className="field">Motivo dos descontos (obrigatório quando houver redução)<input className="text-input" value={discountReason} onChange={e=>setDiscountReason(e.target.value)}/></label>
       <div className="panel-section">
         <div className="section-header">
           <span className="section-label">Venda</span>

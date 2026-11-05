@@ -148,6 +148,129 @@ try {
     "3",
     "Reversal must preserve original entries",
   );
+  // Synthetic commercial contracts: preserved terms, two distinct discount sources and immutable rights.
+  sql(`INSERT INTO CommercialOffer(id,name,actorId) VALUES(1,'Synthetic offer',7);
+ INSERT INTO CommercialOfferVersion(id,offerId,version,name,startsOn,price,referenceAmount,actorId) VALUES(1,1,1,'Preserved offer name','2026-01-01',850,1000,7);
+ INSERT INTO CommercialOfferItem(id,versionId,procedureId,procedureName,sessions,referenceUnitPrice) VALUES(1,1,1,'Synthetic HIFU',10,100);
+ INSERT INTO Sale(id,customerId,professionalId,discount,commercialModel,actorId,confirmedAt,allowUnpaidUse,requestKey,requestHash) VALUES(1,1,1,50,'V1',7,NOW(),false,'synthetic-sale-1',REPEAT('a',64));
+ INSERT INTO SaleOfferPurchase(id,saleId,versionId,offerName,quantity) VALUES(1,1,1,'Preserved offer name',1);
+ INSERT INTO SaleItem(id,saleId,procedureId,description,sessions,unitPrice,finalPrice,offerPurchaseId,referenceAmount,promotionalDiscount,negotiatedDiscount,netAmount) VALUES(1,1,1,'Synthetic contract',10,100,850,1,1000,150,50,800);
+ INSERT INTO SaleDiscount(id,saleId,itemId,kind,type,scope,value,baseAmount,amount,reason,actorId) VALUES(1,1,1,'PROMOTIONAL','FIXED','ITEM',150,1000,150,'Published offer',7),(2,1,NULL,'NEGOTIATED','FIXED','SALE',50,850,50,'Authorized negotiation',7);
+ INSERT INTO SessionEntitlement(id,saleId,saleItemId,customerId,procedureId,description,quantity) VALUES(1,1,1,1,1,'Synthetic package',10);
+ INSERT INTO SalePayment(id,saleId,method,amount,actorId,requestKey) VALUES(1,1,'PIX',800,7,'synthetic-payment');
+ INSERT INTO ReceivableInstallment(id,saleId,number,amount,dueOn) VALUES(1,1,1,800,'2026-11-01');
+ INSERT INTO PaymentAllocation(id,paymentId,receivableId,amount) VALUES(1,1,1,800);
+ INSERT INTO SessionRedemption(id,entitlementId,executionId,quantityDelta,actorId,requestKey) VALUES(1,1,1,1,7,'synthetic-redemption');
+ INSERT INTO SessionReservation(id,entitlementId,appointmentId,status) VALUES(1,1,1,'REDEEMED');
+ INSERT INTO CommercialEvent(id,saleId,type,actorId,details) VALUES(1,1,'SALE_CONFIRMED',7,JSON_OBJECT('total',800));`);
+  assert.equal(
+    sql("SELECT SUM(netAmount) FROM SaleItem WHERE saleId=1;"),
+    "800.00",
+  );
+  assert.equal(
+    sql("SELECT SUM(amount) FROM SaleDiscount WHERE kind='PROMOTIONAL';"),
+    "150.00",
+  );
+  assert.equal(
+    sql("SELECT SUM(amount) FROM SaleDiscount WHERE kind='NEGOTIATED';"),
+    "50.00",
+  );
+  for (const table of [
+    "CommercialOfferVersion",
+    "CommercialOfferItem",
+    "SaleOfferPurchase",
+    "SaleItem",
+    "SaleDiscount",
+    "SalePayment",
+    "SessionEntitlement",
+    "SessionRedemption",
+    "ReceivableInstallment",
+    "PaymentAllocation",
+    "CommercialEvent",
+  ]) {
+    assert.match(
+      sql(`UPDATE \`${table}\` SET id=id WHERE id=1;`, true),
+      /Immutable commercial record/,
+    );
+    assert.match(
+      sql(`DELETE FROM \`${table}\` WHERE id=1;`, true),
+      /Immutable commercial record/,
+    );
+  }
+  sql(`INSERT INTO CommercialOfferVersion(id,offerId,version,name,startsOn,price,referenceAmount,actorId) VALUES(2,1,2,'New offer name','2026-12-01',900,1000,7);
+ INSERT INTO PaymentReversal(id,paymentId,actorId,reason,requestKey) VALUES(1,1,7,'Synthetic refund','synthetic-refund');
+ INSERT INTO SessionRedemption(entitlementId,quantityDelta,actorId,reason,requestKey,reversesId) VALUES(1,-1,7,'Synthetic session correction','synthetic-session-reversal',1);`);
+  assert.equal(
+    sql("SELECT price FROM CommercialOfferVersion WHERE id=1;"),
+    "850.00",
+  );
+  assert.equal(
+    sql(
+      "SELECT SUM(quantityDelta) FROM SessionRedemption WHERE entitlementId=1;",
+    ),
+    "0",
+  );
+  assert.equal(sql("SELECT COUNT(*) FROM SalePayment;"), "1");
+  assert.equal(
+    sql(
+      "SELECT COALESCE(SUM(p.amount),0) FROM SalePayment p LEFT JOIN PaymentReversal r ON r.paymentId=p.id WHERE r.id IS NULL;",
+    ),
+    "0.00",
+  );
+  assert.match(
+    sql("UPDATE PaymentReversal SET reason=reason WHERE id=1;", true),
+    /Immutable commercial record/,
+  );
+  assert.match(
+    sql(
+      "INSERT INTO PaymentReversal(paymentId,actorId,reason,requestKey) VALUES(1,7,'Duplicated refund','another-refund');",
+      true,
+    ),
+    /Duplicate entry/,
+  );
+  sql(`INSERT INTO Sale(id,customerId,professionalId,discount,commercialModel,actorId,confirmedAt,allowUnpaidUse,requestKey,requestHash) VALUES(2,1,1,0,'V1',7,NOW(),false,'synthetic-sale-2',REPEAT('b',64));
+ INSERT INTO SaleItem(id,saleId,procedureId,description,sessions,unitPrice,finalPrice,referenceAmount,promotionalDiscount,negotiatedDiscount,netAmount) VALUES(2,2,1,'Last session',1,100,100,100,0,0,100);
+ INSERT INTO SessionEntitlement(id,saleId,saleItemId,customerId,procedureId,description,quantity) VALUES(2,2,2,1,1,'Last session',1);
+ INSERT INTO ProcedureExecution(id,attendanceId,procedureId,professionalId,equipmentId,procedureName,technology) VALUES(2,1,1,1,1,'Synthetic HIFU','HIFU'),(3,1,1,1,1,'Synthetic HIFU','HIFU');`);
+  const claim = (executionId) =>
+    new Promise((resolve, reject) => {
+      const p = spawn("docker", [
+        "exec",
+        "-i",
+        name,
+        "mysql",
+        "-uroot",
+        "-N",
+        "clinic_test",
+      ]);
+      let out = "",
+        err = "";
+      p.stdout.on("data", (d) => (out += d));
+      p.stderr.on("data", (d) => (err += d));
+      p.on("error", reject);
+      p.on("close", (code) =>
+        code ? reject(new Error(err)) : resolve(out.trim()),
+      );
+      p.stdin.end(
+        `SET TRANSACTION ISOLATION LEVEL READ COMMITTED; START TRANSACTION; SELECT id FROM SessionEntitlement WHERE id=2 FOR UPDATE; SELECT COALESCE(SUM(quantityDelta),0) INTO @used FROM SessionRedemption WHERE entitlementId=2; INSERT INTO SessionRedemption(entitlementId,executionId,quantityDelta,actorId,requestKey) SELECT 2,${executionId},1,7,UUID() WHERE @used<1; SELECT ROW_COUNT(); COMMIT;`,
+      );
+    });
+  assert.deepEqual(
+    (await Promise.all([claim(2), claim(3)]))
+      .map((r) => r.split("\n").at(-1))
+      .sort(),
+    ["0", "1"],
+  );
+  assert.equal(
+    sql(
+      "SELECT SUM(quantityDelta) FROM SessionRedemption WHERE entitlementId=2;",
+    ),
+    "1",
+  );
+  console.log(
+    "Commercial SQL passed: preserved offer versions, discount classification, immutable contracts/rights, payment and session reversals, and two connections competing for the last session.",
+  );
+
   // Real independent connections compete for the same stock balance.
   const consume = () =>
     new Promise((resolve, reject) => {

@@ -1,0 +1,87 @@
+.commercial-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  border-bottom: 1px solid var(--line);
+  padding: 16px 0;
+  margin-bottom: 24px;
+}
+.commercial-nav a {
+  color: var(--ink-2);
+  text-decoration: none;
+  padding-bottom: 8px;
+}
+.commercial-nav a.active {
+  color: var(--ink);
+  border-bottom: 1px solid currentColor;
+}
+.commercial-cards {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+.commercial-card {
+  border: 1px solid var(--line);
+  padding: 22px;
+  min-width: 0;
+}
+.commercial-card h2,
+.commercial-card h3 {
+  font-weight: 400;
+  margin: 0 0 12px;
+}
+.commercial-card p {
+  line-height: 1.6;
+}
+.commercial-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 18px 0;
+}
+.commercial-line {
+  border-top: 1px solid var(--line);
+  padding: 20px 0;
+}
+.commercial-line .field-grid {
+  align-items: end;
+}
+.commercial-totals {
+  display: grid;
+  gap: 10px;
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+}
+.commercial-totals p {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0;
+}
+.commercial-history {
+  display: grid;
+  gap: 14px;
+  padding-left: 20px;
+}
+.commercial-terms {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.commercial-muted {
+  color: var(--ink-3);
+  font-size: 13px;
+}
+.commercial-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.commercial-table td,
+.commercial-table th {
+  border-bottom: 1px solid var(--line);
+  padding: 14px 10px;
+}
+.commercial-scroll {
+  overflow-x: auto;
+}

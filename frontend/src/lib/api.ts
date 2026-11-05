@@ -134,6 +134,7 @@ export interface CurrentUser {
 }
 
 export interface AgendaAppointment {
+  sessionReservation?:{id:number;entitlementId:number;status:string;entitlement:{variationId:number|null;description:string}}|null;
   expired:boolean;
   procedureId:number;
   customerId:number;
@@ -177,6 +178,8 @@ export interface AgendaMonth {
 }
 
 export interface CreateAppointmentInput {
+  entitlementId?:number;
+  variationId?:number|null;
   customerId: number;
   professionalId?: number;
   durationMinutes?: number;
@@ -318,7 +321,7 @@ export class ApiError extends Error {
   }
 }
 
-async function getJSON<T>(path: string): Promise<T> {
+export async function getJSON<T>(path: string): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, { credentials: "include" });
   if (!response.ok) {
     throw new ApiError(`Request to ${path} failed with status ${response.status}`, response.status);
@@ -326,7 +329,7 @@ async function getJSON<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-async function sendJSON<T>(
+export async function sendJSON<T>(
   method: "POST" | "PUT" | "PATCH",
   path: string,
   body: unknown,
@@ -778,6 +781,7 @@ export interface SalePayment {
   method: PaymentMethod;
   installments: number | null;
   amount: number;
+  reversal?:{reason:string;actorId:number;createdAt:string}|null;
 }
 
 export interface SaleSummary {
@@ -927,6 +931,8 @@ export interface CreateSaleItemInput {
 }
 
 export interface CreateSaleInput {
+  requestKey:string;
+  discountReason?:string;
   customerId: number;
   professionalId: number | null;
   discount: number;
@@ -952,13 +958,13 @@ export async function getCustomerSales(customerId: number): Promise<SaleSummary[
 
 export function registerSalePayment(
   id: number,
-  input: { amount: number; method: PaymentMethod; installments: number | null },
+  input: { amount: number; method: PaymentMethod; installments: number | null;requestKey?:string },
 ): Promise<SaleDetail> {
   return sendJSON<SaleDetail>("POST", `/api/v1/finance/sales/${id}/payments`, input);
 }
 
-export function cancelSale(id: number): Promise<SaleDetail> {
-  return sendJSON<SaleDetail>("POST", `/api/v1/finance/sales/${id}/cancel`, {});
+export function cancelSale(id: number,reason:string): Promise<SaleDetail> {
+  return sendJSON<SaleDetail>("POST", `/api/v1/finance/sales/${id}/cancel`, {reason});
 }
 
 export async function getExpenses(start: Date, end: Date): Promise<ExpenseSummary[]> {
@@ -1166,6 +1172,7 @@ export const getSchedulingSettings=()=>getJSON<SchedulingSettings>('/api/v1/sche
 export const saveSchedulingSettings=(input:SchedulingSettings)=>sendJSON<SchedulingSettings>('PUT','/api/v1/scheduling/settings',input);
 export type MaterialUseAnswer='USED'|'SMALL'|'NOT_USED';
 export interface ExecutionInput {
+  entitlementId?:number|null;
  procedureId:number;variationId?:number|null;professionalId:number;equipmentId?:number|null;
  materials:{stockItemId:number;usage:MaterialUseAnswer}[];shots:{componentId?:number|null;quantity:number}[];
 }
