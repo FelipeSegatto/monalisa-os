@@ -1,25 +1,22 @@
 import { useMemo, useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { useFinanceOverview } from "./hooks/useFinanceOverview";
 import { FinanceChart } from "./FinanceChart";
 import { NewSalePanel } from "./NewSalePanel";
 import { NewExpensePanel } from "./NewExpensePanel";
 import { SaleDetailPanel } from "./SaleDetailPanel";
-import { ExpenseDetailPanel } from "./ExpenseDetailPanel";
 import { PaymentPanel } from "./PaymentPanel";
+import { FinanceNav } from "../expenses/FinanceNav";
 import { formatPrice, formatLongDate } from "../../lib/format";
 import {
   cancelSale as cancelSaleApi,
   createExpense as createExpenseApi,
   createSale as createSaleApi,
-  getExpense,
   getSale,
-  markExpensePaid as markExpensePaidApi,
   registerSalePayment as registerSalePaymentApi,
   type CreateExpenseInput,
   type CreateSaleInput,
   type CurrentUser,
-  type ExpenseSummary,
   type PaymentMethod,
   type SaleDetail as SaleDetailType,
 } from "../../lib/api";
@@ -29,9 +26,7 @@ type Panel =
   | { type: "sale" }
   | { type: "expense" }
   | { type: "sale-detail"; sale: SaleDetailType }
-  | { type: "expense-detail"; expense: ExpenseSummary }
-  | { type: "sale-payment"; sale: SaleDetailType }
-  | { type: "expense-payment"; expense: ExpenseSummary };
+  | { type: "sale-payment"; sale: SaleDetailType };
 
 type Section = "Movimentações" | "Vendas" | "Despesas" | "Pendências";
 type MovementFilter = "Todos" | "Recebimento" | "Despesa" | "Pendente";
@@ -42,6 +37,7 @@ function todayISO(): string {
 
 export function FinancePage() {
   const user = useOutletContext<CurrentUser | null>();
+  const navigate = useNavigate();
   const [now] = useState(() => new Date());
   const [periodMode, setPeriodMode] = useState<"month" | "custom">("month");
   const [customStart, setCustomStart] = useState(
@@ -76,9 +72,8 @@ export function FinancePage() {
     setPanel({ type: "sale-detail", sale });
   }
 
-  async function openExpense(id: number) {
-    const expense = await getExpense(id);
-    setPanel({ type: "expense-detail", expense });
+  function openExpense(id: number) {
+    navigate(`/financeiro/despesas/${id}`);
   }
 
   async function handleSaveSale(input: CreateSaleInput) {
@@ -96,10 +91,10 @@ export function FinancePage() {
   async function handleSaveExpense(input: CreateExpenseInput) {
     setSaving(true);
     try {
-      await createExpenseApi(input);
+      const expense = await createExpenseApi(input);
       setSaving(false);
       setPanel(null);
-      reload();
+      navigate(`/financeiro/despesas/${expense.id}`);
     } catch {
       setSaving(false);
     }
@@ -117,18 +112,6 @@ export function FinancePage() {
       const sale = await registerSalePaymentApi(saleId, { amount, method, installments,requestKey });
       setSaving(false);
       setPanel({ type: "sale-detail", sale });
-      reload();
-    } catch {
-      setSaving(false);
-    }
-  }
-
-  async function handlePayExpense(expenseId: number, method: PaymentMethod) {
-    setSaving(true);
-    try {
-      const expense = await markExpensePaidApi(expenseId, { method, paidAt: todayISO() });
-      setSaving(false);
-      setPanel({ type: "expense-detail", expense });
       reload();
     } catch {
       setSaving(false);
@@ -192,6 +175,7 @@ export function FinancePage() {
 
   return (
     <div className="page">
+      <FinanceNav />
       <header className="page-header">
         <div>
           <p className="page-header-eyebrow">Gestão</p>
@@ -510,13 +494,6 @@ export function FinancePage() {
           cancelling={cancelling}
         />
       ) : null}
-      {panel?.type === "expense-detail" ? (
-        <ExpenseDetailPanel
-          expense={panel.expense}
-          close={() => setPanel(null)}
-          onRegisterPayment={() => setPanel({ type: "expense-payment", expense: panel.expense })}
-        />
-      ) : null}
       {panel?.type === "sale-payment" ? (
         <PaymentPanel
           balance={panel.sale.balance}
@@ -525,15 +502,6 @@ export function FinancePage() {
           save={(amount, method, installments,requestKey) =>
             handleRegisterSalePayment(panel.sale.id, amount, method, installments,requestKey)
           }
-        />
-      ) : null}
-      {panel?.type === "expense-payment" ? (
-        <PaymentPanel
-          expense
-          balance={panel.expense.amount}
-          close={() => setPanel({ type: "expense-detail", expense: panel.expense })}
-          saving={saving}
-          save={(_amount, method) => handlePayExpense(panel.expense.id, method)}
         />
       ) : null}
     </div>

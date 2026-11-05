@@ -1,0 +1,68 @@
+.expenses-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  border-bottom: 1px solid var(--line);
+  padding: 16px 0;
+  margin-bottom: 24px;
+}
+.expenses-nav a {
+  color: var(--ink-2);
+  text-decoration: none;
+  padding-bottom: 8px;
+}
+.expenses-nav a.active {
+  color: var(--ink);
+  border-bottom: 1px solid currentColor;
+}
+.expense-distribution {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+  margin-top: 4px;
+}
+.expense-allocation-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.expense-allocation-row {
+  display: grid;
+  grid-template-columns: 1fr 140px auto;
+  gap: 8px;
+  align-items: center;
+}
+.expense-allocation-warning {
+  color: var(--danger, #c0392b);
+  font-size: 13px;
+}
+.expense-pending-badge {
+  color: var(--danger, #c0392b);
+  font-size: 12px;
+  font-weight: 600;
+}
+.expense-metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.expense-metrics-table th,
+.expense-metrics-table td {
+  text-align: right;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.expense-metrics-table th:first-child,
+.expense-metrics-table td:first-child {
+  text-align: left;
+}
+.expense-history-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}

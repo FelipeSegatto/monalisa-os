@@ -967,11 +967,21 @@ export function cancelSale(id: number,reason:string): Promise<SaleDetail> {
   return sendJSON<SaleDetail>("POST", `/api/v1/finance/sales/${id}/cancel`, {reason});
 }
 
+/** Reads the flat expense-records list (previous Financeiro widgets) and filters by due date client-side. */
 export async function getExpenses(start: Date, end: Date): Promise<ExpenseSummary[]> {
-  const { expenses } = await getJSON<{ expenses: ExpenseSummary[] }>(
-    `/api/v1/finance/expenses?start=${toDateParam(start)}&end=${toDateParam(end)}`,
-  );
-  return expenses;
+  const { expenses } = await getJSON<{ expenses: ExpenseSummary[] }>("/api/v1/finance/expense-records");
+  return expenses.filter((e) => {
+    const due = new Date(e.dueDate + "T12:00:00Z").getTime();
+    return due >= start.getTime() && due < end.getTime();
+  });
+}
+
+export type ExpenseDestination = "GENERAL" | "PROCEDURES" | "MIXED";
+export type ExpenseBasis = "VALUE" | "PERCENT";
+
+export interface ExpenseAllocationLine {
+  procedureId: number | null;
+  value: number;
 }
 
 export interface CreateExpenseInput {
@@ -980,25 +990,158 @@ export interface CreateExpenseInput {
   supplier: string | null;
   amount: number;
   dueDate: string;
-  paid: boolean;
-  paidAt: string | null;
-  method: PaymentMethod | null;
+  competenceMonth: string;
   recurrence: ExpenseRecurrence;
+  destination: ExpenseDestination;
+  basis: ExpenseBasis;
+  allocations: ExpenseAllocationLine[];
+  allocationNote: string;
+  reason: string;
 }
 
-export function createExpense(input: CreateExpenseInput): Promise<ExpenseSummary> {
-  return sendJSON<ExpenseSummary>("POST", "/api/v1/finance/expenses", input);
+export interface ExpenseAllocationView {
+  id: number;
+  procedureId: number | null;
+  procedureName: string | null;
+  inputValue: number;
+  amount: number;
 }
 
-export function getExpense(id: number): Promise<ExpenseSummary> {
-  return getJSON<ExpenseSummary>(`/api/v1/finance/expenses/${id}`);
+export interface ExpenseRevisionView {
+  id: number;
+  version: number;
+  description: string;
+  category: ExpenseCategory;
+  supplier: string | null;
+  amount: number;
+  dueDate: string;
+  competenceMonth: string;
+  recurrence: ExpenseRecurrence;
+  destination: ExpenseDestination;
+  basis: ExpenseBasis;
+  allocationNote: string;
+  reason: string;
+  actorId: number;
+  createdAt: string;
+  allocations: ExpenseAllocationView[];
 }
 
-export function markExpensePaid(
+export interface ExpensePaymentView {
+  id: number;
+  type: "PAYMENT" | "REVERSAL";
+  source: "SYSTEM" | "LEGACY";
+  amount: number;
+  method: PaymentMethod | null;
+  occurredAt: string | null;
+  actorId: number | null;
+  reason: string | null;
+  reversesId: number | null;
+  reversed: boolean;
+  createdAt: string;
+}
+
+export interface ExpenseEventView {
+  id: number;
+  type: string;
+  reason: string | null;
+  actorId: number;
+  details: unknown;
+  createdAt: string;
+}
+
+export interface ExpenseDetail {
+  id: number;
+  expenseModel: "LEGACY" | "V1";
+  description: string;
+  category: ExpenseCategory;
+  supplier: string | null;
+  amount: number;
+  dueDate: string | null;
+  competenceMonth: string | null;
+  recurrence: ExpenseRecurrence;
+  cancelled: boolean;
+  paid: boolean;
+  allocationRevision: number;
+  historicalPending: boolean;
+  createdAt: string | null;
+  destination: ExpenseDestination | null;
+  basis: ExpenseBasis | null;
+  allocationNote: string | null;
+  allocations: ExpenseAllocationView[];
+  revisions: ExpenseRevisionView[];
+  payments: ExpensePaymentView[];
+  events: ExpenseEventView[];
+}
+
+export function createExpense(input: CreateExpenseInput): Promise<ExpenseDetail> {
+  return sendJSON<ExpenseDetail>("POST", "/api/v1/finance/expenses", input);
+}
+
+export function reviseExpense(id: number, input: CreateExpenseInput): Promise<ExpenseDetail> {
+  return sendJSON<ExpenseDetail>("POST", `/api/v1/finance/expenses/${id}/revisions`, input);
+}
+
+export function getExpenseDetail(id: number): Promise<ExpenseDetail> {
+  return getJSON<ExpenseDetail>(`/api/v1/finance/expenses/${id}`);
+}
+
+export function listExpenses(params: {
+  procedureId?: number;
+  destination?: ExpenseDestination;
+  dueStart?: string;
+  dueEnd?: string;
+  search?: string;
+  before?: number;
+}): Promise<{ expenses: ExpenseDetail[]; nextCursor: number | null }> {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params))
+    if (value !== undefined) query.set(key, String(value));
+  const qs = query.toString();
+  return getJSON(`/api/v1/finance/expenses${qs ? `?${qs}` : ""}`);
+}
+
+export function payExpense(
   id: number,
-  input: { method: PaymentMethod; paidAt: string },
-): Promise<ExpenseSummary> {
-  return sendJSON<ExpenseSummary>("POST", `/api/v1/finance/expenses/${id}/pay`, input);
+  input: { amount: number; method: PaymentMethod; paidAt: string; requestKey: string },
+): Promise<ExpenseDetail> {
+  return sendJSON<ExpenseDetail>("POST", `/api/v1/finance/expenses/${id}/pay`, input);
+}
+
+export function reverseExpensePayment(
+  id: number,
+  paymentId: number,
+  input: { reason: string; requestKey: string },
+): Promise<ExpenseDetail> {
+  return sendJSON<ExpenseDetail>(
+    "POST",
+    `/api/v1/finance/expenses/${id}/payments/${paymentId}/reversal`,
+    input,
+  );
+}
+
+export function cancelExpense(id: number, reason: string): Promise<ExpenseDetail> {
+  return sendJSON<ExpenseDetail>("POST", `/api/v1/finance/expenses/${id}/cancellation`, { reason });
+}
+
+export interface ProcedureComparisonRow {
+  procedureId: number | null;
+  procedureName: string | null;
+  sold: number;
+  received: number;
+  expenseAttributed: number;
+  expensePaidNet: number;
+  executions: number;
+  periodResult: number;
+  cashBalance: number;
+  previousSold: number;
+  previousExpenseAttributed: number;
+  changePercent: number | null;
+}
+
+export function getExpensePerformance(
+  month: string,
+): Promise<{ month: string; previousMonth: string; procedures: ProcedureComparisonRow[] }> {
+  return getJSON(`/api/v1/finance/expense-performance?month=${month}`);
 }
 
 export async function getPublicCatalog(): Promise<ProcedureCategory[]> {

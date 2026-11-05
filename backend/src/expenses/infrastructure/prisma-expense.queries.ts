@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { PrismaService } from "../../shared/infrastructure/prisma/prisma.service";
-import { required } from "../../common/util";
+import { required, iso, expenseLabels } from "../../common/util";
 import { Actor } from "../../auth/domain/actor";
 import { ExpenseListFilters, ExpenseQueries } from "../application/expense.ports";
 import { Money, allocate } from "../../shared/domain/money";
@@ -60,6 +60,7 @@ export class PrismaExpenseQueries extends ExpenseQueries {
       nextCursor: data.length > 50 ? data[49].id : null,
     };
   }
+  /** Flat, backward-compatible shape for the previous Financeiro expense list/movements widgets. */
   async records(actor: Actor) {
     if (actor.role === "FUNCIONARIO") return { expenses: [] };
     const data = await this.db.expense.findMany({
@@ -71,10 +72,16 @@ export class PrismaExpenseQueries extends ExpenseQueries {
         id: x.id,
         description: x.description,
         category: x.category,
+        categoryLabel: expenseLabels[x.category] ?? x.category,
+        supplier: x.supplier,
         amount: Number(x.amount),
         dueDate: x.dueDate.toISOString().slice(0, 10),
         paid: x.paid,
+        paidAt: iso(x.paidAt),
+        method: x.method,
+        recurrence: x.recurrence,
         cancelled: x.cancelled,
+        createdAt: iso(x.createdAt),
         expenseModel: x.expenseModel,
       })),
     };

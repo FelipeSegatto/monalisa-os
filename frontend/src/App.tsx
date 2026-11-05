@@ -15,6 +15,7 @@ import { ClientsPage } from "./pages/clients/ClientsPage";
 import { ClientNewPage } from "./pages/clients/ClientNewPage";
 import { ClientProfilePage } from "./pages/clients/ClientProfilePage";
 import { FinancePage } from "./pages/finance/FinancePage";
+import { ExpensesPage } from "./pages/expenses/ExpensesPage";
 import { StockPage } from "./pages/stock/StockPage";
 import { LeadsPage } from "./pages/leads/LeadsPage";
 import { CatalogPage } from "./pages/public/CatalogPage";
@@ -47,6 +48,8 @@ export default function App() {
         <Route path="comercial/vendas" element={<SalesPage />} />
         <Route path="comercial/vendas/:id" element={<CommercialSalePage />} />
         <Route path="financeiro" element={<FinancePage />} />
+        <Route path="financeiro/despesas" element={<ExpensesPage />} />
+        <Route path="financeiro/despesas/:id" element={<ExpensesPage />} />
         <Route path="equipamentos" element={<EquipmentPage />} />
         <Route path="equipamentos/:id" element={<EquipmentDetailPage />} />
         <Route path="estoque" element={<StockPage />} />
