@@ -26,6 +26,11 @@ const MARQUEE_SPEED = 40;
 const MAX_FRAME_DELTA_MS = 50;
 
 const MARQUEE_COPIES = 6;
+// Right after the intro, logo and marquee burst in at full speed and ease back
+// down to normal over this window, instead of snapping straight to cruising speed.
+const RAMP_MS = 14000;
+const RAMP_START_MULTIPLIER_DESKTOP = 8;
+const RAMP_START_MULTIPLIER_MOBILE = 6;
 
 function MarqueeGroup({ groupRef }: { groupRef?: Ref<HTMLDivElement> }) {
   return (
@@ -46,18 +51,25 @@ function MarqueeGroup({ groupRef }: { groupRef?: Ref<HTMLDivElement> }) {
   );
 }
 
-export function Hero() {
+export function Hero({ introEndedAt }: { introEndedAt: number | null }) {
   const headerRef = useRef<HTMLElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const groupRef = useRef<HTMLDivElement>(null);
   const [colorIndex, setColorIndex] = useState(0);
   const logoSpeedRef = useRef(LOGO_SPEED_DESKTOP);
+  const rampStartMultiplierRef = useRef(RAMP_START_MULTIPLIER_DESKTOP);
+  const introEndedAtRef = useRef(introEndedAt);
+
+  useEffect(() => {
+    introEndedAtRef.current = introEndedAt;
+  }, [introEndedAt]);
 
   useEffect(() => {
     const mq = window.matchMedia(MOBILE_QUERY);
     const sync = () => {
       logoSpeedRef.current = mq.matches ? LOGO_SPEED_MOBILE : LOGO_SPEED_DESKTOP;
+      rampStartMultiplierRef.current = mq.matches ? RAMP_START_MULTIPLIER_MOBILE : RAMP_START_MULTIPLIER_DESKTOP;
     };
     sync();
     mq.addEventListener('change', sync);
@@ -86,9 +98,19 @@ export function Hero() {
     let trackOffset = 0;
     let lastTime: number | null = null;
 
+    const rampMultiplier = () => {
+      const endedAt = introEndedAtRef.current;
+      if (endedAt === null) return 1;
+      const elapsed = Date.now() - endedAt;
+      if (elapsed >= RAMP_MS) return 1;
+      const k = 1 - elapsed / RAMP_MS;
+      return 1 + (rampStartMultiplierRef.current - 1) * k * k;
+    };
+
     const tick = (time: number) => {
       const dt = lastTime === null ? 0 : Math.min(time - lastTime, MAX_FRAME_DELTA_MS) / 1000;
       lastTime = time;
+      const speedMultiplier = rampMultiplier();
 
       const box = headerRef.current;
       const el = logoRef.current;
@@ -97,8 +119,8 @@ export function Hero() {
       if (box && el) {
         const maxX = box.clientWidth - el.offsetWidth;
         const maxY = box.clientHeight - el.offsetHeight;
-        x += vx * logoSpeedRef.current * dt;
-        y += vy * logoSpeedRef.current * dt;
+        x += vx * logoSpeedRef.current * speedMultiplier * dt;
+        y += vy * logoSpeedRef.current * speedMultiplier * dt;
 
         let hit = false;
         if (x <= 0) {
@@ -129,7 +151,7 @@ export function Hero() {
       }
 
       if (track) {
-        trackOffset -= MARQUEE_SPEED * dt;
+        trackOffset -= MARQUEE_SPEED * speedMultiplier * dt;
         const unit = groupRef.current?.offsetWidth ?? 0;
         if (unit > 0 && -trackOffset >= unit) trackOffset += unit;
         track.style.transform = `translateX(${trackOffset}px)`;

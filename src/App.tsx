@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { AccountProvider } from './context/AccountProvider';
 import { AccountModal } from './components/account/AccountModal';
+import { Intro } from './components/Intro';
 import { Nav } from './components/Nav';
 import { Hero } from './components/Hero';
 import { Welcome } from './components/Welcome';
@@ -12,12 +14,14 @@ import { BookingProvider } from './context/BookingContext';
 import { BookingOverlay } from './components/booking/BookingOverlay';
 
 function App() {
+  const [showIntro, setShowIntro] = useState(true);
+  const [introEndedAt, setIntroEndedAt] = useState<number | null>(null);
   return (
     <AccountProvider>
       <BookingProvider>
         <div className="page">
           <Nav />
-          <Hero />
+          <Hero introEndedAt={introEndedAt} />
           <Welcome />
           <Catalog />
           <MonalisaBanner />
@@ -27,6 +31,7 @@ function App() {
         <BookingOverlay />
         <AccountModal />
         <DemoBadge />
+        {showIntro && <Intro onDone={() => { setIntroEndedAt(Date.now()); setShowIntro(false); }} />}
       </BookingProvider>
     </AccountProvider>
   );
