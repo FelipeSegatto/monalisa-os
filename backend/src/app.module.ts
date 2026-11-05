@@ -1,3 +1,5 @@
+import { ExpensesModule } from "./expenses/expenses.module";
+import { FinanceReadModule } from "./finance/finance-read.module";
 import { CommercialModule } from "./commercial/commercial.module";
 import { ProcedureMetricsModule } from "./procedure-metrics/procedure-metrics.module";
 import { SchedulingModule } from "./scheduling/scheduling.module";
@@ -32,6 +34,8 @@ import { SchedulingService } from "./modules/scheduling.service";
     InventoryModule,
     ProcedureMetricsModule,
     CommercialModule,
+    ExpensesModule,
+    FinanceReadModule,
   ],
   controllers: [
     AgendaController,

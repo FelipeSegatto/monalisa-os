@@ -62,25 +62,6 @@ const paymentInput = z.object({
   method: PM,
   installments: z.number().int().positive().nullable(),
 });
-const expenseInput = z.object({
-  description: z.string().trim().min(2).max(255),
-  category: z.enum([
-    "INSUMOS",
-    "EQUIPAMENTOS_MANUTENCAO",
-    "MARKETING",
-    "ALUGUEL_ESTRUTURA",
-    "SERVICOS",
-    "PESSOAL",
-    "OUTROS",
-  ]),
-  supplier: z.string().nullable(),
-  amount: z.number().positive(),
-  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  paid: z.boolean(),
-  paidAt: z.string().nullable(),
-  method: PM.nullable(),
-  recurrence: z.enum(["ONCE", "RECURRING"]),
-});
 const decimal = (n: any) => money(n);
 function toSale(s: any, withDetails = false) {
   const subtotal = money(
@@ -310,57 +291,8 @@ export class FinanceController {
     );
     return this.commercial.cancelSale(requiredId(id), p.reason, req.actor);
   }
-  @Get("finance/expenses") async expenses(
-    @Query("start") start?: string,
-    @Query("end") end?: string,
-    @Req() req?: any,
-  ) {
-    if (req?.actor?.role === "FUNCIONARIO") return { expenses: [] };
-    const data = await this.db.expense.findMany({
-      where: { dueDate: range(start, end) },
-      orderBy: { dueDate: "desc" },
-    });
-    return { expenses: data.map(toExpense) };
-  }
-  @Admin() @Get("finance/expenses/:id") async expense(@Param("id") id: string) {
-    return toExpense(
-      required(
-        await this.db.expense.findUnique({ where: { id: requiredId(id) } }),
-      ),
-    );
-  }
-  @Admin() @Post("finance/expenses") async createExpense(
-    @Body() body: unknown,
-  ) {
-    const p = parse(expenseInput, body);
-    if (p.paid && !p.method)
-      throw new BadRequestException("Método obrigatório para despesa paga");
-    const data = await this.db.expense.create({
-      data: {
-        ...p,
-        dueDate: new Date(p.dueDate + "T12:00:00Z"),
-        paidAt: p.paid ? (p.paidAt ? new Date(p.paidAt) : new Date()) : null,
-      },
-    });
-    return toExpense(data);
-  }
-  @Admin() @Post("finance/expenses/:id/pay") async payExpense(
-    @Param("id") id: string,
-    @Body() body: unknown,
-  ) {
-    const p = parse(z.object({ method: PM, paidAt: z.string() }), body);
-    const expense = required(
-      await this.db.expense.findUnique({ where: { id: requiredId(id) } }),
-    );
-    if (expense.cancelled) throw new BadRequestException("Despesa cancelada");
-    if (expense.paid) throw new ConflictException("Despesa já está paga");
-    return toExpense(
-      await this.db.expense.update({
-        where: { id: expense.id },
-        data: { paid: true, method: p.method, paidAt: new Date(p.paidAt) },
-      }),
-    );
-  }
+  // Expense CRUD (list/detail/create/pay) moved to ExpensesController under
+  // the same /api/v1/finance prefix — see src/expenses/presentation.
   @Get("finance/summary") async summary(
     @Query("start") start?: string,
     @Query("end") end?: string,

@@ -81,6 +81,10 @@ model User {
  shotEntries ShotLedgerEntry[]
  stockEntries StockMovement[]
  qualificationChanges QualificationChange[]
+ expensesCreated Expense[] @relation("ExpenseCreator")
+ expenseRevisions ExpenseRevision[] @relation("ExpenseRevisionAuthor")
+ expensePayments ExpensePayment[] @relation("ExpensePaymentActor")
+ expenseEvents ExpenseEvent[] @relation("ExpenseEventActor")
  id Int @id @default(autoincrement())
  name String @db.VarChar(120)
  email String @unique @db.VarChar(190)
@@ -166,6 +170,7 @@ model Procedure {
  qualificationChanges QualificationChange[]
  qualifications ProfessionalProcedureQualification[]
  executions ProcedureExecution[]
+  expenseAllocations ExpenseAllocation[]
   technology ProcedureTechnology @default(GENERAL)
   requiresEquipment Boolean @default(false)
   equipmentLinks ProcedureEquipment[]
@@ -361,7 +366,86 @@ model Expense {
  recurrence ExpenseRecurrence
  cancelled Boolean @default(false)
  createdAt DateTime @default(now())
+ expenseModel String @default("LEGACY") @db.VarChar(20)
+ competenceMonth String? @db.VarChar(7)
+ allocationRevision Int @default(0)
+ actorId Int?
+ actor User? @relation("ExpenseCreator",fields:[actorId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ revisions ExpenseRevision[]
+ payments ExpensePayment[]
+ events ExpenseEvent[]
  @@index([dueDate])
+}
+model ExpenseRevision {
+ id Int @id @default(autoincrement())
+ expenseId Int
+ expense Expense @relation(fields:[expenseId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ version Int
+ description String @db.VarChar(255)
+ category ExpenseCategory
+ supplier String? @db.VarChar(190)
+ amount Decimal @db.Decimal(12,2)
+ dueDate DateTime @db.Date
+ competenceMonth String @db.VarChar(7)
+ recurrence ExpenseRecurrence
+ destination String @db.VarChar(20)
+ basis String @db.VarChar(20)
+ allocationNote String @db.VarChar(1000)
+ reason String @db.VarChar(1000)
+ actorId Int
+ actor User @relation("ExpenseRevisionAuthor",fields:[actorId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ createdAt DateTime @default(now())
+ allocations ExpenseAllocation[]
+ payments ExpensePayment[]
+ @@unique([expenseId,version])
+ @@index([expenseId,createdAt])
+}
+model ExpenseAllocation {
+ id Int @id @default(autoincrement())
+ revisionId Int
+ revision ExpenseRevision @relation(fields:[revisionId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ procedureId Int?
+ procedure Procedure? @relation(fields:[procedureId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ procedureName String? @db.VarChar(150)
+ inputValue Decimal @db.Decimal(12,2)
+ amount Decimal @db.Decimal(12,2)
+ @@index([procedureId,revisionId])
+}
+model ExpensePayment {
+ id Int @id @default(autoincrement())
+ expenseId Int
+ expense Expense @relation(fields:[expenseId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ revisionId Int?
+ revision ExpenseRevision? @relation(fields:[revisionId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ type String @db.VarChar(20)
+ source String @default("SYSTEM") @db.VarChar(20)
+ amount Decimal @db.Decimal(12,2)
+ method PaymentMethod?
+ occurredAt DateTime?
+ actorId Int?
+ actor User? @relation("ExpensePaymentActor",fields:[actorId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ reason String? @db.VarChar(1000)
+ requestKey String @unique @db.VarChar(100)
+ reversesId Int? @unique
+ reverses ExpensePayment? @relation("ExpensePaymentReversal",fields:[reversesId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ reversal ExpensePayment? @relation("ExpensePaymentReversal")
+ createdAt DateTime @default(now())
+ @@index([expenseId,occurredAt])
+ @@index([occurredAt,type])
+}
+model ExpenseEvent {
+ id Int @id @default(autoincrement())
+ expenseId Int
+ expense Expense @relation(fields:[expenseId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ type String @db.VarChar(40)
+ actorId Int
+ actor User @relation("ExpenseEventActor",fields:[actorId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ reason String? @db.VarChar(1000)
+ requestKey String @unique @db.VarChar(80)
+ requestHash String @db.VarChar(64)
+ details Json
+ createdAt DateTime @default(now())
+ @@index([expenseId,createdAt])
 }
 model Lead {
  id Int @id @default(autoincrement())
