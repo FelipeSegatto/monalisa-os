@@ -100,6 +100,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
       );
       flash.animate([{ opacity: 0.9 }, { opacity: 0 }], { duration: 260, delay: 120, fill: 'forwards' });
       word.getAnimations().forEach((a) => a.cancel());
+      word.style.display = 'block';
       word.style.backgroundColor = wordColor;
       word.animate(
         [{ opacity: 0 }, { opacity: 0, offset: 0.7 }, { opacity: 1 }],
@@ -142,6 +143,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
       hero.style.display = 'none';
       word.getAnimations().forEach((a) => a.cancel());
       word.style.opacity = '0';
+      word.style.display = 'none';
       paper.style.opacity = '0';
       ov.style.background = HERO_BG;
       logo.style.display = 'block';
