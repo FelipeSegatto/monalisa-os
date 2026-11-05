@@ -7,11 +7,12 @@ interface Props {
   balance: number;
   expense?: boolean;
   close: () => void;
-  save: (amount: number, method: PaymentMethod, installments: number | null,requestKey:string) => void;
+  save: (amount: number, method: PaymentMethod, installments: number | null,requestKey:string,paidAt:string) => void;
   saving: boolean;
 }
 
 export function PaymentPanel({ balance, expense = false, close, save, saving }: Props) {
+  const [paidAt]=useState(()=>new Date().toISOString());
   const [requestKey]=useState(()=>crypto.randomUUID());
   const [amount, setAmount] = useState(balance);
   const [method, setMethod] = useState<PaymentMethod>("PIX");
@@ -37,6 +38,7 @@ export function PaymentPanel({ balance, expense = false, close, save, saving }: 
                 method,
                 method === "CARD" ? installments : null,
                 requestKey,
+                paidAt,
               )
             }
           >
