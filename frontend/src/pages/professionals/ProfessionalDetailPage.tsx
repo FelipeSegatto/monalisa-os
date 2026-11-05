@@ -1,3 +1,4 @@
+import { ProfessionalCapabilitiesSection } from "./ProfessionalCapabilitiesSection";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -219,6 +220,8 @@ export function ProfessionalDetailPage({ isNew = false }: Props) {
           </select>
         </label>
       </div>
+
+      {!isNew && professionalId ? <ProfessionalCapabilitiesSection id={professionalId} /> : <p className="section-meta">Salve o profissional para configurar os procedimentos e a jornada.</p>}
 
       {!isNew ? (
         <>

@@ -1,3 +1,8 @@
+import {
+  ProfessionalCapabilitiesService,
+  ProfessionalCapabilitiesRepository,
+} from "./application/professional-capabilities";
+import { PrismaProfessionalCapabilitiesRepository } from "./infrastructure/prisma-professional-capabilities.repository";
 import { Module } from "@nestjs/common";
 import { PrismaModule } from "../shared/infrastructure/prisma/prisma.module";
 import { AuthModule } from "../auth/auth.module";
@@ -14,6 +19,11 @@ import { ProfessionalsController } from "./presentation/professionals.controller
   controllers: [ProfessionalsController],
   providers: [
     ProfessionalService,
+    ProfessionalCapabilitiesService,
+    {
+      provide: ProfessionalCapabilitiesRepository,
+      useClass: PrismaProfessionalCapabilitiesRepository,
+    },
     { provide: ProfessionalRepository, useClass: PrismaProfessionalRepository },
     { provide: ProfessionalQueries, useClass: PrismaProfessionalQueries },
     { provide: ProfessionalAccounts, useClass: AuthProfessionalAccounts },

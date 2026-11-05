@@ -552,17 +552,16 @@ export function ProcedureDetailPage({ isNew = false }: Props) {
                 )}
               </div>
 
+              <p className="section-meta">Estes materiais exigem uma confirmação de uso ao concluir a sessão, sem baixa automática de estoque.</p>
               {materialsSaveError ? <p className="form-error">{materialsSaveError}</p> : null}
 
               {materials.length === 0 && !materialsEditing ? (
                 <p className="procedure-empty">
-                  Sem materiais vinculados — a baixa de estoque deste procedimento continua
-                  manual.
+                  Sem materiais previstos. O profissional poderá informar materiais adicionais no atendimento.
                 </p>
               ) : (
                 <div className="price-group">
                   {materials.map((row) => {
-                    const stockItem = stockItems.find((item) => item.id === row.stockItemId);
                     return (
                       <div className="price-row material-row" key={row.key}>
                         <select
@@ -584,18 +583,8 @@ export function ProcedureDetailPage({ isNew = false }: Props) {
                             </option>
                           ))}
                         </select>
-                        <input
-                          className="text-input"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          disabled={!materialsEditing}
-                          value={row.quantity}
-                          onChange={(event) =>
-                            updateMaterial(row.key, { quantity: event.target.value })
-                          }
-                        />
-                        <span className="section-meta">{stockItem?.unit ?? ""}</span>
+                        <span className="section-meta">Confirmar uso em cada sessão</span>
+                        <span />
                         {materialsEditing ? (
                           <div className="price-actions">
                             <button

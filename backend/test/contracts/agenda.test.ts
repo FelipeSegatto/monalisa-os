@@ -10,6 +10,9 @@ test("agenda usa DI real para validar intervalo, rejeitar conflito e preservar r
       name: "Profissional",
       color: "#123456",
       active: true,
+      qualifications: [{ procedureId: 2, active: true }],
+      workingPeriods: [{ weekday: 2, startMinute: 0, endMinute: 1440 }],
+      schedulingPriority: 0,
     };
     const procedure = {
       id: 2,
@@ -24,6 +27,8 @@ test("agenda usa DI real para validar intervalo, rejeitar conflito e preservar r
     app.db.professional.findMany = async () => [professional];
     app.db.procedure.findUnique = async () => procedure;
     app.db.customer.findUniqueOrThrow = async () => customer;
+    app.db.customer.findUnique = async () => customer;
+    app.db.schedulingSettings.findUnique = async () => null;
     app.db.appointment.findFirst = async () => appointment;
     app.db.agendaBlock.findFirst = async () => null;
     app.db.appointment.create = async ({ data }: any) => {
@@ -56,6 +61,8 @@ test("agenda usa DI real para validar intervalo, rejeitar conflito e preservar r
     assert.equal(created.status, 201);
     assert.deepEqual(await created.json(), {
       id: 1,
+      professionalId: 1,
+      customerId: 3,
       startsAt: body.startsAt,
       endsAt: "2030-01-15T16:00:00.000Z",
       status: "SCHEDULED",
@@ -64,7 +71,7 @@ test("agenda usa DI real para validar intervalo, rejeitar conflito e preservar r
       (await app.request("/api/v1/agenda", { method: "POST", body })).status,
       409,
     );
-    assert.equal(locks, 2);
+    assert.equal(locks, 4);
     const daily = await app.request("/api/v1/agenda?date=2030-01-15");
     assert.equal(daily.status, 200);
     const data: any = await daily.json();

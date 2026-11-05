@@ -134,6 +134,10 @@ export interface CurrentUser {
 }
 
 export interface AgendaAppointment {
+  expired:boolean;
+  procedureId:number;
+  customerId:number;
+  equipmentId:number|null;
   id: number;
   startsAt: string;
   endsAt: string;
@@ -174,7 +178,8 @@ export interface AgendaMonth {
 
 export interface CreateAppointmentInput {
   customerId: number;
-  professionalId: number;
+  professionalId?: number;
+  durationMinutes?: number;
   procedureId: number;
   startsAt: string;
   status?: AppointmentStatus;
@@ -386,8 +391,9 @@ export function createAppointment(input: CreateAppointmentInput): Promise<Create
 export function setAppointmentStatus(
   id: number,
   status: AppointmentStatus,
+  durationMinutes?:number,
 ): Promise<{ id: number; status: AppointmentStatus }> {
-  return sendJSON("PATCH", `/api/v1/agenda/${id}/status`, { status });
+  return sendJSON("PATCH", `/api/v1/agenda/${id}/status`, { status, durationMinutes });
 }
 
 export interface AgendaBlock {
@@ -1069,6 +1075,8 @@ export interface SaveStockItemInput {
 }
 
 export interface StockMovement {
+  actorId:number|null;
+  reversesId:number|null;
   id: number;
   type: "IN" | "ADJUSTMENT" | "CONSUMPTION";
   quantityDelta: string;
@@ -1101,7 +1109,7 @@ export function updateStockItem(id: number, input: SaveStockItemInput): Promise<
 
 export function registerStockMovement(
   id: number,
-  input: { type: "IN" | "ADJUSTMENT"; quantity: number; note?: string | null },
+  input: { type: "IN" | "ADJUSTMENT" | "CONSUMPTION"; quantity: number; note: string; requestKey:string },
 ): Promise<StockItemDetail> {
   return sendJSON<StockItemDetail>("POST", `/api/v1/stock/items/${id}/movements`, input);
 }
@@ -1144,3 +1152,36 @@ export const getProcedureEquipment = (id: number) => getJSON<ProcedureEquipmentR
 export const setProcedureEquipment = (id: number, equipmentIds: number[]) => sendJSON<ProcedureEquipmentResources>('PUT', `/api/v1/procedures/${id}/equipment`, { equipmentIds });
 
 export const getEquipmentHistory = (id: number, before: number) => getJSON<{events: EquipmentDetail['events']}>(`/api/v1/equipment/${id}/events?before=${before}`);
+
+export interface ProfessionalCapabilities {
+  procedureIds:number[]; priority:number|null;
+  workingPeriods:{weekday:number;startMinute:number;endMinute:number}[];
+  affectedAppointments:{id:number;procedureId:number;startsAt:string}[];
+}
+export const getProfessionalCapabilities=(id:number)=>getJSON<ProfessionalCapabilities>(`/api/v1/professionals/${id}/capabilities`);
+export const saveProfessionalCapabilities=(id:number,input:Omit<ProfessionalCapabilities,'affectedAppointments'>)=>sendJSON<ProfessionalCapabilities>('PUT',`/api/v1/professionals/${id}/capabilities`,input);
+export const getAvailableProfessionals=(procedureId:number,startsAt:string,durationMinutes?:number)=>getJSON<{id:number;name:string;color:string}[]>(`/api/v1/scheduling/available-professionals?${new URLSearchParams({procedureId:String(procedureId),startsAt,...(durationMinutes?{durationMinutes:String(durationMinutes)}:{})})}`);
+export interface SchedulingSettings {assignmentPolicy:'PRIORITY'|'MANUAL';confirmationMode:'MANUAL'|'AUTOMATIC';holdMinutes:number}
+export const getSchedulingSettings=()=>getJSON<SchedulingSettings>('/api/v1/scheduling/settings');
+export const saveSchedulingSettings=(input:SchedulingSettings)=>sendJSON<SchedulingSettings>('PUT','/api/v1/scheduling/settings',input);
+export type MaterialUseAnswer='USED'|'SMALL'|'NOT_USED';
+export interface ExecutionInput {
+ procedureId:number;variationId?:number|null;professionalId:number;equipmentId?:number|null;
+ materials:{stockItemId:number;usage:MaterialUseAnswer}[];shots:{componentId?:number|null;quantity:number}[];
+}
+export interface AttendanceResult {id:number;status:string;startedAt:string;completedAt:string|null;executions:unknown[]}
+export const startAttendance=(id:number)=>sendJSON<AttendanceResult>('POST',`/api/v1/agenda/${id}/attendance`,{});
+export const completeAttendance=(id:number,input:{requestKey:string;executions:ExecutionInput[]})=>sendJSON<AttendanceResult>('POST',`/api/v1/attendances/${id}/completion`,input);
+export interface ShotCounters {equipmentId:number;tracking:Equipment['shotTracking'];consumed:number;initialized:boolean;equipmentCounter:number|null;components:{id:number;name:string;status:EquipmentStatus;capacity:number|null;initialized:boolean;consumed:number|null;remaining:number|null}[]}
+export const getShotCounters=(id:number)=>getJSON<ShotCounters>(`/api/v1/equipment/${id}/shot-counters`);
+export interface ShotEntry {id:number;type:string;componentId:number|null;quantityDelta:number;actorId:number;reason:string|null;createdAt:string;reversesId:number|null}
+export const getShotEntries=(id:number,before?:number)=>getJSON<ShotEntry[]>(`/api/v1/equipment/${id}/shot-ledger${before?`?before=${before}`:''}`);
+export const postShotEntry=(id:number,input:{componentId:number|null;type:'OPENING'|'ADJUSTMENT';quantityDelta:number;reason:string;requestKey:string})=>sendJSON<ShotEntry>('POST',`/api/v1/equipment/${id}/shot-ledger`,input);
+export const reverseShotEntry=(id:number,input:{reason:string;requestKey:string})=>sendJSON<ShotEntry>('POST',`/api/v1/shot-ledger/${id}/reversal`,input);
+export const reverseStockMovement=(id:number,input:{note:string;requestKey:string})=>sendJSON<unknown>('POST',`/api/v1/stock/movements/${id}/reversal`,input);
+export interface ProcedureActivityMetric {procedureId:number;procedureName:string;executions:number;previousExecutions:number;shots:number;previousShots:number;options:{variationId:number;name:string;executions:number}[];materials:{stockItemId:number;materialName:string;used:number;small:number;notUsed:number}[]}
+export const getProcedureMetrics=(month:string)=>getJSON<{month:string;previousMonth:string;procedures:ProcedureActivityMetric[]}>(`/api/v1/procedure-metrics?month=${month}`);
+export const cancelAttendance=(id:number,reason:string)=>sendJSON<AttendanceResult>('POST',`/api/v1/attendances/${id}/cancellation`,{reason});
+export const reassignAppointment=(id:number,professionalId?:number)=>sendJSON<unknown>('PATCH',`/api/v1/scheduling/appointments/${id}/assignment`,{professionalId});
+export const getReassignmentCandidates=(appointment:AgendaAppointment)=>getJSON<{id:number;name:string;color:string}[]>(`/api/v1/scheduling/available-professionals?${new URLSearchParams({procedureId:String(appointment.procedureId),startsAt:appointment.startsAt,durationMinutes:String(Math.round((+new Date(appointment.endsAt)-+new Date(appointment.startsAt))/60000)),excludeId:String(appointment.id)})}`);
+export const correctShotEntry=(id:number,input:{quantity:number;reason:string;requestKey:string})=>sendJSON<ShotEntry>('POST',`/api/v1/shot-ledger/${id}/correction`,input);

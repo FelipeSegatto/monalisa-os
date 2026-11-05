@@ -15,7 +15,7 @@ export function StockPage() {
   const [showNewItem, setShowNewItem] = useState(false);
   const [movementTarget, setMovementTarget] = useState<{
     item: StockItem;
-    type: "IN" | "ADJUSTMENT";
+    type: "IN" | "ADJUSTMENT" | "CONSUMPTION";
   } | null>(null);
   const [historyTarget, setHistoryTarget] = useState<StockItem | null>(null);
 
@@ -78,6 +78,7 @@ export function StockPage() {
                     {item.isLow ? "Estoque baixo" : "OK"}
                   </span>
                   <div className="stock-actions">
+                    <button type="button" className="text-button" onClick={()=>setMovementTarget({item,type:"CONSUMPTION"})}>Registrar embalagem consumida</button>
                     <button
                       type="button"
                       className="text-button"
@@ -132,7 +133,7 @@ export function StockPage() {
       ) : null}
 
       {historyTarget ? (
-        <StockHistoryPanel item={historyTarget} close={() => setHistoryTarget(null)} />
+        <StockHistoryPanel item={historyTarget} close={() => setHistoryTarget(null)} onChanged={reload} />
       ) : null}
     </div>
   );

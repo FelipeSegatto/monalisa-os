@@ -16,6 +16,7 @@ export class PrismaProfessionalQueries extends ProfessionalQueries {
           professionalId: row.id,
           startsAt: { gte: now },
           status: { in: ["SCHEDULED", "CONFIRMED"] },
+          OR:[{expiresAt:null},{expiresAt:{gt:now}},{status:{not:"SCHEDULED"}}],
         },
       }),
       this.db.appointment.count({

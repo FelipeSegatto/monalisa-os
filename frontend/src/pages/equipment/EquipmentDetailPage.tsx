@@ -1,3 +1,4 @@
+import { ShotLedgerSection } from "./ShotLedgerSection";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
@@ -446,6 +447,7 @@ export function EquipmentDetailPage() {
           </button>
         )}
       </section>
+      <ShotLedgerSection equipmentId={equipmentId} canManage={user?.role === "ADMIN"} />
     </div>
   );
 }

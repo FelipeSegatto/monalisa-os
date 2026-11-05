@@ -39,4 +39,6 @@ Com API e banco disponíveis, `npm run smoke` faz somente consultas. Testes que 
 - [Equipamentos e manutenção](docs/equipamentos-etapa-1.md)
 - [Arquitetura do domínio de equipamentos](docs/arquitetura-equipamentos.md)
 
-Equipamentos ainda não possuem ledger de disparos; esse registro será conectado aos atendimentos em etapa posterior. Documentos históricos das aulas descrevem versões anteriores e não substituem os comandos atuais.
+- [Operação clínica: habilitações, atribuição, atendimentos e ledgers](docs/operacao-clinica-fase-5.md)
+
+Atendimentos registram disparos em ledger e confirmam o uso de materiais sem baixa automática de estoque. A nova migration precisa ser aplicada ao banco local antes de usar esses fluxos. Documentos históricos das aulas descrevem versões anteriores e não substituem os comandos atuais.

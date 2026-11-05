@@ -66,6 +66,12 @@ enum PhotoLabel {
   OTHER
 }
 model User {
+ cancelledAttendances Attendance[] @relation("AttendanceCanceller")
+ startedAttendances Attendance[] @relation("AttendanceStarter")
+ completedAttendances Attendance[] @relation("AttendanceCompleter")
+ shotEntries ShotLedgerEntry[]
+ stockEntries StockMovement[]
+ qualificationChanges QualificationChange[]
  id Int @id @default(autoincrement())
  name String @db.VarChar(120)
  email String @unique @db.VarChar(190)
@@ -89,6 +95,7 @@ model Session {
  @@index([userId,expiresAt])
 }
 model Professional {
+ qualificationChanges QualificationChange[]
  id Int @id @default(autoincrement())
  name String @db.VarChar(120)
  phone String? @db.VarChar(30)
@@ -96,11 +103,17 @@ model Professional {
  color String @default("#0d9488") @db.VarChar(16)
  active Boolean @default(true)
  user User?
+ schedulingPriority Int?
+ qualifications ProfessionalProcedureQualification[]
+ workingPeriods ProfessionalWorkingPeriod[]
+ attendances Attendance[]
+ executions ProcedureExecution[]
  appointments Appointment[]
  blocks AgendaBlock[]
  sales Sale[]
 }
 model Customer {
+ attendances Attendance[]
  id Int @id @default(autoincrement())
  name String @db.VarChar(120)
  phone String @db.VarChar(30)
@@ -136,6 +149,9 @@ enum TreatmentOptionKind {
   OTHER
 }
 model Procedure {
+ qualificationChanges QualificationChange[]
+ qualifications ProfessionalProcedureQualification[]
+ executions ProcedureExecution[]
   technology ProcedureTechnology @default(GENERAL)
   requiresEquipment Boolean @default(false)
   equipmentLinks ProcedureEquipment[]
@@ -160,6 +176,7 @@ model Procedure {
  @@index([categoryId])
 }
 model ProcedureVariation {
+ executions ProcedureExecution[]
  kind TreatmentOptionKind @default(OTHER)
  id Int @id @default(autoincrement())
  procedureId Int
@@ -172,6 +189,11 @@ model ProcedureVariation {
  sortOrder Int @default(0)
 }
 model Appointment {
+ attendance Attendance?
+ equipmentId Int?
+ equipment Equipment? @relation(fields:[equipmentId],references:[id],onDelete:Restrict)
+ origin String @default("INTERNAL") @db.VarChar(30)
+ expiresAt DateTime?
  id Int @id @default(autoincrement())
  customerId Int
  customer Customer @relation(fields:[customerId],references:[id])
@@ -187,6 +209,8 @@ model Appointment {
  createdAt DateTime @default(now())
  @@index([professionalId, startsAt, endsAt])
  @@index([customerId,startsAt])
+ @@index([equipmentId,startsAt,endsAt])
+ @@index([status,expiresAt])
 }
 model AgendaBlock {
  id Int @id @default(autoincrement())
@@ -299,6 +323,7 @@ model Lead {
  createdAt DateTime @default(now())
 }
 model StockItem {
+ usages MaterialUsage[]
  id Int @id @default(autoincrement())
  name String @db.VarChar(150)
  unit String @db.VarChar(30)
@@ -309,9 +334,15 @@ model StockItem {
  materials ProcedureMaterial[]
 }
 model StockMovement {
+ actor User? @relation(fields:[actorId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ actorId Int?
+ requestKey String? @unique @db.VarChar(80)
+ reversesId Int? @unique
+ reverses StockMovement? @relation("StockReversal",fields:[reversesId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ reversal StockMovement? @relation("StockReversal")
  id Int @id @default(autoincrement())
  stockItemId Int
- stockItem StockItem @relation(fields:[stockItemId],references:[id])
+ stockItem StockItem @relation(fields:[stockItemId],references:[id],onDelete:Restrict,onUpdate:Restrict)
  type MovementType
  quantityDelta Decimal @db.Decimal(12,3)
  note String? @db.VarChar(255)
@@ -337,6 +368,9 @@ enum ShotTracking {
   COMPONENT
 }
 model Equipment {
+ appointments Appointment[]
+ executions ProcedureExecution[]
+ shotEntries ShotLedgerEntry[]
   id Int @id @default(autoincrement())
   code String @unique @db.VarChar(50)
   name String @db.VarChar(150)
@@ -356,6 +390,7 @@ model Equipment {
   @@index([status,nextMaintenanceDate])
 }
 model EquipmentComponent {
+ shotEntries ShotLedgerEntry[]
   id Int @id @default(autoincrement())
   equipmentId Int
   equipment Equipment @relation(fields:[equipmentId],references:[id],onDelete:Restrict)
@@ -392,4 +427,118 @@ model EquipmentEvent {
   occurredOn DateTime? @db.Date
   createdAt DateTime @default(now())
   @@index([equipmentId,createdAt])
+}
+
+model ProfessionalProcedureQualification {
+ professionalId Int
+ professional Professional @relation(fields:[professionalId],references:[id],onDelete:Restrict)
+ procedureId Int
+ procedure Procedure @relation(fields:[procedureId],references:[id],onDelete:Restrict)
+ active Boolean @default(true)
+ updatedAt DateTime @updatedAt
+ @@id([professionalId,procedureId])
+ @@index([procedureId,active])
+}
+model QualificationChange {
+ actor User @relation(fields:[actorId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ professional Professional @relation(fields:[professionalId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ procedure Procedure @relation(fields:[procedureId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ id Int @id @default(autoincrement())
+ professionalId Int
+ procedureId Int
+ active Boolean
+ actorId Int
+ createdAt DateTime @default(now())
+ @@index([professionalId,createdAt])
+}
+model ProfessionalWorkingPeriod {
+ id Int @id @default(autoincrement())
+ professionalId Int
+ professional Professional @relation(fields:[professionalId],references:[id],onDelete:Restrict)
+ weekday Int
+ startMinute Int
+ endMinute Int
+ @@index([professionalId,weekday])
+}
+model SchedulingSettings {
+ id Int @id
+ assignmentPolicy String @default("PRIORITY") @db.VarChar(30)
+ confirmationMode String @default("MANUAL") @db.VarChar(30)
+ holdMinutes Int @default(1440)
+}
+model Attendance {
+ cancelledAt DateTime?
+ cancellationReason String? @db.VarChar(1000)
+ cancelledById Int?
+ cancelledBy User? @relation("AttendanceCanceller",fields:[cancelledById],references:[id],onDelete:Restrict)
+ startedById Int
+ startedBy User @relation("AttendanceStarter",fields:[startedById],references:[id],onDelete:Restrict)
+ completedById Int?
+ completedBy User? @relation("AttendanceCompleter",fields:[completedById],references:[id],onDelete:Restrict)
+ id Int @id @default(autoincrement())
+ appointmentId Int? @unique
+ appointment Appointment? @relation(fields:[appointmentId],references:[id],onDelete:Restrict)
+ customerId Int
+ customer Customer @relation(fields:[customerId],references:[id],onDelete:Restrict)
+ professionalId Int
+ professional Professional @relation(fields:[professionalId],references:[id],onDelete:Restrict)
+ status String @default("IN_PROGRESS") @db.VarChar(30)
+ startedAt DateTime @default(now())
+ completedAt DateTime?
+ completionKey String? @unique @db.VarChar(80)
+ completionHash String? @db.VarChar(64)
+ executions ProcedureExecution[]
+ @@index([customerId,startedAt])
+}
+model ProcedureExecution {
+ id Int @id @default(autoincrement())
+ attendanceId Int
+ attendance Attendance @relation(fields:[attendanceId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ procedureId Int
+ procedure Procedure @relation(fields:[procedureId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ variationId Int?
+ variation ProcedureVariation? @relation(fields:[variationId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ professionalId Int
+ professional Professional @relation(fields:[professionalId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ equipmentId Int?
+ equipment Equipment? @relation(fields:[equipmentId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ procedureName String @db.VarChar(150)
+ variationName String? @db.VarChar(140)
+ technology ProcedureTechnology
+ materials MaterialUsage[]
+ shots ShotLedgerEntry[]
+ @@index([procedureId,attendanceId])
+}
+model MaterialUsage {
+ usage String @db.VarChar(20)
+ id Int @id @default(autoincrement())
+ executionId Int
+ execution ProcedureExecution @relation(fields:[executionId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ stockItemId Int
+ stockItem StockItem @relation(fields:[stockItemId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ materialName String @db.VarChar(150)
+ @@unique([executionId,stockItemId])
+}
+model ShotLedgerEntry {
+ replacesId Int? @unique
+ replaces ShotLedgerEntry? @relation("ShotReplacement",fields:[replacesId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ replacement ShotLedgerEntry? @relation("ShotReplacement")
+ actor User @relation(fields:[actorId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ id Int @id @default(autoincrement())
+ equipmentId Int
+ equipment Equipment @relation(fields:[equipmentId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ componentId Int?
+ component EquipmentComponent? @relation(fields:[componentId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ executionId Int?
+ execution ProcedureExecution? @relation(fields:[executionId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ type String @db.VarChar(30)
+ quantityDelta Int
+ actorId Int
+ reason String? @db.VarChar(1000)
+ requestKey String @unique @db.VarChar(100)
+ reversesId Int? @unique
+ reverses ShotLedgerEntry? @relation("ShotReversal",fields:[reversesId],references:[id],onDelete:Restrict,onUpdate:Restrict)
+ reversal ShotLedgerEntry? @relation("ShotReversal")
+ createdAt DateTime @default(now())
+ @@index([equipmentId,componentId,createdAt])
 }

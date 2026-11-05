@@ -5,7 +5,7 @@ import {
   createAppointment,
   getCustomers,
   getProcedureCategories,
-  getProfessionals,
+  getAvailableProfessionals,
   type AppointmentStatus,
   type CustomerListItem,
   type Procedure,
@@ -22,7 +22,11 @@ function toDateInputValue(dateKey: string): string {
   return dateKey;
 }
 
-export function NewAppointmentPanel({ close, onCreated, defaultDateKey }: Props) {
+export function NewAppointmentPanel({
+  close,
+  onCreated,
+  defaultDateKey,
+}: Props) {
   const [customers, setCustomers] = useState<CustomerListItem[]>([]);
   const [professionals, setProfessionals] = useState<ProfessionalDetail[]>([]);
   const [procedures, setProcedures] = useState<Procedure[]>([]);
@@ -32,22 +36,59 @@ export function NewAppointmentPanel({ close, onCreated, defaultDateKey }: Props)
   const [professionalId, setProfessionalId] = useState<number | "">("");
   const [date, setDate] = useState(toDateInputValue(defaultDateKey));
   const [time, setTime] = useState("09:00");
+  const [duration, setDuration] = useState(30);
   const [status, setStatus] = useState<AppointmentStatus>("SCHEDULED");
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getCustomers({}).then(setCustomers).catch(() => undefined);
-    getProfessionals().then(setProfessionals).catch(() => undefined);
+    getCustomers({})
+      .then(setCustomers)
+      .catch(() => undefined);
+
     getProcedureCategories()
-      .then((categories) => setProcedures(categories.flatMap((c) => c.procedures).filter((p) => p.active)))
+      .then((categories) =>
+        setProcedures(
+          categories.flatMap((c) => c.procedures).filter((p) => p.active),
+        ),
+      )
       .catch(() => undefined);
   }, []);
 
+  useEffect(() => {
+    const p = procedures.find((p) => p.id === procedureId);
+    if (p) setDuration(p.durationMinutes);
+  }, [procedureId, procedures]);
+  useEffect(() => {
+    setProfessionalId("");
+    setProfessionals([]);
+    if (
+      !procedureId ||
+      !date ||
+      !time ||
+      !Number.isInteger(duration) ||
+      duration < 1
+    )
+      return;
+    const startsAt = new Date(`${date}T${time}:00`);
+    if (!Number.isFinite(+startsAt)) return;
+    let cancelled = false;
+    getAvailableProfessionals(procedureId, startsAt.toISOString(), duration)
+      .then((p) => {
+        if (!cancelled) setProfessionals(p as ProfessionalDetail[]);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(e.message);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [procedureId, date, time, duration]);
+
   async function handleSave() {
-    if (!customerId || !procedureId || !professionalId) {
-      setError("Cliente, procedimento e profissional são obrigatórios.");
+    if (!customerId || !procedureId) {
+      setError("Cliente e procedimento são obrigatórios.");
       return;
     }
     setSaving(true);
@@ -56,7 +97,8 @@ export function NewAppointmentPanel({ close, onCreated, defaultDateKey }: Props)
       await createAppointment({
         customerId,
         procedureId,
-        professionalId,
+        professionalId: professionalId || undefined,
+        durationMinutes: duration,
         startsAt: new Date(`${date}T${time}:00`).toISOString(),
         status,
       });
@@ -64,7 +106,11 @@ export function NewAppointmentPanel({ close, onCreated, defaultDateKey }: Props)
       onCreated();
     } catch (err) {
       setSaving(false);
-      setError(err instanceof Error ? err.message : "Não foi possível criar o agendamento.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível criar o agendamento.",
+      );
     }
   }
 
@@ -94,14 +140,20 @@ export function NewAppointmentPanel({ close, onCreated, defaultDateKey }: Props)
           {error ? <p className="form-error">{error}</p> : null}
           <label className="field">
             Cliente
-            <CustomerSearchSelect customers={customers} value={customerId} onChange={setCustomerId} />
+            <CustomerSearchSelect
+              customers={customers}
+              value={customerId}
+              onChange={setCustomerId}
+            />
           </label>
           <label className="field">
             Procedimento
             <select
               className="select-input"
               value={procedureId}
-              onChange={(e) => setProcedureId(e.target.value ? Number(e.target.value) : "")}
+              onChange={(e) =>
+                setProcedureId(e.target.value ? Number(e.target.value) : "")
+              }
             >
               <option value="">Selecione…</option>
               {procedures.map((p) => (
@@ -114,21 +166,44 @@ export function NewAppointmentPanel({ close, onCreated, defaultDateKey }: Props)
           <div className="field-grid">
             <label className="field">
               Data
-              <input className="text-input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <input
+                className="text-input"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
             </label>
             <label className="field">
               Horário
-              <input className="text-input" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+              <input
+                className="text-input"
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+              />
             </label>
           </div>
+          <label className="field">
+            Duração reservada (minutos)
+            <input
+              className="text-input"
+              type="number"
+              min="1"
+              max="720"
+              value={duration}
+              onChange={(e) => setDuration(Number(e.target.value))}
+            />
+          </label>
           <label className="field">
             Profissional
             <select
               className="select-input"
               value={professionalId}
-              onChange={(e) => setProfessionalId(e.target.value ? Number(e.target.value) : "")}
+              onChange={(e) =>
+                setProfessionalId(e.target.value ? Number(e.target.value) : "")
+              }
             >
-              <option value="">Selecione…</option>
+              <option value="">Atribuir por prioridade</option>
               {professionals.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}

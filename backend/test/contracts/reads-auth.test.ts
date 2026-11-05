@@ -20,7 +20,15 @@ test("controllers legados resolvem Prisma e preservam contratos de clientes, das
     ];
     app.db.professional.findMany = async () => [];
     app.db.professional.findFirst = async () => null;
+    app.db.procedure.findFirst = async () => ({
+      id: 1,
+      active: true,
+      durationMinutes: 30,
+    });
+    app.db.procedure.findUnique = app.db.procedure.findFirst;
+    app.db.schedulingSettings.findUnique = async () => null;
     app.db.appointment.findMany = async () => [];
+    app.db.agendaBlock.findMany = async () => [];
     app.db.stockItem.findMany = async () => [];
     app.db.sale.findMany = async () => [];
     app.db.expense.findMany = async () => [];

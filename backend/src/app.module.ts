@@ -1,3 +1,7 @@
+import { ProcedureMetricsModule } from "./procedure-metrics/procedure-metrics.module";
+import { SchedulingModule } from "./scheduling/scheduling.module";
+import { AttendancesModule } from "./attendances/attendances.module";
+import { InventoryModule } from "./inventory/inventory.module";
 import { ProceduresModule } from "./procedures/procedures.module";
 import { CustomersModule } from "./customers/customers.module";
 import { ProfessionalsModule } from "./professionals/professionals.module";
@@ -22,6 +26,10 @@ import { SchedulingService } from "./modules/scheduling.service";
     CustomersModule,
     ProfessionalsModule,
     ProceduresModule,
+    SchedulingModule,
+    AttendancesModule,
+    InventoryModule,
+    ProcedureMetricsModule,
   ],
   controllers: [
     AgendaController,

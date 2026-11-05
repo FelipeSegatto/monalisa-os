@@ -1,3 +1,4 @@
+import { ProcedureActivitySection } from "./components/ProcedureActivitySection";
 import { MaintenanceReminders } from "../equipment/MaintenanceReminders";
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
@@ -37,6 +38,7 @@ export function DashboardPage() {
       <DashboardHeader onNewAppointment={() => setShowNewAppointment(true)} user={user} />
       <TodaySection overview={data} />
       <MaintenanceReminders />
+      {user?.role === "ADMIN" && <ProcedureActivitySection />}
       <AgendaAndAttentionSection overview={data} />
       {user?.role === "FUNCIONARIO" ? (
         <MyFinanceSection overview={data} />

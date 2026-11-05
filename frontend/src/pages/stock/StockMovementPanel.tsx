@@ -4,12 +4,13 @@ import { registerStockMovement, type StockItem } from "../../lib/api";
 
 interface Props {
   item: StockItem;
-  type: "IN" | "ADJUSTMENT";
+  type: "IN" | "ADJUSTMENT" | "CONSUMPTION";
   close: () => void;
   onSaved: () => void;
 }
 
 export function StockMovementPanel({ item, type, close, onSaved }: Props) {
+  const [requestKey]=useState(()=>crypto.randomUUID());
   const [quantity, setQuantity] = useState("");
   const [note, setNote] = useState("");
 
@@ -24,14 +25,15 @@ export function StockMovementPanel({ item, type, close, onSaved }: Props) {
       setError("Informe uma quantidade válida.");
       return;
     }
-    if (isEntrada && value <= 0) {
+    if (type!=="ADJUSTMENT" && value <= 0) {
       setError("Quantidade de entrada deve ser positiva.");
       return;
     }
+    if(note.trim().length<3){setError("Informe o motivo do movimento.");return;}
     setSaving(true);
     setError(null);
     try {
-      await registerStockMovement(item.id, { type, quantity: value, note: note.trim() || null });
+      await registerStockMovement(item.id, { type, quantity: value, note: note.trim(),requestKey });
       setSaving(false);
       onSaved();
     } catch (err) {
@@ -43,7 +45,7 @@ export function StockMovementPanel({ item, type, close, onSaved }: Props) {
   return (
     <SidePanel
       eyebrow="Estoque"
-      title={isEntrada ? `Entrada — ${item.name}` : `Ajuste — ${item.name}`}
+      title={isEntrada ? `Entrada — ${item.name}` : type==="CONSUMPTION"?`Baixa — ${item.name}`:`Ajuste — ${item.name}`}
       close={close}
       footer={
         <>
@@ -68,18 +70,18 @@ export function StockMovementPanel({ item, type, close, onSaved }: Props) {
             Estoque atual: {item.quantity} {item.unit}
           </p>
           <label className="field">
-            {isEntrada ? "Quantidade recebida" : "Ajuste (positivo soma, negativo subtrai)"}
+            {isEntrada ? "Quantidade recebida" : type==="CONSUMPTION"?"Embalagens consumidas":"Ajuste (positivo soma, negativo subtrai)"}
             <input
               className="text-input"
               type="number"
-              step="0.01"
+              step="0.001"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               placeholder={isEntrada ? "Ex.: 10" : "Ex.: -2 ou 5"}
             />
           </label>
           <label className="field">
-            Nota (opcional)
+            Motivo
             <input
               className="text-input"
               value={note}

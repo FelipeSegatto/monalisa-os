@@ -63,6 +63,37 @@ export class PrismaEquipmentRepository extends EquipmentRepository {
     before?: EquipmentSnapshot,
   ) {
     const after = equipment.snapshot();
+    if (
+      before &&
+      before.shotTracking !== after.shotTracking &&
+      (await tx.shotLedgerEntry.count({ where: { equipmentId: id } }))
+    )
+      throw new EquipmentError(
+        "Não é possível trocar o modo de contagem após registrar disparos",
+        "CONFLICT",
+      );
+    for (const component of after.components) {
+      const old = before?.components.find((c) => c.id === component.id);
+      if (
+        component.id !== null &&
+        old &&
+        old.nominalCapacity !== component.nominalCapacity
+      ) {
+        const used = await tx.shotLedgerEntry.aggregate({
+          where: { equipmentId: id, componentId: component.id },
+          _sum: { quantityDelta: true },
+        });
+        if (
+          (used._sum.quantityDelta ?? 0) > 0 &&
+          (component.nominalCapacity === null ||
+            component.nominalCapacity < (used._sum.quantityDelta ?? 0))
+        )
+          throw new EquipmentError(
+            "Capacidade não pode ser removida ou ficar abaixo dos disparos registrados",
+            "CONFLICT",
+          );
+      }
+    }
     const {
       id: _afterId,
       components: _afterComponents,
@@ -110,13 +141,16 @@ export class PrismaEquipmentRepository extends EquipmentRepository {
   }
 
   async create(equipment: Equipment, actorId: number): Promise<number> {
-    return this.db.$transaction(async (tx) => {
-      const row = await tx.equipment.create({
-        data: EquipmentMapper.fields(equipment),
-      });
-      await this.save(tx, row.id, equipment, actorId);
-      return row.id;
-    });
+    return this.db.$transaction(
+      async (tx) => {
+        const row = await tx.equipment.create({
+          data: EquipmentMapper.fields(equipment),
+        });
+        await this.save(tx, row.id, equipment, actorId);
+        return row.id;
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted },
+    );
   }
 
   async updateLocked(
@@ -124,12 +158,15 @@ export class PrismaEquipmentRepository extends EquipmentRepository {
     actorId: number,
     change: (equipment: Equipment) => void,
   ): Promise<void> {
-    await this.db.$transaction(async (tx) => {
-      const equipment = await this.loadLocked(tx, id);
-      const before = equipment.snapshot();
-      change(equipment);
-      await this.save(tx, id, equipment, actorId, before);
-    });
+    await this.db.$transaction(
+      async (tx) => {
+        const equipment = await this.loadLocked(tx, id);
+        const before = equipment.snapshot();
+        change(equipment);
+        await this.save(tx, id, equipment, actorId, before);
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted },
+    );
   }
 
   async reviseProcedureResources(
@@ -137,43 +174,46 @@ export class PrismaEquipmentRepository extends EquipmentRepository {
     ids: readonly number[],
     actorId: number,
   ): Promise<void> {
-    await this.db.$transaction(async (tx) => {
-      const rows = await tx.$queryRaw<
-        Array<{ id: number }>
-      >`SELECT id FROM \`Procedure\` WHERE id = ${procedureId} FOR UPDATE`;
-      if (!rows.length)
-        throw new EquipmentError("Registro não encontrado", "NOT_FOUND");
-      const previous = await tx.procedureEquipment.findMany({
-        where: { procedureId, active: true },
-      });
-      const affected = [
-        ...new Set([...ids, ...previous.map((link) => link.equipmentId)]),
-      ].sort((a, b) => a - b);
-      const aggregates = new Map<number, Equipment>();
-      for (const id of affected) {
-        const equipment = await this.loadLocked(tx, id);
-        equipment.reviewCompatibility(procedureId, ids.includes(id));
-        aggregates.set(id, equipment);
-      }
-      await tx.procedureEquipment.updateMany({
-        where: { procedureId },
-        data: { active: false },
-      });
-      for (const equipmentId of ids)
-        await tx.procedureEquipment.upsert({
-          where: { procedureId_equipmentId: { procedureId, equipmentId } },
-          create: { procedureId, equipmentId },
-          update: { active: true },
+    await this.db.$transaction(
+      async (tx) => {
+        const rows = await tx.$queryRaw<
+          Array<{ id: number }>
+        >`SELECT id FROM \`Procedure\` WHERE id = ${procedureId} FOR UPDATE`;
+        if (!rows.length)
+          throw new EquipmentError("Registro não encontrado", "NOT_FOUND");
+        const previous = await tx.procedureEquipment.findMany({
+          where: { procedureId, active: true },
         });
-      await tx.procedure.update({
-        where: { id: procedureId },
-        data: {
-          equipmentReviewedAt: new Date(),
-          equipmentReviewedById: actorId,
-        },
-      });
-      for (const [id, equipment] of aggregates)
-        await this.appendEvents(tx, id, equipment, actorId, new Map());
-    });
+        const affected = [
+          ...new Set([...ids, ...previous.map((link) => link.equipmentId)]),
+        ].sort((a, b) => a - b);
+        const aggregates = new Map<number, Equipment>();
+        for (const id of affected) {
+          const equipment = await this.loadLocked(tx, id);
+          equipment.reviewCompatibility(procedureId, ids.includes(id));
+          aggregates.set(id, equipment);
+        }
+        await tx.procedureEquipment.updateMany({
+          where: { procedureId },
+          data: { active: false },
+        });
+        for (const equipmentId of ids)
+          await tx.procedureEquipment.upsert({
+            where: { procedureId_equipmentId: { procedureId, equipmentId } },
+            create: { procedureId, equipmentId },
+            update: { active: true },
+          });
+        await tx.procedure.update({
+          where: { id: procedureId },
+          data: {
+            equipmentReviewedAt: new Date(),
+            equipmentReviewedById: actorId,
+          },
+        });
+        for (const [id, equipment] of aggregates)
+          await this.appendEvents(tx, id, equipment, actorId, new Map());
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted },
+    );
   }
 }

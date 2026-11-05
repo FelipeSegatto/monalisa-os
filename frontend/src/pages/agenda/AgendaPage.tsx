@@ -1,3 +1,7 @@
+import { AssignmentPanel } from "./AssignmentPanel";
+import { AttendancePanel } from "./AttendancePanel";
+import { SchedulingSettingsPanel } from "./SchedulingSettingsPanel";
+import type { AgendaAppointment } from "../../lib/api";
 import { useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { useAgenda } from "./hooks/useAgenda";
@@ -6,8 +10,15 @@ import { useAgendaMonth } from "./hooks/useAgendaMonth";
 import { useAgendaBlocks } from "./hooks/useAgendaBlocks";
 import { NewAppointmentPanel } from "./NewAppointmentPanel";
 import { NewAgendaBlockPanel } from "./NewAgendaBlockPanel";
-import { appointmentStatusInfo, isMutedStatus } from "../../lib/appointmentStatus";
-import { deleteAgendaBlock, setAppointmentStatus, type CurrentUser } from "../../lib/api";
+import {
+  appointmentStatusInfo,
+  isMutedStatus,
+} from "../../lib/appointmentStatus";
+import {
+  deleteAgendaBlock,
+  setAppointmentStatus,
+  type CurrentUser,
+} from "../../lib/api";
 import "../../styles/appointment-list.css";
 import "./AgendaPage.css";
 
@@ -46,20 +57,24 @@ function formatLongDate(key: string): string {
 }
 
 function formatMonthTitle(key: string): string {
-  const formatted = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(
-    fromDateKey(key),
-  );
+  const formatted = new Intl.DateTimeFormat("pt-BR", {
+    month: "long",
+    year: "numeric",
+  }).format(fromDateKey(key));
   return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
 
 function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function weekDayLabel(dateKey: string): string {
-  const formatted = new Intl.DateTimeFormat("pt-BR", { weekday: "short" }).format(
-    fromDateKey(dateKey),
-  );
+  const formatted = new Intl.DateTimeFormat("pt-BR", {
+    weekday: "short",
+  }).format(fromDateKey(dateKey));
   return formatted.charAt(0).toUpperCase() + formatted.slice(1, 3);
 }
 
@@ -67,8 +82,17 @@ const MONTH_WEEKDAY_HEADERS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
 
 export function AgendaPage() {
   const user = useOutletContext<CurrentUser | null>();
+  const [assignment, setAssignment] = useState<AgendaAppointment | null>(null);
+  const [attendance, setAttendance] = useState<AgendaAppointment | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [actionError, setActionError] = useState("");
   const [view, setView] = useState<View>("Dia");
-  const [dateKey, setDateKey] = useState(() => toDateKey(new Date()));
+  const [dateKey, setDateKey] = useState(() => {
+    const requested = new URLSearchParams(window.location.search).get("date");
+    return requested && /^\d{4}-\d{2}-\d{2}$/.test(requested)
+      ? requested
+      : toDateKey(new Date());
+  });
   const [professionalId, setProfessionalId] = useState<number | null>(null);
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [showNewBlock, setShowNewBlock] = useState(false);
@@ -93,7 +117,10 @@ export function AgendaPage() {
 
   function canRemoveBlock(block: { professionalId: number }): boolean {
     if (user?.role === "ADMIN") return true;
-    return user?.role === "FUNCIONARIO" && user.professionalId === block.professionalId;
+    return (
+      user?.role === "FUNCIONARIO" &&
+      user.professionalId === block.professionalId
+    );
   }
 
   async function handleRemoveBlock(id: number) {
@@ -107,19 +134,39 @@ export function AgendaPage() {
 
   async function handleConfirmAppointment(id: number) {
     try {
-      await setAppointmentStatus(id, "CONFIRMED");
+      const appointment = data?.appointments.find((a) => a.id === id);
+      const initial = appointment
+        ? Math.round(
+            (+new Date(appointment.endsAt) - +new Date(appointment.startsAt)) /
+              60000,
+          )
+        : 30;
+      const answer = window.prompt(
+        "Duração reservada em minutos",
+        String(initial),
+      );
+      if (answer === null) return;
+      await setAppointmentStatus(id, "CONFIRMED", Number(answer));
+      setActionError("");
       reload();
-    } catch {
-      // backend ja valida permissao; falha silenciosa aqui so impede o reload da lista.
+    } catch (e) {
+      setActionError(
+        e instanceof Error ? e.message : "Não foi possível confirmar.",
+      );
     }
   }
 
-  const maxWeekCount = Math.max(1, ...(week.data?.days.map((d) => d.count) ?? [1]));
+  const maxWeekCount = Math.max(
+    1,
+    ...(week.data?.days.map((d) => d.count) ?? [1]),
+  );
 
   const monthWeeks = useMemo(() => {
     if (!month.data) return [];
     const cells: (typeof month.data.days)[number][] = [
-      ...Array.from({ length: month.data.monthStartWeekday }).map(() => null as never),
+      ...Array.from({ length: month.data.monthStartWeekday }).map(
+        () => null as never,
+      ),
       ...month.data.days,
     ];
     while (cells.length % 7 !== 0) cells.push(null as never);
@@ -135,12 +182,36 @@ export function AgendaPage() {
 
   function navigate(direction: 1 | -1) {
     if (view === "Dia") setDateKey((key) => addDaysToKey(key, direction));
-    else if (view === "Semana") setDateKey((key) => addDaysToKey(key, direction * 7));
+    else if (view === "Semana")
+      setDateKey((key) => addDaysToKey(key, direction * 7));
     else setDateKey((key) => addMonthsToKey(key, direction));
   }
 
   return (
     <div className="page">
+      {assignment && (
+        <AssignmentPanel
+          appointment={assignment}
+          close={() => setAssignment(null)}
+          onSaved={() => {
+            setAssignment(null);
+            reload();
+          }}
+        />
+      )}
+      {showSettings && (
+        <SchedulingSettingsPanel close={() => setShowSettings(false)} />
+      )}
+      {attendance && (
+        <AttendancePanel
+          appointment={attendance}
+          close={() => setAttendance(null)}
+          onCompleted={() => {
+            setAttendance(null);
+            reload();
+          }}
+        />
+      )}
       <header className="page-header">
         <div>
           <p className="page-header-eyebrow">Operação</p>
@@ -153,6 +224,15 @@ export function AgendaPage() {
           </h1>
         </div>
         <div className="page-actions">
+          {user?.role === "ADMIN" && (
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => setShowSettings(true)}
+            >
+              Regras da agenda
+            </button>
+          )}
           <button
             type="button"
             className="secondary-button"
@@ -170,13 +250,20 @@ export function AgendaPage() {
         </div>
       </header>
 
+      {actionError && (
+        <p className="form-error" role="alert">
+          {actionError}
+        </p>
+      )}
       <div className="toolbar">
         <div className="segmented">
           {(["Dia", "Semana", "Mês"] as View[]).map((item) => (
             <button
               key={item}
               type="button"
-              className={view === item ? "segmented-item is-active" : "segmented-item"}
+              className={
+                view === item ? "segmented-item is-active" : "segmented-item"
+              }
               onClick={() => setView(item)}
             >
               {item}
@@ -184,7 +271,11 @@ export function AgendaPage() {
           ))}
         </div>
         <div className="agenda-date-nav">
-          <button type="button" className="agenda-date-nav-button" onClick={() => navigate(-1)}>
+          <button
+            type="button"
+            className="agenda-date-nav-button"
+            onClick={() => navigate(-1)}
+          >
             ← Anterior
           </button>
           <button
@@ -194,7 +285,11 @@ export function AgendaPage() {
           >
             Hoje
           </button>
-          <button type="button" className="agenda-date-nav-button" onClick={() => navigate(1)}>
+          <button
+            type="button"
+            className="agenda-date-nav-button"
+            onClick={() => navigate(1)}
+          >
             Seguinte →
           </button>
         </div>
@@ -209,7 +304,11 @@ export function AgendaPage() {
                 <div className="agenda-filters">
                   <button
                     type="button"
-                    className={professionalId === null ? "agenda-filter is-active" : "agenda-filter"}
+                    className={
+                      professionalId === null
+                        ? "agenda-filter is-active"
+                        : "agenda-filter"
+                    }
                     onClick={() => setProfessionalId(null)}
                   >
                     Todos
@@ -237,7 +336,9 @@ export function AgendaPage() {
             </div>
 
             {loading ? <p className="page-status">Carregando…</p> : null}
-            {error ? <p className="page-status">Não foi possível carregar a agenda.</p> : null}
+            {error ? (
+              <p className="page-status">Não foi possível carregar a agenda.</p>
+            ) : null}
 
             {data && !loading ? (
               <div className="agenda-list">
@@ -256,13 +357,22 @@ export function AgendaPage() {
                       block,
                     })),
                   ]
-                    .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime())
+                    .sort(
+                      (a, b) =>
+                        new Date(a.startsAt).getTime() -
+                        new Date(b.startsAt).getTime(),
+                    )
                     .map((item) => {
                       if (item.kind === "block") {
                         const { block } = item;
                         return (
-                          <div className="agenda-row is-block" key={`block-${block.id}`}>
-                            <span className="agenda-time">{formatTime(block.startsAt)}</span>
+                          <div
+                            className="agenda-row is-block"
+                            key={`block-${block.id}`}
+                          >
+                            <span className="agenda-time">
+                              {formatTime(block.startsAt)}
+                            </span>
                             <div className="agenda-main">
                               <p className="agenda-customer">Indisponível</p>
                               <p className="agenda-procedure">
@@ -273,7 +383,9 @@ export function AgendaPage() {
                               <span className="agenda-professional">
                                 <span
                                   className="professional-mark"
-                                  style={{ background: block.professionalColor }}
+                                  style={{
+                                    background: block.professionalColor,
+                                  }}
                                 />
                                 {block.professionalName}
                               </span>
@@ -299,28 +411,68 @@ export function AgendaPage() {
 
                       return (
                         <div className={rowClassName} key={appointment.id}>
-                          <span className="agenda-time">{formatTime(appointment.startsAt)}</span>
+                          <span className="agenda-time">
+                            {formatTime(appointment.startsAt)}
+                          </span>
                           <div className="agenda-main">
-                            <p className="agenda-customer">{appointment.customerName}</p>
-                            <p className="agenda-procedure">{appointment.procedureName}</p>
+                            <p className="agenda-customer">
+                              {appointment.customerName}
+                            </p>
+                            <p className="agenda-procedure">
+                              {appointment.procedureName}
+                            </p>
                           </div>
                           <div className="agenda-side">
                             <span className="agenda-status">
-                              <span className={`status-dot ${status.dotClass}`} />
-                              {status.label}
+                              <span
+                                className={`status-dot ${status.dotClass}`}
+                              />
+                              {appointment.expired
+                                ? "Reserva expirada"
+                                : status.label}
                             </span>
                             <span className="agenda-professional">
                               <span
                                 className="professional-mark"
-                                style={{ background: appointment.professionalColor }}
+                                style={{
+                                  background: appointment.professionalColor,
+                                }}
                               />
                               {appointment.professionalName}
                             </span>
-                            {appointment.status === "SCHEDULED" ? (
+                            {user?.role === "ADMIN" &&
+                              ["SCHEDULED", "CONFIRMED"].includes(
+                                appointment.status,
+                              ) &&
+                              !appointment.expired && (
+                                <button
+                                  type="button"
+                                  className="agenda-block-remove"
+                                  onClick={() => setAssignment(appointment)}
+                                >
+                                  Reatribuir
+                                </button>
+                              )}
+                            {appointment.status === "CONFIRMED" &&
+                            (user?.role === "ADMIN" ||
+                              user?.professionalId ===
+                                appointment.professionalId) ? (
                               <button
                                 type="button"
                                 className="agenda-block-remove"
-                                onClick={() => handleConfirmAppointment(appointment.id)}
+                                onClick={() => setAttendance(appointment)}
+                              >
+                                Atendimento
+                              </button>
+                            ) : null}
+                            {appointment.status === "SCHEDULED" &&
+                            !appointment.expired ? (
+                              <button
+                                type="button"
+                                className="agenda-block-remove"
+                                onClick={() =>
+                                  handleConfirmAppointment(appointment.id)
+                                }
                               >
                                 Confirmar
                               </button>
@@ -335,7 +487,9 @@ export function AgendaPage() {
 
             {data ? (
               <div className="agenda-footer">
-                <span className="agenda-footer-count">{appointments.length} atendimentos</span>
+                <span className="agenda-footer-count">
+                  {appointments.length} atendimentos
+                </span>
               </div>
             ) : null}
           </>
@@ -343,11 +497,14 @@ export function AgendaPage() {
           <>
             <div className="section-header">
               <span className="section-label">
-                Semana de {week.data ? formatLongDate(week.data.weekStart) : "…"}
+                Semana de{" "}
+                {week.data ? formatLongDate(week.data.weekStart) : "…"}
               </span>
             </div>
             {week.loading ? <p className="page-status">Carregando…</p> : null}
-            {week.error ? <p className="page-status">Não foi possível carregar a semana.</p> : null}
+            {week.error ? (
+              <p className="page-status">Não foi possível carregar a semana.</p>
+            ) : null}
             {week.data ? (
               <div className="week-grid">
                 {week.data.days.map((day) => (
@@ -366,7 +523,9 @@ export function AgendaPage() {
                     </div>
                     <i
                       className="week-bar"
-                      style={{ height: `${Math.max(6, (day.count / maxWeekCount) * 100)}%` }}
+                      style={{
+                        height: `${Math.max(6, (day.count / maxWeekCount) * 100)}%`,
+                      }}
                     />
                   </button>
                 ))}
@@ -376,10 +535,14 @@ export function AgendaPage() {
         ) : (
           <>
             <div className="section-header">
-              <span className="section-label">{month.data ? formatMonthTitle(dateKey) : "…"}</span>
+              <span className="section-label">
+                {month.data ? formatMonthTitle(dateKey) : "…"}
+              </span>
             </div>
             {month.loading ? <p className="page-status">Carregando…</p> : null}
-            {month.error ? <p className="page-status">Não foi possível carregar o mês.</p> : null}
+            {month.error ? (
+              <p className="page-status">Não foi possível carregar o mês.</p>
+            ) : null}
             {month.data ? (
               <div className="month-calendar">
                 <div className="month-calendar-header">
@@ -401,13 +564,20 @@ export function AgendaPage() {
                           }
                           onClick={() => goToDay(day.date)}
                         >
-                          <span className="month-calendar-day">{Number(day.date.slice(8, 10))}</span>
+                          <span className="month-calendar-day">
+                            {Number(day.date.slice(8, 10))}
+                          </span>
                           {day.count > 0 ? (
-                            <span className="month-calendar-count">{day.count}</span>
+                            <span className="month-calendar-count">
+                              {day.count}
+                            </span>
                           ) : null}
                         </button>
                       ) : (
-                        <span key={dayIndex} className="month-calendar-cell is-empty" />
+                        <span
+                          key={dayIndex}
+                          className="month-calendar-cell is-empty"
+                        />
                       ),
                     )}
                   </div>
