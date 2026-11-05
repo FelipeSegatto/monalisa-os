@@ -287,6 +287,7 @@ export interface ProcedureCategory {
 }
 
 export interface ProcedureVariationInput {
+  id?: number | null;
   groupName: string | null;
   name: string;
   reference: string | null;

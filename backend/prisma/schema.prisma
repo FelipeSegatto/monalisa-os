@@ -124,7 +124,20 @@ model ProcedureCategory {
  procedures Procedure[]
  leads Lead[]
 }
+enum ProcedureTechnology {
+  GENERAL
+  HIFU
+  LASER_HAIR_REMOVAL
+  TATTOO_REMOVAL
+}
+enum TreatmentOptionKind {
+  AREA
+  SIZE
+  OTHER
+}
 model Procedure {
+  technology ProcedureTechnology @default(GENERAL)
+  requiresEquipment Boolean @default(false)
   equipmentLinks ProcedureEquipment[]
   equipmentReviewedAt DateTime?
   equipmentReviewedById Int?
@@ -147,6 +160,7 @@ model Procedure {
  @@index([categoryId])
 }
 model ProcedureVariation {
+ kind TreatmentOptionKind @default(OTHER)
  id Int @id @default(autoincrement())
  procedureId Int
  procedure Procedure @relation(fields:[procedureId],references:[id],onDelete:Cascade)

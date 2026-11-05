@@ -252,6 +252,7 @@ export function ProcedureDetailPage({ isNew = false }: Props) {
       variations: variations
         .filter((row) => row.name.trim() !== "")
         .map((row) => ({
+          id: row.id,
           groupName: row.groupName.trim() ? row.groupName.trim() : null,
           name: row.name.trim(),
           reference: row.reference.trim() ? row.reference.trim() : null,

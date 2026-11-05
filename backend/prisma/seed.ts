@@ -23,9 +23,9 @@ const catalog = [
   { category: 'Preenchimento', name: 'Preenchimento', duration: 45, price: 1800, image: 'preenchimento.jpg', description: 'Tratamento estético de preenchimento. Avaliação individual necessária.' },
   { category: 'Botox', name: 'Botox', duration: 30, price: 1200, image: 'botox-new.jpg', description: 'O rosto se expressa o tempo todo. A toxina botulínica pode suavizar linhas de expressão de forma individualizada.' },
   { category: 'Bioestimulador de Colágeno', name: 'Bioestimulador de Colágeno', duration: 40, price: 2200, image: 'botox.jpg', description: 'Estimula a produção de colágeno com resultado gradual, sujeito à avaliação profissional.' },
-  { category: 'Ultrassom Microfocado', name: 'Ultrassom Microfocado', duration: 60, price: 900, image: 'ultrassom-microfocado.jpg', description: 'Procedimento estético com tecnologia de ultrassom microfocado.' },
-  { category: 'Depilação a laser', name: 'Depilação a Laser', duration: 20, price: 150, image: 'depilacao-laser.jpg', description: 'Depilação a laser com regiões e valores conforme a área.' },
-  { category: 'Remoção de Tatuagens', name: 'Remoção de Tatuagem', duration: 60, price: 400, image: 'remocao-tatuagens.jpg', description: 'Remoção de tatuagens: valores ilustrativos por tamanho.' },
+  { category: 'Ultrassom Microfocado', name: 'Ultrassom Microfocado', technology: 'HIFU', duration: 60, price: 900, image: 'ultrassom-microfocado.jpg', description: 'Procedimento estético com tecnologia de ultrassom microfocado.' },
+  { category: 'Depilação a laser', name: 'Depilação a Laser', technology: 'LASER_HAIR_REMOVAL', duration: 20, price: 150, image: 'depilacao-laser.jpg', description: 'Depilação a laser com regiões e valores conforme a área.' },
+  { category: 'Remoção de Tatuagens', name: 'Remoção de Tatuagem', technology: 'TATTOO_REMOVAL', duration: 60, price: 400, image: 'remocao-tatuagens.jpg', description: 'Remoção de tatuagens: valores ilustrativos por tamanho.' },
   { category: 'Peeling de Carbono', name: 'Peeling de Carbono', duration: 30, price: 350, image: 'peeling.jpg', description: 'Procedimento estético de peeling de carbono.' },
   { category: 'Clareamento', name: 'Clareamento de Pele', duration: 40, price: 380, image: 'clareamento.jpg', description: 'Protocolo estético de clareamento mediante avaliação individual.' },
   { category: 'Criolipólise', name: 'Criolipólise', duration: 45, price: 650, image: 'criolipolise.jpg', description: 'Tratamento estético de criolipólise mediante avaliação prévia.' },
@@ -34,15 +34,15 @@ const catalog = [
 ] as const;
 
 const variations = [
-  { procedure: 'Depilação a Laser', groupName: 'Face', name: 'Buço', reference: null, price: 70 },
-  { procedure: 'Depilação a Laser', groupName: 'Corpo', name: 'Axilas', reference: null, price: 90 },
-  { procedure: 'Depilação a Laser', groupName: 'Corpo', name: 'Perna inteira', reference: null, price: 300 },
-  { procedure: 'Remoção de Tatuagem', groupName: 'Tamanho', name: 'PP', reference: 'até 3 cm', price: 150 },
-  { procedure: 'Remoção de Tatuagem', groupName: 'Tamanho', name: 'P', reference: '3–7 cm', price: 220 },
-  { procedure: 'Remoção de Tatuagem', groupName: 'Tamanho', name: 'M', reference: '7–12 cm', price: 300 },
-  { procedure: 'Botox', groupName: 'Áreas', name: '1 área', reference: null, price: 690 },
-  { procedure: 'Botox', groupName: 'Áreas', name: '2 áreas', reference: null, price: 890 },
-  { procedure: 'Botox', groupName: 'Áreas', name: '3 áreas', reference: null, price: 1090 },
+  { procedure: 'Depilação a Laser', kind: 'AREA', groupName: 'Face', name: 'Buço', reference: null, price: 70 },
+  { procedure: 'Depilação a Laser', kind: 'AREA', groupName: 'Corpo', name: 'Axilas', reference: null, price: 90 },
+  { procedure: 'Depilação a Laser', kind: 'AREA', groupName: 'Corpo', name: 'Perna inteira', reference: null, price: 300 },
+  { procedure: 'Remoção de Tatuagem', kind: 'SIZE', groupName: 'Tamanho', name: 'PP', reference: 'até 3 cm', price: 150 },
+  { procedure: 'Remoção de Tatuagem', kind: 'SIZE', groupName: 'Tamanho', name: 'P', reference: '3–7 cm', price: 220 },
+  { procedure: 'Remoção de Tatuagem', kind: 'SIZE', groupName: 'Tamanho', name: 'M', reference: '7–12 cm', price: 300 },
+  { procedure: 'Botox', kind: 'OTHER', groupName: 'Áreas', name: '1 área', reference: null, price: 690 },
+  { procedure: 'Botox', kind: 'OTHER', groupName: 'Áreas', name: '2 áreas', reference: null, price: 890 },
+  { procedure: 'Botox', kind: 'OTHER', groupName: 'Áreas', name: '3 áreas', reference: null, price: 1090 },
 ] as const;
 
 const professionals = [
@@ -140,7 +140,9 @@ async function seedCatalog(){
     categoryIds.set(item.category,category.id);
     const existing=await db.procedure.findFirst({where:{name:item.name,categoryId:category.id}});
     const coverImageUrl=await ensureImage(item.name,item.image);
-    const procedure= existing || await db.procedure.create({data:{categoryId:category.id,name:item.name,description:item.description,durationMinutes:item.duration,price:item.price,active:true,coverImageUrl,detailImageUrl:coverImageUrl}});
+    const technology='technology' in item?item.technology:'GENERAL';
+    const requiresEquipment=technology!=='GENERAL';
+    const procedure= existing || await db.procedure.create({data:{categoryId:category.id,name:item.name,description:item.description,durationMinutes:item.duration,price:item.price,active:!requiresEquipment,technology,requiresEquipment,coverImageUrl,detailImageUrl:coverImageUrl}});
     if(existing && (!existing.coverImageUrl || !existing.detailImageUrl)){
       await db.procedure.update({where:{id:existing.id},data:{...(!existing.coverImageUrl?{coverImageUrl}:{}),...(!existing.detailImageUrl?{detailImageUrl:coverImageUrl}:{})}});
     }
@@ -153,7 +155,7 @@ async function seedCatalog(){
     const procedureId=procedureIds.get(v.procedure);
     if(!procedureId)throw new Error('Procedimento não encontrado: '+v.procedure);
     const existing=await db.procedureVariation.findFirst({where:{procedureId,name:v.name,groupName:v.groupName}});
-    if(!existing)await db.procedureVariation.create({data:{procedureId,groupName:v.groupName,name:v.name,reference:v.reference,price:v.price,active:true,sortOrder:i}});
+    if(!existing)await db.procedureVariation.create({data:{procedureId,kind:v.kind,groupName:v.groupName,name:v.name,reference:v.reference,price:v.price,active:true,sortOrder:i}});
   }
   return {categoryIds,procedureIds};
 }

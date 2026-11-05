@@ -1,3 +1,4 @@
+import { ProceduresModule } from "./procedures/procedures.module";
 import { CustomersModule } from "./customers/customers.module";
 import { ProfessionalsModule } from "./professionals/professionals.module";
 import { EquipmentsModule } from "./equipments/equipments.module";
@@ -6,7 +7,6 @@ import { Module } from "@nestjs/common";
 import { APP_FILTER } from "@nestjs/core";
 import { AuthModule } from "./auth/auth.module";
 import { ApiExceptionFilter } from "./shared/presentation/api-exception.filter";
-import { CatalogController } from "./modules/catalog.controller";
 import { AgendaController } from "./modules/agenda.controller";
 import { LeadsBookingController } from "./modules/leads-booking.controller";
 import { StockController } from "./modules/stock.controller";
@@ -21,9 +21,9 @@ import { SchedulingService } from "./modules/scheduling.service";
     EquipmentsModule,
     CustomersModule,
     ProfessionalsModule,
+    ProceduresModule,
   ],
   controllers: [
-    CatalogController,
     AgendaController,
     LeadsBookingController,
     StockController,
