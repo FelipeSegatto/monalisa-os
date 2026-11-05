@@ -95,3 +95,7 @@ Nova migration: `20261106000000_clinical_execution_ledgers`.
 - SQL validado desde base vazia em MySQL 8.4.13 isolado, incluindo todas as quatro migrations, triggers, estornos e duas conexões concorrendo pelo mesmo saldo. Nenhum banco da clínica ou dev do usuário foi acessado.
 - O teste local usa SQL diretamente: `npm run test:mysql:clinical --prefix backend`. Requer Docker e cria/remove apenas seu próprio container sem rede ou portas publicadas, com dados sintéticos. Não usa credenciais da clínica.
 - O download dos engines Prisma continua recebendo HTTP 403 neste ambiente. O client foi gerado sem engine para compilar; aplicação pelo Prisma Migrate e funcionamento com o banco dev do usuário precisam ser validados no ambiente local. Não foi executado seed real nem `db push`.
+
+## Atualização — Fase 7
+
+A opção de distribuição equilibrada já está implementada; o critério escolhido é carga em minutos reservados no dia, com rodízio nos empates. Ver `distribuicao-equilibrada-fase-7.md`. A decisão anterior de mantê-la como próxima etapa está preservada acima como histórico.

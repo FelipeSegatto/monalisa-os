@@ -70,13 +70,16 @@ export function SchedulingSettingsPanel({ close }: { close: () => void }) {
                   }
                 >
                   <option value="PRIORITY">Ordem de prioridade</option>
+                  <option value="BALANCED">Distribuição equilibrada</option>
                   <option value="MANUAL">Somente atribuição manual</option>
                 </select>
               </label>
               <p className="section-meta">
-                Configure a prioridade e a jornada na página de cada
-                profissional. Menores números têm preferência no mesmo horário.
-                A atribuição manual desabilita a reserva pública automática.
+                {data.assignmentPolicy === "BALANCED"
+                  ? "Prefere o profissional habilitado e disponível com menos minutos de agendamentos no dia, no horário de São Paulo. Empates seguem um rodízio. A ordem de prioridade não é usada neste modo."
+                  : data.assignmentPolicy === "PRIORITY"
+                    ? "Configure a prioridade e a jornada na página de cada profissional. Menores números têm preferência no mesmo horário."
+                    : "A escolha do profissional deve ser manual. A reserva pública automática fica desabilitada."}
               </p>
               <label className="field">
                 Confirmação de reservas externas

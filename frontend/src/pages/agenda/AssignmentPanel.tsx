@@ -81,7 +81,7 @@ export function AssignmentPanel({
               value={selected}
               onChange={(e) => setSelected(e.target.value)}
             >
-              <option value="">Escolher por prioridade</option>
+              <option value="">Escolher automaticamente</option>
               {candidates?.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}

@@ -137,3 +137,27 @@ test("in-progress attendance can be cancelled with a reason, without erasing his
     new Attendance(new Date(), "COMPLETED").cancel("Cannot cancel completed"),
   );
 });
+
+test("balanced policy rotates ties deterministically, ignores priority and requires measured workload", async () => {
+  const { BalancedAssignmentPolicy } =
+    await import("../../src/scheduling/domain/assignment-policy");
+  const input = [
+    { id: 1, priority: 0, reservedMinutes: 60 },
+    { id: 2, priority: null, reservedMinutes: 30 },
+    { id: 3, priority: 100, reservedMinutes: 30 },
+  ];
+  assert.deepEqual(new BalancedAssignmentPolicy(2).order(input), [3, 2, 1]);
+  assert.equal(input[0].id, 1);
+  assert.deepEqual(new BalancedAssignmentPolicy(99).order(input), [2, 3, 1]);
+  assert.throws(
+    () => new BalancedAssignmentPolicy().order([{ id: 1, priority: 0 }]),
+    /Carga/,
+  );
+  assert.throws(
+    () =>
+      new BalancedAssignmentPolicy().order([
+        { id: 1, priority: 0, reservedMinutes: -1 },
+      ]),
+    /Carga/,
+  );
+});

@@ -1167,7 +1167,7 @@ export interface ProfessionalCapabilities {
 export const getProfessionalCapabilities=(id:number)=>getJSON<ProfessionalCapabilities>(`/api/v1/professionals/${id}/capabilities`);
 export const saveProfessionalCapabilities=(id:number,input:Omit<ProfessionalCapabilities,'affectedAppointments'>)=>sendJSON<ProfessionalCapabilities>('PUT',`/api/v1/professionals/${id}/capabilities`,input);
 export const getAvailableProfessionals=(procedureId:number,startsAt:string,durationMinutes?:number)=>getJSON<{id:number;name:string;color:string}[]>(`/api/v1/scheduling/available-professionals?${new URLSearchParams({procedureId:String(procedureId),startsAt,...(durationMinutes?{durationMinutes:String(durationMinutes)}:{})})}`);
-export interface SchedulingSettings {assignmentPolicy:'PRIORITY'|'MANUAL';confirmationMode:'MANUAL'|'AUTOMATIC';holdMinutes:number}
+export interface SchedulingSettings {assignmentPolicy:'PRIORITY'|'BALANCED'|'MANUAL';confirmationMode:'MANUAL'|'AUTOMATIC';holdMinutes:number}
 export const getSchedulingSettings=()=>getJSON<SchedulingSettings>('/api/v1/scheduling/settings');
 export const saveSchedulingSettings=(input:SchedulingSettings)=>sendJSON<SchedulingSettings>('PUT','/api/v1/scheduling/settings',input);
 export type MaterialUseAnswer='USED'|'SMALL'|'NOT_USED';

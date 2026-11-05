@@ -101,7 +101,7 @@ export function ProfessionalCapabilitiesSection({ id }: { id: number }) {
           </div>
           <label className="field">
             Prioridade no agendamento automático (menor número primeiro; vazio
-            exclui da atribuição automática)
+            exclui apenas no modo de prioridade)
             <input
               className="text-input"
               type="number"

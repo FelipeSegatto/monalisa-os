@@ -271,6 +271,63 @@ try {
     "Commercial SQL passed: preserved offer versions, discount classification, immutable contracts/rights, payment and session reversals, and two connections competing for the last session.",
   );
 
+  // The administrator's new mode and persistent round-robin marker survive separate connections.
+  sql(
+    "INSERT INTO SchedulingSettings(id,assignmentPolicy,confirmationMode,holdMinutes) VALUES(1,'BALANCED','MANUAL',60);",
+  );
+  const rotate = () =>
+    new Promise((resolve, reject) => {
+      const p = spawn("docker", [
+        "exec",
+        "-i",
+        name,
+        "mysql",
+        "-uroot",
+        "-N",
+        "clinic_test",
+      ]);
+      let out = "",
+        err = "";
+      p.stdout.on("data", (d) => (out += d));
+      p.stderr.on("data", (d) => (err += d));
+      p.on("error", reject);
+      p.on("close", (code) =>
+        code ? reject(new Error(err)) : resolve(out.trim()),
+      );
+      p.stdin.end(
+        "START TRANSACTION; SELECT lastBalancedProfessionalId INTO @last FROM SchedulingSettings WHERE id=1 FOR UPDATE; SET @chosen=IF(@last=1,2,1); UPDATE SchedulingSettings SET lastBalancedProfessionalId=@chosen WHERE id=1; SELECT @chosen; COMMIT;",
+      );
+    });
+  assert.deepEqual((await Promise.all([rotate(), rotate()])).sort(), [
+    "1",
+    "2",
+  ]);
+  assert.equal(
+    sql(
+      "SELECT lastBalancedProfessionalId FROM SchedulingSettings WHERE id=1;",
+    ),
+    "2",
+  );
+  sql(
+    "START TRANSACTION; UPDATE SchedulingSettings SET lastBalancedProfessionalId=1 WHERE id=1; ROLLBACK;",
+  );
+  assert.equal(
+    sql(
+      "SELECT lastBalancedProfessionalId FROM SchedulingSettings WHERE id=1;",
+    ),
+    "2",
+  );
+  assert.match(
+    sql(
+      "UPDATE SchedulingSettings SET assignmentPolicy='UNKNOWN' WHERE id=1;",
+      true,
+    ),
+    /check constraint/i,
+  );
+  console.log(
+    "Balanced settings SQL passed: policy constraint and serialized persistent rotation.",
+  );
+
   // Real independent connections compete for the same stock balance.
   const consume = () =>
     new Promise((resolve, reject) => {

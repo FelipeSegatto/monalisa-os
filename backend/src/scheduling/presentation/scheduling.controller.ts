@@ -42,7 +42,7 @@ export class SchedulingController {
     return this.service.saveSettings(
       parse(
         z.object({
-          assignmentPolicy: z.enum(["PRIORITY", "MANUAL"]),
+          assignmentPolicy: z.enum(["PRIORITY", "BALANCED", "MANUAL"]),
           confirmationMode: z.enum(["MANUAL", "AUTOMATIC"]),
           holdMinutes: z.number().int().min(5).max(10080),
         }),

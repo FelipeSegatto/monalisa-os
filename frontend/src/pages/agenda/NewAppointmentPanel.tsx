@@ -211,7 +211,7 @@ export function NewAppointmentPanel({
                 setProfessionalId(e.target.value ? Number(e.target.value) : "")
               }
             >
-              <option value="">Atribuir por prioridade</option>
+              <option value="">Atribuir automaticamente</option>
               {professionals.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}

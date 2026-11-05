@@ -3,7 +3,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { Actor } from "../../auth/domain/actor";
 import { PrismaService } from "../../common/prisma.service";
-import { required } from "../../common/util";
+import { required, dayRange, dateKey } from "../../common/util";
 import { ApplicationError } from "../../shared/domain/application-error";
 import { ProcedureQualifications } from "../../professionals/domain/procedure-qualifications";
 import { validInterval } from "../../domain/appointment-policy";
@@ -32,25 +32,31 @@ export class PrismaSchedulingRepository extends SchedulingRepository {
     super();
   }
   async settings() {
-    return (
-      (await this.db.schedulingSettings.findUnique({ where: { id: 1 } })) ?? {
-        assignmentPolicy: "PRIORITY",
-        confirmationMode: "MANUAL",
-        holdMinutes: 1440,
-      }
-    );
+    const settings = (await this.db.schedulingSettings.findUnique({
+      where: { id: 1 },
+    })) ?? {
+      assignmentPolicy: "PRIORITY",
+      confirmationMode: "MANUAL",
+      holdMinutes: 1440,
+    };
+    return {
+      assignmentPolicy: settings.assignmentPolicy,
+      confirmationMode: settings.confirmationMode,
+      holdMinutes: settings.holdMinutes,
+    };
   }
-  saveSettings(input: {
+  async saveSettings(input: {
     assignmentPolicy: string;
     confirmationMode: string;
     holdMinutes: number;
   }) {
     assignmentPolicy(input.assignmentPolicy);
-    return this.db.schedulingSettings.upsert({
+    await this.db.schedulingSettings.upsert({
       where: { id: 1 },
       create: { id: 1, ...input },
       update: input,
     });
+    return this.settings();
   }
   private interval(start: Date, minutes: number) {
     const end = new Date(+start + minutes * 60000);
@@ -221,7 +227,9 @@ export class PrismaSchedulingRepository extends SchedulingRepository {
       this.db.professional.findMany({
         where: {
           active: true,
-          schedulingPriority: { not: null },
+          ...(settings.assignmentPolicy === "PRIORITY"
+            ? { schedulingPriority: { not: null } }
+            : {}),
           qualifications: { some: { procedureId, active: true } },
         },
         include: { workingPeriods: true },
@@ -299,6 +307,68 @@ export class PrismaSchedulingRepository extends SchedulingRepository {
     }
     return slots;
   }
+  private async automaticOrder(
+    tx: Prisma.TransactionClient,
+    candidates: { id: number; schedulingPriority: number | null }[],
+    settings: {
+      assignmentPolicy: string;
+      lastBalancedProfessionalId?: number | null;
+    },
+    start: Date,
+    excludeId?: number,
+  ) {
+    if (settings.assignmentPolicy === "BALANCED") {
+      // Professional locks are already held. Serialize the persistent tie-breaker in this transaction.
+      await tx.$queryRaw`SELECT id FROM SchedulingSettings WHERE id=1 FOR UPDATE`;
+      const current = await tx.schedulingSettings.findUnique({
+        where: { id: 1 },
+      });
+      if (current) Object.assign(settings, current);
+    }
+    if (settings.assignmentPolicy !== "BALANCED")
+      return {
+        ids: assignmentPolicy(settings.assignmentPolicy).order(
+          candidates.map((p) => ({ id: p.id, priority: p.schedulingPriority })),
+        ),
+        balanced: false,
+      };
+    const day = dayRange(dateKey(start));
+    const appointments = await tx.appointment.findMany({
+      where: {
+        ...occupiedWhere(),
+        professionalId: { in: candidates.map((p) => p.id) },
+        startsAt: { lt: day.end },
+        endsAt: { gt: day.start },
+        ...(excludeId ? { id: { not: excludeId } } : {}),
+      },
+      select: { professionalId: true, startsAt: true, endsAt: true },
+    });
+    const minutes = new Map<number, number>();
+    for (const a of appointments) {
+      const duration =
+        Math.max(
+          0,
+          Math.min(+a.endsAt, +day.end) - Math.max(+a.startsAt, +day.start),
+        ) / 60000;
+      minutes.set(
+        a.professionalId,
+        (minutes.get(a.professionalId) ?? 0) + duration,
+      );
+    }
+    return {
+      ids: assignmentPolicy(
+        "BALANCED",
+        settings.lastBalancedProfessionalId ?? null,
+      ).order(
+        candidates.map((p) => ({
+          id: p.id,
+          priority: p.schedulingPriority,
+          reservedMinutes: minutes.get(p.id) ?? 0,
+        })),
+      ),
+      balanced: true,
+    };
+  }
   async reserve(input: ReservationInput, actor: Actor | null) {
     return this.db.$transaction(
       async (tx) => {
@@ -338,17 +408,13 @@ export class PrismaSchedulingRepository extends SchedulingRepository {
           confirmationMode: "MANUAL",
           holdMinutes: 1440,
         };
-        const ids = input.professionalId
-          ? eligible.map((p) => p.id)
-          : assignmentPolicy(settings.assignmentPolicy).order(
-              eligible.map((p) => ({
-                id: p.id,
-                priority: p.schedulingPriority,
-              })),
-            );
+        const selection = input.professionalId
+          ? { ids: eligible.map((p) => p.id), balanced: false }
+          : await this.automaticOrder(tx, eligible, settings, start);
+        const ids = selection.ids;
         if (!ids.length)
           throw new ApplicationError(
-            "Nenhum profissional habilitado disponível; confira jornada e prioridade",
+            "Nenhum profissional habilitado disponível; confira habilitação, jornada e a política da agenda",
             "CONFLICT",
           );
         const professionalId = ids[0];
@@ -420,6 +486,11 @@ export class PrismaSchedulingRepository extends SchedulingRepository {
             },
             actor!.id,
           );
+        if (selection.balanced)
+          await tx.schedulingSettings.update({
+            where: { id: 1 },
+            data: { lastBalancedProfessionalId: professionalId },
+          });
         return {
           id: a.id,
           customerId: customer.id,
@@ -492,14 +563,10 @@ export class PrismaSchedulingRepository extends SchedulingRepository {
         const settings = (await tx.schedulingSettings.findUnique({
           where: { id: 1 },
         })) ?? { assignmentPolicy: "PRIORITY" };
-        const ids = professionalId
-          ? eligible.map((p) => p.id)
-          : assignmentPolicy(settings.assignmentPolicy).order(
-              eligible.map((p) => ({
-                id: p.id,
-                priority: p.schedulingPriority,
-              })),
-            );
+        const selection = professionalId
+          ? { ids: eligible.map((p) => p.id), balanced: false }
+          : await this.automaticOrder(tx, eligible, settings, a.startsAt, id);
+        const ids = selection.ids;
         if (!ids.length)
           throw new ApplicationError(
             "Nenhum profissional habilitado disponível",
@@ -513,10 +580,16 @@ export class PrismaSchedulingRepository extends SchedulingRepository {
           id,
           true,
         );
-        return tx.appointment.update({
+        const updated = await tx.appointment.update({
           where: { id },
           data: { professionalId: ids[0], equipmentId },
         });
+        if (selection.balanced)
+          await tx.schedulingSettings.update({
+            where: { id: 1 },
+            data: { lastBalancedProfessionalId: ids[0] },
+          });
+        return updated;
       },
       {
         isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,

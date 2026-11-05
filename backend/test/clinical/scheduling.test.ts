@@ -58,9 +58,26 @@ function fixture() {
     },
     procedure: { findUnique: async () => procedure },
     customer: { findUnique: async () => ({ id: 3 }) },
-    schedulingSettings: { findUnique: async () => settings },
+    schedulingSettings: {
+      findUnique: async () => settings,
+      update: async ({ data }: any) => Object.assign(settings, data),
+    },
     agendaBlock: { findFirst: async () => null },
     appointment: {
+      findMany: async ({ where }: any) =>
+        appointments.filter(
+          (a) =>
+            where.professionalId.in.includes(a.professionalId) &&
+            a.startsAt < where.startsAt.lt &&
+            a.endsAt > where.endsAt.gt &&
+            a.id !== where.id?.not &&
+            ["SCHEDULED", "CONFIRMED", "COMPLETED"].includes(a.status) &&
+            !(
+              a.status === "SCHEDULED" &&
+              a.expiresAt &&
+              a.expiresAt <= new Date()
+            ),
+        ),
       findFirst: async ({ where }: any) =>
         appointments.find(
           (a) =>
@@ -218,4 +235,172 @@ test("reassignment revalidates qualifications and keeps the reserved interval", 
       }),
     /administradores/,
   );
+});
+
+test("balanced assignment prefers fewer reserved minutes, ignores priority and rotates equal workloads", async () => {
+  const f = fixture();
+  f.setSettings({
+    assignmentPolicy: "BALANCED",
+    confirmationMode: "MANUAL",
+    holdMinutes: 60,
+  });
+  f.pros[0].schedulingPriority = null as any;
+  f.pros[1].schedulingPriority = null as any;
+  f.appointments.push({
+    id: 90,
+    professionalId: 1,
+    status: "CONFIRMED",
+    startsAt: new Date("2030-01-07T12:00Z"),
+    endsAt: new Date("2030-01-07T13:00Z"),
+  });
+  const first: any = await f.repo.reserve(input, actor);
+  assert.equal(first.professionalId, 2);
+  const second: any = await f.repo.reserve(
+    { ...input, startsAt: "2030-01-07T13:30:00Z" },
+    actor,
+  );
+  assert.equal(second.professionalId, 2);
+  // Both now have 60 reserved minutes, so the next tie goes after professional 2.
+  const third: any = await f.repo.reserve(
+    { ...input, startsAt: "2030-01-07T14:00:00Z" },
+    actor,
+  );
+  assert.equal(third.professionalId, 1);
+  assert.ok(f.locks.some((l) => l.includes("SchedulingSettings")));
+});
+test("balanced workload excludes cancelled, no-show, expired and other-day reservations", async () => {
+  const f = fixture();
+  f.setSettings({
+    assignmentPolicy: "BALANCED",
+    confirmationMode: "MANUAL",
+    holdMinutes: 60,
+  });
+  for (const [id, status, expiresAt] of [
+    [80, "CANCELLED", null],
+    [81, "NO_SHOW", null],
+    [82, "SCHEDULED", new Date(Date.now() - 1000)],
+  ] as const)
+    f.appointments.push({
+      id,
+      professionalId: 1,
+      status,
+      expiresAt,
+      startsAt: new Date("2030-01-07T12:00Z"),
+      endsAt: new Date("2030-01-07T13:00Z"),
+    });
+  f.appointments.push({
+    id: 83,
+    professionalId: 1,
+    status: "CONFIRMED",
+    startsAt: new Date("2030-01-06T12:00Z"),
+    endsAt: new Date("2030-01-06T18:00Z"),
+  });
+  const a: any = await f.repo.reserve(input, actor);
+  assert.equal(a.professionalId, 1);
+});
+test("balanced selection still requires qualification and availability; explicit selection does not advance the rotation", async () => {
+  const f = fixture();
+  f.setSettings({
+    assignmentPolicy: "BALANCED",
+    confirmationMode: "MANUAL",
+    holdMinutes: 60,
+  });
+  f.pros[0].qualifications = [];
+  const a: any = await f.repo.reserve(input, actor);
+  assert.equal(a.professionalId, 2);
+  f.pros[0].qualifications = [{ procedureId: 4 }];
+  await f.repo.reserve(
+    { ...input, startsAt: "2030-01-07T14:00:00Z", professionalId: 1 },
+    actor,
+  );
+  assert.equal(
+    (
+      await (f.repo as any).db.schedulingSettings.findUnique({
+        where: { id: 1 },
+      })
+    ).lastBalancedProfessionalId,
+    2,
+  );
+});
+test("balanced reassignment excludes the appointment being reassigned from its workload", async () => {
+  const f = fixture();
+  const db = (f.repo as any).db;
+  db.attendance = { findUnique: async () => null };
+  await f.repo.reserve({ ...input, professionalId: 1 }, actor);
+  f.setSettings({
+    assignmentPolicy: "BALANCED",
+    confirmationMode: "MANUAL",
+    holdMinutes: 60,
+  });
+  // With its own reservation excluded, both professionals have zero load and the first ID wins.
+  const a: any = await f.repo.reassign(1, undefined, actor);
+  assert.equal(a.professionalId, 1);
+});
+
+test("public slots in balanced mode include qualified professionals without a priority number", async () => {
+  const f = fixture(),
+    db = (f.repo as any).db;
+  f.setSettings({
+    assignmentPolicy: "BALANCED",
+    confirmationMode: "MANUAL",
+    holdMinutes: 60,
+  });
+  f.pros.forEach((p) => (p.schedulingPriority = null as any));
+  let query: any;
+  db.professional.findMany = async ({ where }: any) => {
+    query = where;
+    return f.pros;
+  };
+  db.appointment.findMany = async () => [];
+  db.agendaBlock.findMany = async () => [];
+  const slots = await f.repo.dailySlots(4, "2030-01-07");
+  assert.ok(slots.includes("09:00"));
+  assert.equal(query.schedulingPriority, undefined);
+  assert.deepEqual(query.qualifications, {
+    some: { procedureId: 4, active: true },
+  });
+});
+
+test("balanced workload clips cross-midnight appointments to the Sao Paulo day", async () => {
+  const f = fixture();
+  f.setSettings({
+    assignmentPolicy: "BALANCED",
+    confirmationMode: "MANUAL",
+    holdMinutes: 60,
+  });
+  f.appointments.push(
+    {
+      id: 70,
+      professionalId: 1,
+      status: "COMPLETED",
+      startsAt: new Date("2030-01-07T02:00Z"),
+      endsAt: new Date("2030-01-07T04:00Z"),
+    },
+    {
+      id: 71,
+      professionalId: 2,
+      status: "COMPLETED",
+      startsAt: new Date("2030-01-07T05:00Z"),
+      endsAt: new Date("2030-01-07T06:30Z"),
+    },
+  );
+  const a: any = await f.repo.reserve(input, actor);
+  assert.equal(a.professionalId, 1);
+});
+test("failed reservation does not advance the balanced tie-breaker", async () => {
+  const f = fixture();
+  f.setSettings({
+    assignmentPolicy: "BALANCED",
+    confirmationMode: "MANUAL",
+    holdMinutes: 60,
+  });
+  const db = (f.repo as any).db;
+  db.customer.findUnique = async () => null;
+  let advances = 0;
+  db.schedulingSettings.update = async () => {
+    advances++;
+  };
+  await assert.rejects(() => f.repo.reserve(input, actor));
+  assert.equal(f.appointments.length, 0);
+  assert.equal(advances, 0);
 });

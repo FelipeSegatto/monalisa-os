@@ -512,6 +512,7 @@ model ProfessionalWorkingPeriod {
  @@index([professionalId,weekday])
 }
 model SchedulingSettings {
+ lastBalancedProfessionalId Int?
  id Int @id
  assignmentPolicy String @default("PRIORITY") @db.VarChar(30)
  confirmationMode String @default("MANUAL") @db.VarChar(30)

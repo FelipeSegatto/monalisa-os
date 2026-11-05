@@ -45,3 +45,5 @@ Com API e banco disponíveis, `npm run smoke` faz somente consultas. Testes que 
 Atendimentos registram disparos em ledger e confirmam o uso de materiais sem baixa automática de estoque. A nova migration precisa ser aplicada ao banco local antes de usar esses fluxos. Documentos históricos das aulas descrevem versões anteriores e não substituem os comandos atuais.
 
 O menu Comercial gerencia ofertas versionadas e vendas, com pacotes e reservas de sessões integrados à agenda e aos atendimentos. Aplicar as migrations pendentes antes de usar esses fluxos.
+
+- [Distribuição equilibrada configurável da agenda](docs/distribuicao-equilibrada-fase-7.md)
