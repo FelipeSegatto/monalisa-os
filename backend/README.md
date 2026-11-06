@@ -18,15 +18,23 @@ Backend novo criado para consumir **exatamente o contrato** do `frontend/src/lib
 - MySQL: 3307 (host) => 3306 (container)
 
 ## Organização
-- `src/auth`: módulo com domínio, aplicação, infraestrutura e apresentação; login com scrypt, sessão opaca 256 bits hasheada no banco, cookie HttpOnly e guard global.
-- `src/modules/catalog.controller.ts`: profissionais, contas de funcionários, categorias, procedimentos, variações, materiais.
-- `customers.controller.ts`: clientes, histórico, notas.
-- `agenda.controller.ts`: agenda diária/semanal/mensal, criação, bloqueios, status, estoque consumido na conclusão.
-- `leads-booking.controller.ts`: leads e avaliação gratuita com janelas válidas.
-- `finance.controller.ts`: vendas, parcelas recebidas, despesas e relatórios internos (**sem integração de pagamento online**).
-- `stock.controller.ts`: insumos e movimentos de estoque.
-- `uploads.controller.ts`: imagens de procedimentos, prontuários em PDF, fotos; verifica assinatura de arquivo, limite de 8 MB e protege fotos/documentos por sessão.
-- `dashboard.controller.ts`: indicadores derivados de dados do banco.
+
+Cada módulo registra seus próprios controllers, serviços e adaptadores. `AppModule` compõe os módulos e o filtro global; não concentra controllers de negócio.
+
+- `src/auth`: identidade, credenciais, sessões e autorização.
+- `src/customers`: cadastro, histórico, notas, documentos e fotos de clientes.
+- `src/professionals`: profissionais, habilitações, jornada e gestão de acesso.
+- `src/procedures`: procedimentos, variações, recursos e imagens do catálogo.
+- `src/equipments`: equipamentos, componentes, manutenção e histórico operacional.
+- `src/scheduling`: agenda interna, bloqueios, regras de intervalo/transição e agendamento público.
+- `src/attendances`, `src/shot-ledger` e `src/inventory`: execução clínica, disparos e estoque, respectivamente.
+- `src/commercial`: ofertas, vendas, descontos, recebimentos e direitos de sessões; inclui as políticas de cálculo compatíveis com as rotas anteriores.
+- `src/finance` e `src/expenses`: visão financeira e despesas auditáveis.
+- `src/dashboard-metrics` e `src/procedure-metrics`: indicadores e projeções para consulta.
+- `src/leads`: captação e acompanhamento de interessados. O agendamento público pertence a `scheduling`.
+- `src/shared`: infraestrutura técnica de Prisma e arquivos, erros e objetos de valor compartilhados. `MediaModule` mantém a leitura autenticada dos arquivos; a associação com clientes/procedimentos fica nos respectivos módulos.
+
+As antigas pastas genéricas `src/modules` e `src/domain` foram removidas. Esta reorganização preserva rotas e regras existentes; não representa a extração de todas as consultas legadas dos controllers. As dependências e os pontos que ainda precisam dessa separação estão descritos em [organização dos domínios](../docs/domain-ownership.md).
 
 ## Segurança e escopo
 - Banco com senha configurada apenas para desenvolvimento. Troque segredos antes de implantar.
@@ -40,8 +48,8 @@ Backend novo criado para consumir **exatamente o contrato** do `frontend/src/lib
 ## Sobre as regras de agendamento
 - Criação e bloqueio de horário usam `SELECT ... FOR UPDATE` na linha do profissional dentro de transação MySQL para serializar escritas do mesmo calendário.
 - Antes de inserir, verifica sobreposição `startsAt < endNovo` E `endsAt > startNovo` em compromissos ativos e indisponibilidades.
-- Atendimento concluído consome insumos da ficha do procedimento uma única vez; se faltar estoque, a transação é rejeitada.
-- A avaliação pública dura 30 minutos, oferece horários de segunda a sábado, das 09:00 às 17:00, nos próximos 30 dias, para o primeiro profissional ativo.
+- A conclusão registra materiais utilizados e disparos em transação. Informar uso de material não baixa automaticamente uma embalagem: movimentos de estoque são registrados separadamente.
+- A avaliação pública consulta o procedimento configurado e a disponibilidade do domínio de agendamento, respeitando habilitações, jornada, recursos e a política administrativa de atribuição. A janela pública é de até 30 dias.
 
 ## Qualidade
 - `npm run typecheck` e `npm run build`: verificação do TypeScript (requer `npm ci`).

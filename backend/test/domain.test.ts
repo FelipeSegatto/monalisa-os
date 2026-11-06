@@ -1,13 +1,31 @@
-import assert from 'node:assert/strict';
-import { test } from 'node:test';
-import { overlaps, validInterval, canTransition } from '../src/domain/appointment-policy';
-import { saleTotal, canPay } from '../src/domain/sale-policy';
-const t=(h:number,m=0)=>new Date(Date.UTC(2026,9,30,h,m));
-test('intervalos adjacentes são permitidos',()=>assert.equal(overlaps({start:t(9),end:t(10)},{start:t(10),end:t(11)}),false));
-test('intervalos sobrepostos são recusados',()=>assert.equal(overlaps({start:t(9),end:t(10)},{start:t(9,30),end:t(10,30)}),true));
-test('intervalos invertidos são inválidos',()=>assert.equal(validInterval({start:t(10),end:t(9)}),false));
-test('concluído não volta a agendado',()=>assert.equal(canTransition('COMPLETED','SCHEDULED'),false));
-test('cancelado não é reaberto',()=>assert.equal(canTransition('CANCELLED','CONFIRMED'),false));
-test('valor da venda calculado por centavos',()=>assert.equal(saleTotal([{finalPrice:50.1},{finalPrice:49.9}],5),95));
-test('pagamento acima do saldo recusado',()=>assert.equal(canPay(100,80,30),false));
-test('pagamento exato é permitido',()=>assert.equal(canPay(100,80,20),true));
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import {
+  overlaps,
+  validInterval,
+  canTransition,
+} from "../src/scheduling/domain/appointment-policy";
+import { saleTotal, canPay } from "../src/commercial/domain/sale-policy";
+const t = (h: number, m = 0) => new Date(Date.UTC(2026, 9, 30, h, m));
+test("intervalos adjacentes são permitidos", () =>
+  assert.equal(
+    overlaps({ start: t(9), end: t(10) }, { start: t(10), end: t(11) }),
+    false,
+  ));
+test("intervalos sobrepostos são recusados", () =>
+  assert.equal(
+    overlaps({ start: t(9), end: t(10) }, { start: t(9, 30), end: t(10, 30) }),
+    true,
+  ));
+test("intervalos invertidos são inválidos", () =>
+  assert.equal(validInterval({ start: t(10), end: t(9) }), false));
+test("concluído não volta a agendado", () =>
+  assert.equal(canTransition("COMPLETED", "SCHEDULED"), false));
+test("cancelado não é reaberto", () =>
+  assert.equal(canTransition("CANCELLED", "CONFIRMED"), false));
+test("valor da venda calculado por centavos", () =>
+  assert.equal(saleTotal([{ finalPrice: 50.1 }, { finalPrice: 49.9 }], 5), 95));
+test("pagamento acima do saldo recusado", () =>
+  assert.equal(canPay(100, 80, 30), false));
+test("pagamento exato é permitido", () =>
+  assert.equal(canPay(100, 80, 20), true));

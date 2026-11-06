@@ -1,3 +1,6 @@
+import { PrismaAgendaAvailability } from "./infrastructure/prisma-agenda-availability";
+import { PublicBookingController } from "./presentation/public-booking.controller";
+import { AgendaController } from "./presentation/agenda.controller";
 import { CommercialModule } from "../commercial/commercial.module";
 import { Module } from "@nestjs/common";
 import { PrismaModule } from "../shared/infrastructure/prisma/prisma.module";
@@ -7,8 +10,13 @@ import { PrismaSchedulingRepository } from "./infrastructure/prisma-scheduling.r
 import { SchedulingController } from "./presentation/scheduling.controller";
 @Module({
   imports: [CommercialModule, PrismaModule],
-  controllers: [SchedulingController],
+  controllers: [
+    PublicBookingController,
+    AgendaController,
+    SchedulingController,
+  ],
   providers: [
+    PrismaAgendaAvailability,
     BookingService,
     { provide: SchedulingRepository, useClass: PrismaSchedulingRepository },
   ],

@@ -1,8 +1,14 @@
-import { isExpiredReservation } from "../scheduling/domain/reservation-hold";
+import { isExpiredReservation } from "../../scheduling/domain/reservation-hold";
 import { Inject, Controller, Get, Req } from "@nestjs/common";
-import { PrismaService } from "../common/prisma.service";
-import { dateKey, dayRange, expenseLabels, iso, money } from "../common/util";
-import { nearestExpiry } from "../inventory/domain/stock-expiry";
+import { PrismaService } from "../../common/prisma.service";
+import {
+  dateKey,
+  dayRange,
+  expenseLabels,
+  iso,
+  money,
+} from "../../common/util";
+import { nearestExpiry } from "../../inventory/domain/stock-expiry";
 @Controller("api/v1")
 export class DashboardController {
   constructor(@Inject(PrismaService) private readonly db: PrismaService) {}
@@ -126,13 +132,23 @@ export class DashboardController {
           minQuantity: String(s.minQuantity),
         })),
       });
-    const expired: { id: number; name: string; unit: string; expiresAt: string }[] = [];
+    const expired: {
+      id: number;
+      name: string;
+      unit: string;
+      expiresAt: string;
+    }[] = [];
     const expiring: typeof expired = [];
     for (const s of stock) {
       if (Number(s.quantity) <= 0) continue;
       const expiry = nearestExpiry(s.movements, today);
       if (!expiry) continue;
-      const row = { id: s.id, name: s.name, unit: s.unit, expiresAt: expiry.date };
+      const row = {
+        id: s.id,
+        name: s.name,
+        unit: s.unit,
+        expiresAt: expiry.date,
+      };
       (expiry.status === "EXPIRED" ? expired : expiring).push(row);
     }
     if (expired.length && isAdmin)

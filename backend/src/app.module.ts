@@ -1,6 +1,7 @@
 import { ExpensesModule } from "./expenses/expenses.module";
 import { DashboardMetricsModule } from "./dashboard-metrics/dashboard-metrics.module";
-import { FinanceReadModule } from "./finance/finance-read.module";
+import { FinanceModule } from "./finance/finance.module";
+import { LeadsModule } from "./leads/leads.module";
 import { CommercialModule } from "./commercial/commercial.module";
 import { ProcedureMetricsModule } from "./procedure-metrics/procedure-metrics.module";
 import { SchedulingModule } from "./scheduling/scheduling.module";
@@ -15,13 +16,6 @@ import { Module } from "@nestjs/common";
 import { APP_FILTER } from "@nestjs/core";
 import { AuthModule } from "./auth/auth.module";
 import { ApiExceptionFilter } from "./shared/presentation/api-exception.filter";
-import { AgendaController } from "./modules/agenda.controller";
-import { LeadsBookingController } from "./modules/leads-booking.controller";
-import { StockController } from "./modules/stock.controller";
-import { FinanceController } from "./modules/finance.controller";
-import { DashboardController } from "./modules/dashboard.controller";
-import { UploadsController } from "./modules/uploads.controller";
-import { SchedulingService } from "./modules/scheduling.service";
 @Module({
   imports: [
     PrismaModule,
@@ -36,20 +30,10 @@ import { SchedulingService } from "./modules/scheduling.service";
     ProcedureMetricsModule,
     CommercialModule,
     ExpensesModule,
-    FinanceReadModule,
+    FinanceModule,
+    LeadsModule,
     DashboardMetricsModule,
   ],
-  controllers: [
-    AgendaController,
-    LeadsBookingController,
-    StockController,
-    FinanceController,
-    DashboardController,
-    UploadsController,
-  ],
-  providers: [
-    SchedulingService,
-    { provide: APP_FILTER, useClass: ApiExceptionFilter },
-  ],
+  providers: [{ provide: APP_FILTER, useClass: ApiExceptionFilter }],
 })
 export class AppModule {}

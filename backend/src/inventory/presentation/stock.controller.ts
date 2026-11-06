@@ -1,8 +1,8 @@
-import { queryDay } from "../shared/presentation/listing-query";
+import { queryDay } from "../../shared/presentation/listing-query";
 import { Req } from "@nestjs/common";
-import { InventoryService } from "../inventory/application/inventory.service";
-import { StockBalance } from "../inventory/domain/stock-balance";
-import { nearestExpiry } from "../inventory/domain/stock-expiry";
+import { InventoryService } from "../application/inventory.service";
+import { StockBalance } from "../domain/stock-balance";
+import { nearestExpiry } from "../domain/stock-expiry";
 import {
   Inject,
   BadRequestException,
@@ -13,9 +13,9 @@ import {
   Post,
   Put,
 } from "@nestjs/common";
-import { PrismaService } from "../common/prisma.service";
-import { Admin } from "../auth/auth.guard";
-import { dateKey, iso, parse, required, requiredId } from "../common/util";
+import { PrismaService } from "../../common/prisma.service";
+import { Admin } from "../../auth/auth.guard";
+import { dateKey, iso, parse, required, requiredId } from "../../common/util";
 import { z } from "zod";
 const input = z.object({
   name: z.string().trim().min(2).max(150),

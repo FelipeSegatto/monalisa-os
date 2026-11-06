@@ -1,6 +1,6 @@
-import { PrismaSessionLedger } from "../commercial/infrastructure/prisma-session-ledger";
-import { isExpiredReservation } from "../scheduling/domain/reservation-hold";
-import { BookingService } from "../scheduling/application/booking.service";
+import { PrismaSessionLedger } from "../../commercial/infrastructure/prisma-session-ledger";
+import { isExpiredReservation } from "../domain/reservation-hold";
+import { BookingService } from "../application/booking.service";
 import {
   Inject,
   BadRequestException,
@@ -16,8 +16,8 @@ import {
   Req,
 } from "@nestjs/common";
 import { Prisma, AppointmentStatus } from "@prisma/client";
-import { PrismaService } from "../common/prisma.service";
-import { Public } from "../auth/auth.guard";
+import { PrismaService } from "../../common/prisma.service";
+import { Public } from "../../auth/auth.guard";
 import {
   dayRange,
   dateKey,
@@ -25,10 +25,10 @@ import {
   parse,
   required,
   requiredId,
-} from "../common/util";
+} from "../../common/util";
 import { z } from "zod";
 import { canTransition } from "../domain/appointment-policy";
-import { SchedulingService } from "./scheduling.service";
+import { PrismaAgendaAvailability } from "../infrastructure/prisma-agenda-availability";
 const APOINT = z.object({
   entitlementId: z.number().int().positive().optional(),
   variationId: z.number().int().positive().nullable().optional(),
@@ -71,7 +71,8 @@ const output = (a: any) => ({
 export class AgendaController {
   constructor(
     @Inject(PrismaService) private readonly db: PrismaService,
-    @Inject(SchedulingService) private readonly scheduling: SchedulingService,
+    @Inject(PrismaAgendaAvailability)
+    private readonly scheduling: PrismaAgendaAvailability,
     @Inject(BookingService) private readonly booking: BookingService,
     @Inject(PrismaSessionLedger) private readonly sessions: PrismaSessionLedger,
   ) {}

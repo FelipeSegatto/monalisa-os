@@ -1,15 +1,14 @@
-import { occupiedWhere } from "../scheduling/infrastructure/prisma-scheduling.repository";
+import { occupiedWhere } from "./prisma-scheduling.repository";
 import {
   BadRequestException,
   ConflictException,
   Injectable,
 } from "@nestjs/common";
-import { Prisma, AppointmentStatus } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { validInterval } from "../domain/appointment-policy";
-const OCCUPIED: AppointmentStatus[] = ["SCHEDULED", "CONFIRMED", "COMPLETED"];
-/** Caso de uso de disponibilidade compartilhado pelas agendas interna e pública. */
+/** Locks and overlap queries used by agenda mutations. Public reservations use BookingService. */
 @Injectable()
-export class SchedulingService {
+export class PrismaAgendaAvailability {
   assertInterval(start: Date, end: Date) {
     if (!validInterval({ start, end }))
       throw new BadRequestException("Intervalo inválido ou acima de 12 horas");

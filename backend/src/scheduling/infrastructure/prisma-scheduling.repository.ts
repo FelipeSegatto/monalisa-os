@@ -6,7 +6,7 @@ import { PrismaService } from "../../common/prisma.service";
 import { required, dayRange, dateKey } from "../../common/util";
 import { ApplicationError } from "../../shared/domain/application-error";
 import { ProcedureQualifications } from "../../professionals/domain/procedure-qualifications";
-import { validInterval } from "../../domain/appointment-policy";
+import { validInterval } from "../domain/appointment-policy";
 import { WorkingCalendar } from "../domain/working-calendar";
 import { assignmentPolicy } from "../domain/assignment-policy";
 import {

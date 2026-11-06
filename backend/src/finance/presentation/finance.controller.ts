@@ -1,5 +1,5 @@
-import { Payment } from "../commercial/domain/payment";
-import { CommercialService } from "../commercial/application/commercial.service";
+import { Payment } from "../../commercial/domain/payment";
+import { CommercialService } from "../../commercial/application/commercial.service";
 import { randomUUID } from "node:crypto";
 import {
   Inject,
@@ -14,8 +14,8 @@ import {
   Req,
   ForbiddenException,
 } from "@nestjs/common";
-import { PrismaService } from "../common/prisma.service";
-import { Admin } from "../auth/auth.guard";
+import { PrismaService } from "../../common/prisma.service";
+import { Admin } from "../../auth/auth.guard";
 import {
   dayRange,
   expenseLabels,
@@ -24,9 +24,9 @@ import {
   parse,
   required,
   requiredId,
-} from "../common/util";
+} from "../../common/util";
 import { z } from "zod";
-import { saleTotal, canPay } from "../domain/sale-policy";
+import { saleTotal, canPay } from "../../commercial/domain/sale-policy";
 const PM = z.enum(["PIX", "CASH", "CARD"]);
 const saleInput = z.object({
   requestKey: z.string().uuid(),

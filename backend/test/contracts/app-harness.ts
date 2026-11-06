@@ -23,7 +23,7 @@ export async function contractApp() {
       abortOnError: false,
     });
     const db: any = app.get(PrismaService);
-    db.sessionReservation.findUnique=async()=>null;
+    db.sessionReservation.findUnique = async () => null;
     const admin = "a".repeat(64),
       staff = "b".repeat(64);
     db.session.findUnique = async ({ where }: any) => {
@@ -72,13 +72,19 @@ export async function contractApp() {
           method: options.method || "GET",
           headers: {
             ...(token ? { cookie: `clinic_session=${token}` } : {}),
-            ...(options.body !== undefined
+            ...(options.body !== undefined &&
+            !(options.body instanceof FormData)
               ? { "content-type": "application/json" }
               : {}),
             ...options.headers,
           },
           ...(options.body !== undefined
-            ? { body: JSON.stringify(options.body) }
+            ? {
+                body:
+                  options.body instanceof FormData
+                    ? options.body
+                    : JSON.stringify(options.body),
+              }
             : {}),
         });
       },

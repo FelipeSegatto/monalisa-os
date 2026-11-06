@@ -1,3 +1,4 @@
+import { DashboardController } from "./presentation/dashboard.controller";
 import { Module } from "@nestjs/common";
 import { PrismaModule } from "../shared/infrastructure/prisma/prisma.module";
 import { OccupancyQueries } from "./application/occupancy.queries";
@@ -5,7 +6,7 @@ import { PrismaOccupancyQueries } from "./infrastructure/prisma-occupancy.querie
 import { OccupancyController } from "./presentation/occupancy.controller";
 @Module({
   imports: [PrismaModule],
-  controllers: [OccupancyController],
+  controllers: [DashboardController, OccupancyController],
   providers: [{ provide: OccupancyQueries, useClass: PrismaOccupancyQueries }],
 })
 export class DashboardMetricsModule {}
