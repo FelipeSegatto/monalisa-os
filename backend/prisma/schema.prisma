@@ -482,6 +482,7 @@ model StockMovement {
  quantityDelta Decimal @db.Decimal(12,3)
  note String? @db.VarChar(255)
  createdAt DateTime @default(now())
+ expiresAt DateTime? @db.Date
 }
 model ProcedureMaterial {
  procedureId Int

@@ -4,6 +4,7 @@ export interface StockPosting {
   note: string;
   requestKey: string;
   actorId: number;
+  expiresAt?: string | null;
 }
 export abstract class InventoryRepository {
   abstract post(id: number, input: StockPosting): Promise<unknown>;

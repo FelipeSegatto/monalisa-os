@@ -14,6 +14,14 @@ export class PrismaInventoryRepository extends InventoryRepository {
     super();
   }
   async post(id: number, input: StockPosting) {
+    if (input.expiresAt && input.type !== "IN")
+      throw new ApplicationError(
+        "Validade só pode ser informada em entradas",
+        "INVALID_INPUT",
+      );
+    const expiresAt = input.expiresAt
+      ? new Date(input.expiresAt + "T12:00:00Z")
+      : null;
     return this.db.$transaction(
       async (tx) => {
         await tx.$queryRaw`SELECT id FROM StockItem WHERE id=${id} FOR UPDATE`;
@@ -29,7 +37,9 @@ export class PrismaInventoryRepository extends InventoryRepository {
             previous.type !== input.type ||
             Number(previous.quantityDelta) !== delta ||
             previous.actorId !== input.actorId ||
-            previous.note !== input.note
+            previous.note !== input.note ||
+            (previous.expiresAt?.toISOString().slice(0, 10) ?? null) !==
+              (input.expiresAt ?? null)
           )
             throw new ApplicationError(
               "Chave já utilizada com outro conteúdo",
@@ -55,6 +65,7 @@ export class PrismaInventoryRepository extends InventoryRepository {
             note: input.note,
             requestKey: input.requestKey,
             actorId: input.actorId,
+            expiresAt,
           },
         });
       },
