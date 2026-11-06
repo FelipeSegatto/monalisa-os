@@ -18,6 +18,9 @@ export class ExpenseService {
   performance(...a: Parameters<ExpenseQueries["performance"]>) {
     return this.queries.performance(...a);
   }
+  series(...a: Parameters<ExpenseQueries["series"]>) {
+    return this.queries.series(...a);
+  }
   create(...a: Parameters<ExpenseRepository["create"]>) {
     return this.repo.create(...a);
   }

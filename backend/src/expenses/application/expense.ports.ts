@@ -13,6 +13,7 @@ export abstract class ExpenseQueries {
   abstract records(actor: Actor): Promise<any>;
   abstract detail(id: number, actor: Actor): Promise<any>;
   abstract performance(month: string, actor: Actor): Promise<any>;
+  abstract series(months: number, actor: Actor): Promise<any>;
 }
 export abstract class ExpenseRepository {
   abstract create(input: ExpenseRevisionInput, actor: Actor): Promise<any>;

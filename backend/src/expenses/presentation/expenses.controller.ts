@@ -55,6 +55,12 @@ export class ExpensesController {
       req.actor,
     );
   }
+  @Admin() @Get("expense-series") series(
+    @Query("months") months: string | undefined,
+    @Req() req: any,
+  ) {
+    return this.service.series(Number(months) || 6, req.actor);
+  }
   @Admin() @Get("expenses/:id") detail(
     @Param("id") id: string,
     @Req() req: any,

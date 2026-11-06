@@ -1,0 +1,103 @@
+.linechart {
+  position: relative;
+  background: var(--white);
+  border: 1px solid var(--line);
+  padding: 16px 16px 12px;
+}
+
+.linechart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.linechart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.linechart-legend-item i {
+  width: 10px;
+  height: 2px;
+  display: inline-block;
+}
+
+.linechart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  touch-action: none;
+}
+
+.linechart-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.linechart-crosshair {
+  stroke: var(--line-dark);
+  stroke-width: 1;
+}
+
+.linechart-axis-label {
+  font-size: 10px;
+  fill: var(--ink-3);
+}
+
+.linechart-endlabels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.linechart-endlabels b {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.linechart-tooltip {
+  position: absolute;
+  top: 16px;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--white);
+  padding: 8px 10px;
+  font-size: 12px;
+  min-width: 140px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.linechart-tooltip-month {
+  margin: 0 0 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--line);
+}
+
+.linechart-tooltip-row {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.linechart-tooltip-row i {
+  width: 8px;
+  height: 2px;
+  display: inline-block;
+  flex: none;
+}
+
+.linechart-tooltip-row span {
+  color: var(--line);
+}

@@ -1,0 +1,114 @@
+.story-filter-row {
+  margin-bottom: 20px;
+}
+
+.story-hero {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 24px;
+  align-items: start;
+}
+
+.story-hero-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.story-hero-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.story-hero-stats b {
+  font-size: 18px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.story-footnote {
+  margin-top: 10px;
+  max-width: 68ch;
+}
+
+.story-offer-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.story-offer-row {
+  display: grid;
+  grid-template-columns: 1fr 80px;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  align-items: center;
+}
+
+.story-offer-name {
+  font-size: 13px;
+  color: var(--ink);
+  grid-column: 1 / -1;
+}
+
+.story-offer-track {
+  height: 8px;
+  background: var(--track);
+}
+
+.story-offer-fill {
+  height: 100%;
+  background: #2a78d6;
+}
+
+.story-offer-value {
+  font-size: 12px;
+  color: var(--ink-2);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.story-occupancy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.story-occupancy-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 48px;
+  align-items: center;
+  gap: 10px;
+}
+
+.story-occupancy-name {
+  font-size: 13px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.story-occupancy-track {
+  height: 8px;
+  background: #cde2fb;
+}
+
+.story-occupancy-fill {
+  height: 100%;
+  background: #2a78d6;
+}
+
+.story-occupancy-value {
+  font-size: 12px;
+  color: var(--ink-2);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 860px) {
+  .story-hero {
+    grid-template-columns: 1fr;
+  }
+}

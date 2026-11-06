@@ -27,6 +27,12 @@ export class CommercialController {
   @Get("offers") offers(@Query("procedureId") id?: string) {
     return this.service.offers(id ? requiredId(id) : undefined);
   }
+  @Admin() @Get("offer-series") offerSeries(
+    @Query("months") months: string | undefined,
+    @Req() req: any,
+  ) {
+    return this.service.offerSeries(Number(months) || 6, req.actor);
+  }
   @Get("offers/:id") offer(@Param("id") id: string) {
     return this.service.offer(requiredId(id));
   }

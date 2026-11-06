@@ -53,4 +53,5 @@ export abstract class CommercialRepository {
     requestKey: string,
     actor: Actor,
   ): Promise<any>;
+  abstract offerSeries(months: number, actor: Actor): Promise<any>;
 }

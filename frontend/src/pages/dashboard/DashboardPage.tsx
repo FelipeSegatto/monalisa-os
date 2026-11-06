@@ -1,4 +1,5 @@
 import { ProcedureActivitySection } from "./components/ProcedureActivitySection";
+import { BusinessStorySection } from "./components/BusinessStorySection";
 import { MaintenanceReminders } from "../equipment/MaintenanceReminders";
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
@@ -37,14 +38,17 @@ export function DashboardPage() {
     <div className="page">
       <DashboardHeader onNewAppointment={() => setShowNewAppointment(true)} user={user} />
       <TodaySection overview={data} />
-      <MaintenanceReminders />
-      {user?.role === "ADMIN" && <ProcedureActivitySection />}
       <AgendaAndAttentionSection overview={data} />
       {user?.role === "FUNCIONARIO" ? (
         <MyFinanceSection overview={data} />
       ) : (
-        <PeriodPerformanceSection overview={data as AdminDashboardOverview} />
+        <>
+          <PeriodPerformanceSection overview={data as AdminDashboardOverview} />
+          <BusinessStorySection />
+          <ProcedureActivitySection />
+        </>
       )}
+      <MaintenanceReminders />
       <ObservationsSection overview={data} />
 
       {showNewAppointment ? (

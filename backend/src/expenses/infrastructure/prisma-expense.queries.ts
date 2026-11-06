@@ -109,6 +109,87 @@ export class PrismaExpenseQueries extends ExpenseQueries {
       procedures: buildComparison(current, previous),
     };
   }
+  /** Monthly time series (sold/received/expense/result) for the clinic total and each procedure. */
+  async series(months: number, actor: Actor) {
+    if (actor.role === "FUNCIONARIO") return { months: [], total: null, procedures: [] };
+    const n = Math.max(1, Math.min(24, months));
+    const now = new Date();
+    const windows: { key: string; start: Date; end: Date }[] = [];
+    for (let i = n - 1; i >= 0; i--) {
+      const start = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1, 3),
+      );
+      const end = new Date(start);
+      end.setUTCMonth(end.getUTCMonth() + 1);
+      windows.push({ key: start.toISOString().slice(0, 7), start, end });
+    }
+    const perMonth = await Promise.all(
+      windows.map((w) => this.periodFigures(w.start, w.end)),
+    );
+    const byProcedure = new Map<
+      string,
+      { procedureId: number | null; procedureName: string | null }
+    >();
+    for (const rows of perMonth)
+      for (const r of rows)
+        if (!byProcedure.has(String(r.procedureId)))
+          byProcedure.set(String(r.procedureId), {
+            procedureId: r.procedureId,
+            procedureName: r.procedureName,
+          });
+    const seriesFor = (procedureId: number | null) => {
+      const sold: number[] = [],
+        received: number[] = [],
+        expenseAttributed: number[] = [],
+        expensePaidNet: number[] = [],
+        executions: number[] = [],
+        result: number[] = [],
+        cashBalance: number[] = [];
+      for (const rows of perMonth) {
+        const r = rows.find((x) => x.procedureId === procedureId);
+        sold.push((r?.soldCents ?? 0) / 100);
+        received.push((r?.receivedCents ?? 0) / 100);
+        expenseAttributed.push((r?.expenseAttributedCents ?? 0) / 100);
+        expensePaidNet.push((r?.expensePaidNetCents ?? 0) / 100);
+        executions.push(r?.executions ?? 0);
+        result.push(((r?.soldCents ?? 0) - (r?.expenseAttributedCents ?? 0)) / 100);
+        cashBalance.push(
+          ((r?.receivedCents ?? 0) - (r?.expensePaidNetCents ?? 0)) / 100,
+        );
+      }
+      return { sold, received, expenseAttributed, expensePaidNet, executions, result, cashBalance };
+    };
+    const totalSeries = (() => {
+      const sold: number[] = [],
+        received: number[] = [],
+        expenseAttributed: number[] = [],
+        expensePaidNet: number[] = [],
+        result: number[] = [],
+        cashBalance: number[] = [];
+      for (const rows of perMonth) {
+        const s = rows.reduce((n, r) => n + r.soldCents, 0),
+          rec = rows.reduce((n, r) => n + r.receivedCents, 0),
+          ea = rows.reduce((n, r) => n + r.expenseAttributedCents, 0),
+          epn = rows.reduce((n, r) => n + r.expensePaidNetCents, 0);
+        sold.push(s / 100);
+        received.push(rec / 100);
+        expenseAttributed.push(ea / 100);
+        expensePaidNet.push(epn / 100);
+        result.push((s - ea) / 100);
+        cashBalance.push((rec - epn) / 100);
+      }
+      return { sold, received, expenseAttributed, expensePaidNet, result, cashBalance };
+    })();
+    return {
+      months: windows.map((w) => w.key),
+      total: totalSeries,
+      procedures: [...byProcedure.values()].map((p) => ({
+        procedureId: p.procedureId,
+        procedureName: p.procedureName,
+        ...seriesFor(p.procedureId),
+      })),
+    };
+  }
   private async periodFigures(
     start: Date,
     end: Date,

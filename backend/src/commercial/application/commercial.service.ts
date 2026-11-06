@@ -49,4 +49,7 @@ export class CommercialService {
   ) {
     return this.repo.reverseRedemption(...a);
   }
+  offerSeries(...a: Parameters<CommercialRepository["offerSeries"]>) {
+    return this.repo.offerSeries(...a);
+  }
 }

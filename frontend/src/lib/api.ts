@@ -1335,3 +1335,10 @@ export const cancelAttendance=(id:number,reason:string)=>sendJSON<AttendanceResu
 export const reassignAppointment=(id:number,professionalId?:number)=>sendJSON<unknown>('PATCH',`/api/v1/scheduling/appointments/${id}/assignment`,{professionalId});
 export const getReassignmentCandidates=(appointment:AgendaAppointment)=>getJSON<{id:number;name:string;color:string}[]>(`/api/v1/scheduling/available-professionals?${new URLSearchParams({procedureId:String(appointment.procedureId),startsAt:appointment.startsAt,durationMinutes:String(Math.round((+new Date(appointment.endsAt)-+new Date(appointment.startsAt))/60000)),excludeId:String(appointment.id)})}`);
 export const correctShotEntry=(id:number,input:{quantity:number;reason:string;requestKey:string})=>sendJSON<ShotEntry>('POST',`/api/v1/shot-ledger/${id}/correction`,input);
+export interface ProcedureSeries {procedureId:number|null;procedureName:string|null;sold:number[];received:number[];expenseAttributed:number[];expensePaidNet:number[];executions:number[];result:number[];cashBalance:number[]}
+export interface ExpenseSeriesResponse {months:string[];total:{sold:number[];received:number[];expenseAttributed:number[];expensePaidNet:number[];result:number[];cashBalance:number[]}|null;procedures:ProcedureSeries[]}
+export const getExpenseSeries=(months=6)=>getJSON<ExpenseSeriesResponse>(`/api/v1/finance/expense-series?months=${months}`);
+export interface OfferSeriesEntry {offerId:number;offerName:string;sold:number[];received:number[]}
+export const getOfferSeries=(months=6)=>getJSON<{months:string[];offers:OfferSeriesEntry[]}>(`/api/v1/commercial/offer-series?months=${months}`);
+export interface OccupancySeriesEntry {professionalId:number;name:string;color:string;availableMinutes:number[];bookedMinutes:number[];occupancyPercent:(number|null)[]}
+export const getOccupancySeries=(months=6)=>getJSON<{months:string[];professionals:OccupancySeriesEntry[]}>(`/api/v1/dashboard/occupancy?months=${months}`);
