@@ -22,6 +22,14 @@
   color: var(--status-urgent);
 }
 
+.procedure-description.is-expired {
+  color: var(--status-urgent);
+}
+
+.procedure-description.is-expiring {
+  color: var(--status-wait);
+}
+
 .stock-actions {
   display: flex;
   gap: 14px;

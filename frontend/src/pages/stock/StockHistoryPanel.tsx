@@ -7,7 +7,7 @@ import {
   type StockItem,
   type StockItemDetail,
 } from "../../lib/api";
-import { formatDateTime } from "../../lib/format";
+import { formatDateOnly, formatDateTime } from "../../lib/format";
 
 interface Props {
   item: StockItem;
@@ -78,6 +78,11 @@ export function StockHistoryPanel({ item, close, onChanged }: Props) {
                       ? `Responsável #${movement.actorId}`
                       : "Autoria não registrada no histórico anterior"}
                   </p>
+                  {movement.expiresAt ? (
+                    <p className="section-meta">
+                      Validade: {formatDateOnly(movement.expiresAt)}
+                    </p>
+                  ) : null}
                   {movement.reversesId && (
                     <p className="section-meta">
                       Estorno do movimento #{movement.reversesId}

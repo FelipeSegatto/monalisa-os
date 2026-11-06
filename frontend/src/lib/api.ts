@@ -48,6 +48,13 @@ export interface LowStockAttentionItem {
   minQuantity: string;
 }
 
+export interface StockExpiryAttentionItem {
+  id: number;
+  name: string;
+  unit: string;
+  expiresAt: string;
+}
+
 export type AttentionGroup =
   | {
       type: "awaiting_confirmation";
@@ -60,6 +67,18 @@ export type AttentionGroup =
       count: number;
       severity: "urgent" | "wait";
       items: LowStockAttentionItem[];
+    }
+  | {
+      type: "expired_stock";
+      count: number;
+      severity: "urgent" | "wait";
+      items: StockExpiryAttentionItem[];
+    }
+  | {
+      type: "expiring_stock";
+      count: number;
+      severity: "urgent" | "wait";
+      items: StockExpiryAttentionItem[];
     };
 
 export interface NewCustomersBySource {
@@ -1206,6 +1225,11 @@ export function createFreeBooking(input: CreateFreeBookingInput): Promise<FreeBo
   return sendJSON<FreeBookingResult>("POST", "/api/v1/public/booking/free", input);
 }
 
+export interface StockItemExpiry {
+  date: string;
+  status: "EXPIRED" | "NEAR";
+}
+
 export interface StockItem {
   id: number;
   name: string;
@@ -1214,6 +1238,7 @@ export interface StockItem {
   minQuantity: string;
   active: boolean;
   isLow: boolean;
+  expiry: StockItemExpiry | null;
 }
 
 export interface SaveStockItemInput {
@@ -1230,6 +1255,7 @@ export interface StockMovement {
   type: "IN" | "ADJUSTMENT" | "CONSUMPTION";
   quantityDelta: string;
   note: string | null;
+  expiresAt: string | null;
   createdAt: string;
 }
 
@@ -1258,7 +1284,13 @@ export function updateStockItem(id: number, input: SaveStockItemInput): Promise<
 
 export function registerStockMovement(
   id: number,
-  input: { type: "IN" | "ADJUSTMENT" | "CONSUMPTION"; quantity: number; note: string; requestKey:string },
+  input: {
+    type: "IN" | "ADJUSTMENT" | "CONSUMPTION";
+    quantity: number;
+    note: string;
+    requestKey: string;
+    expiresAt?: string | null;
+  },
 ): Promise<StockItemDetail> {
   return sendJSON<StockItemDetail>("POST", `/api/v1/stock/items/${id}/movements`, input);
 }

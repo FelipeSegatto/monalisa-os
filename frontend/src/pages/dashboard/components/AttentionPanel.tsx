@@ -17,11 +17,29 @@ const TYPE_LABELS: Record<AttentionGroup["type"], { title: string; action: strin
     action: "Ver estoque →",
     to: "/estoque",
   },
+  expired_stock: {
+    title: "Insumos vencidos",
+    action: "Ver estoque →",
+    to: "/estoque",
+  },
+  expiring_stock: {
+    title: "Insumos próximos do vencimento",
+    action: "Ver estoque →",
+    to: "/estoque",
+  },
 };
 
 function describe(group: AttentionGroup): string {
   if (group.type === "low_stock") {
     return group.count === 1 ? "1 item abaixo do mínimo" : `${group.count} itens abaixo do mínimo`;
+  }
+  if (group.type === "expired_stock") {
+    return group.count === 1 ? "1 item vencido" : `${group.count} itens vencidos`;
+  }
+  if (group.type === "expiring_stock") {
+    return group.count === 1
+      ? "1 item vence em até 30 dias"
+      : `${group.count} itens vencem em até 30 dias`;
   }
 
   const todayCount = group.items.filter((item) => item.isToday).length;

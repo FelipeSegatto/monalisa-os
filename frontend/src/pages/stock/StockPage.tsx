@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getStockItems, type StockItem } from "../../lib/api";
+import { formatDateOnly } from "../../lib/format";
 import { NewStockItemPanel } from "./NewStockItemPanel";
 import { StockMovementPanel } from "./StockMovementPanel";
 import { StockHistoryPanel } from "./StockHistoryPanel";
@@ -67,6 +68,18 @@ export function StockPage() {
                   <div>
                     <p className="row-title">{item.name}</p>
                     {!item.active ? <p className="procedure-description">Inativo</p> : null}
+                    {item.expiry ? (
+                      <p
+                        className={
+                          item.expiry.status === "EXPIRED"
+                            ? "procedure-description is-expired"
+                            : "procedure-description is-expiring"
+                        }
+                      >
+                        {item.expiry.status === "EXPIRED" ? "Vencido" : "Vence em breve"} ·{" "}
+                        {formatDateOnly(item.expiry.date)}
+                      </p>
+                    ) : null}
                   </div>
                   <span className="stock-quantity">
                     {formatQuantity(item.quantity)} {item.unit}
