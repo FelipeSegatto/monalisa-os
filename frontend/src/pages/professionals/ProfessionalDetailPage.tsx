@@ -94,8 +94,8 @@ export function ProfessionalDetailPage({ isNew = false }: Props) {
       setAccountError("E-mail é obrigatório.");
       return;
     }
-    if (accountPassword.length < 6) {
-      setAccountError("Senha deve ter ao menos 6 caracteres.");
+    if (accountPassword.length < 10) {
+      setAccountError("Senha deve ter ao menos 10 caracteres.");
       return;
     }
     setAccountSaving(true);
@@ -110,13 +110,17 @@ export function ProfessionalDetailPage({ isNew = false }: Props) {
       setAccountPassword("");
       setAccountSuccess(true);
     } catch (err) {
-      setAccountError(err instanceof Error ? err.message : "Não foi possível salvar o acesso.");
+      setAccountError(
+        err instanceof Error
+          ? err.message
+          : "Não foi possível salvar o acesso.",
+      );
     } finally {
       setAccountSaving(false);
     }
   }
 
-  async function handleSave() {
+  async function handleSave(active = form.active) {
     if (!form.name.trim()) {
       setSaveError("Nome é obrigatório.");
       return;
@@ -128,17 +132,20 @@ export function ProfessionalDetailPage({ isNew = false }: Props) {
       phone: form.phone.trim() || null,
       email: form.email.trim() || null,
       color: form.color || null,
-      active: form.active,
+      active,
     };
     try {
       const saved = isNew
         ? await createProfessional(input)
         : await updateProfessional(professionalId as number, input);
       setSaving(false);
+      setForm(toForm(saved));
       navigate(`/profissionais/${saved.id}`, { replace: true });
     } catch (err) {
       setSaving(false);
-      setSaveError(err instanceof Error ? err.message : "Não foi possível salvar.");
+      setSaveError(
+        err instanceof Error ? err.message : "Não foi possível salvar.",
+      );
     }
   }
 
@@ -147,25 +154,33 @@ export function ProfessionalDetailPage({ isNew = false }: Props) {
   }
 
   if (error) {
-    return <p className="page-status">Não foi possível carregar o profissional.</p>;
+    return (
+      <p className="page-status">Não foi possível carregar o profissional.</p>
+    );
   }
 
   return (
     <div className="page">
-      <button type="button" className="back-link" onClick={() => navigate("/profissionais")}>
+      <button
+        type="button"
+        className="back-link"
+        onClick={() => navigate("/profissionais")}
+      >
         ← Todos os profissionais
       </button>
 
       <header className="page-header">
         <div>
           <p className="page-header-eyebrow">Equipe</p>
-          <h1 className="page-header-title">{isNew ? "Novo profissional" : form.name || "—"}</h1>
+          <h1 className="page-header-title">
+            {isNew ? "Novo profissional" : form.name || "—"}
+          </h1>
         </div>
         <button
           type="button"
           className="primary-button primary-button-link"
           disabled={saving}
-          onClick={handleSave}
+          onClick={() => handleSave()}
         >
           {saving ? "Salvando…" : "Salvar"}
         </button>
@@ -213,15 +228,53 @@ export function ProfessionalDetailPage({ isNew = false }: Props) {
           <select
             className="select-input"
             value={form.active ? "true" : "false"}
-            onChange={(e) => setForm((f) => ({ ...f, active: e.target.value === "true" }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, active: e.target.value === "true" }))
+            }
           >
             <option value="true">Ativo</option>
-            <option value="false">Inativo</option>
+            <option value="false">Arquivado</option>
           </select>
         </label>
       </div>
 
-      {!isNew && professionalId ? <ProfessionalCapabilitiesSection id={professionalId} /> : <p className="section-meta">Salve o profissional para configurar os procedimentos e a jornada.</p>}
+      {!isNew ? (
+        <section className="management-section">
+          <div className="section-header">
+            <span className="section-label">Situação do profissional</span>
+          </div>
+          <p className="section-meta">
+            {form.active
+              ? "Ao arquivar, o acesso ao sistema será encerrado e novos agendamentos serão bloqueados. O histórico e os agendamentos existentes serão preservados. Confira a agenda antes de arquivar."
+              : "Profissional arquivado: acesso bloqueado e histórico preservado. Ao restaurar, será necessário entrar novamente."}
+          </p>
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={saving}
+            onClick={() => {
+              if (
+                window.confirm(
+                  form.active
+                    ? "Arquivar este profissional e encerrar seu acesso? Os agendamentos existentes não serão cancelados."
+                    : "Restaurar este profissional e liberar seu acesso?",
+                )
+              )
+                void handleSave(!form.active);
+            }}
+          >
+            {form.active ? "Arquivar profissional" : "Restaurar profissional"}
+          </button>
+        </section>
+      ) : null}
+
+      {!isNew && professionalId ? (
+        <ProfessionalCapabilitiesSection id={professionalId} />
+      ) : (
+        <p className="section-meta">
+          Salve o profissional para configurar os procedimentos e a jornada.
+        </p>
+      )}
 
       {!isNew ? (
         <>
@@ -230,18 +283,21 @@ export function ProfessionalDetailPage({ isNew = false }: Props) {
           </div>
           {account?.hasAccount ? (
             <p className="section-meta">
-              Este profissional já tem login de funcionário com o e-mail <strong>{account.email}</strong>.
-              Para trocar o e-mail ou a senha, preencha os campos abaixo.
+              Este profissional já tem login de funcionário com o e-mail{" "}
+              <strong>{account.email}</strong>. Para trocar o e-mail ou a senha,
+              preencha os campos abaixo.
             </p>
           ) : (
             <p className="section-meta">
-              Este profissional ainda não tem login de funcionário. Crie um e-mail e senha para que
-              ele possa acessar o sistema.
+              Este profissional ainda não tem login de funcionário. Crie um
+              e-mail e senha para que ele possa acessar o sistema.
             </p>
           )}
 
           {accountError ? <p className="form-error">{accountError}</p> : null}
-          {accountSuccess ? <p className="section-meta">Acesso salvo com sucesso.</p> : null}
+          {accountSuccess ? (
+            <p className="section-meta">Acesso salvo com sucesso.</p>
+          ) : null}
 
           <div className="field-grid">
             <label className="field">
@@ -266,10 +322,14 @@ export function ProfessionalDetailPage({ isNew = false }: Props) {
           <button
             type="button"
             className="secondary-button"
-            disabled={accountSaving}
+            disabled={accountSaving || !form.active}
             onClick={handleSaveAccount}
           >
-            {accountSaving ? "Salvando…" : account?.hasAccount ? "Atualizar acesso" : "Criar acesso"}
+            {accountSaving
+              ? "Salvando…"
+              : account?.hasAccount
+                ? "Atualizar acesso"
+                : "Criar acesso"}
           </button>
         </>
       ) : null}

@@ -10,8 +10,13 @@ export class PrismaUserRepository extends UserRepository {
     super();
   }
   async findByEmail(email: string): Promise<AuthUser | null> {
-    const user = await this.db.user.findUnique({ where: { email } });
-    return user ? AuthUser.restore(user) : null;
+    const user = await this.db.user.findUnique({
+      where: { email },
+      include: { professional: { select: { active: true } } },
+    });
+    return user && user.professional?.active !== false
+      ? AuthUser.restore(user)
+      : null;
   }
 }
 @Injectable()
@@ -28,9 +33,18 @@ export class PrismaSessionRepository extends SessionRepository {
     const data = { tokenHash, userId, expiresAt: new Date(expiresAt) };
     await this.db.$transaction(async (tx) => {
       const [user] = await tx.$queryRaw<
-        Array<{ id: number; passwordHash: string }>
-      >`SELECT id, passwordHash FROM \`User\` WHERE id = ${userId} FOR UPDATE`;
-      if (!user || user.passwordHash !== expectedPasswordHash)
+        Array<{
+          id: number;
+          passwordHash: string;
+          professionalActive: boolean | number | null;
+        }>
+      >`SELECT u.id, u.passwordHash, p.active AS professionalActive FROM \`User\` u LEFT JOIN Professional p ON p.id = u.professionalId WHERE u.id = ${userId} FOR UPDATE`;
+      if (
+        !user ||
+        user.passwordHash !== expectedPasswordHash ||
+        user.professionalActive === false ||
+        user.professionalActive === 0
+      )
         throw new AuthError("INVALID_CREDENTIALS", "Email ou senha inválidos");
       await tx.session.create({ data });
     });
@@ -41,11 +55,17 @@ export class PrismaSessionRepository extends SessionRepository {
       where: { tokenHash },
       include: {
         user: {
-          select: { id: true, name: true, role: true, professionalId: true },
+          select: {
+            id: true,
+            name: true,
+            role: true,
+            professionalId: true,
+            professional: { select: { active: true } },
+          },
         },
       },
     });
-    return session
+    return session && session.user.professional?.active !== false
       ? AuthSession.restore(session.user, session.expiresAt.getTime())
       : null;
   }

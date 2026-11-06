@@ -40,7 +40,12 @@ export class ProfessionalService {
     return this.accounts.find(id);
   }
   async configureAccount(id: number, email: string, password: string) {
-    await this.requireProfessional(id);
+    const professional = await this.requireProfessional(id);
+    if (!professional.snapshot().active)
+      throw new ApplicationError(
+        "Restaure o profissional antes de configurar o acesso",
+        "CONFLICT",
+      );
     return this.accounts.configure(id, email, password);
   }
 }
