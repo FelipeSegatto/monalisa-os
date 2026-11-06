@@ -1,3 +1,4 @@
+import "./ProfessionalCapabilitiesSection.css";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
@@ -77,28 +78,31 @@ export function ProfessionalCapabilitiesSection({ id }: { id: number }) {
             Selecione os procedimentos que este profissional pode executar. A
             agenda só oferece horários dentro da jornada cadastrada.
           </p>
-          <div className="field-grid">
+          <fieldset className="capability-options">
+            <legend className="section-meta">Procedimentos habilitados</legend>
             {procedures.map((p) => (
-              <label className="field" key={p.id}>
+              <label className="capability-option" key={p.id}>
+                <input
+                  className="capability-checkbox"
+                  type="checkbox"
+                  disabled={saving}
+                  checked={data.procedureIds.includes(p.id)}
+                  onChange={(e) =>
+                    setData({
+                      ...data,
+                      procedureIds: e.target.checked
+                        ? [...data.procedureIds, p.id]
+                        : data.procedureIds.filter((id) => id !== p.id),
+                    })
+                  }
+                />
                 <span>
-                  <input
-                    type="checkbox"
-                    checked={data.procedureIds.includes(p.id)}
-                    onChange={(e) =>
-                      setData({
-                        ...data,
-                        procedureIds: e.target.checked
-                          ? [...data.procedureIds, p.id]
-                          : data.procedureIds.filter((id) => id !== p.id),
-                      })
-                    }
-                  />{" "}
                   {p.name}
                   {!p.active ? " (inativo)" : ""}
                 </span>
               </label>
             ))}
-          </div>
+          </fieldset>
           <label className="field">
             Prioridade no agendamento automático (menor número primeiro; vazio
             exclui apenas no modo de prioridade)

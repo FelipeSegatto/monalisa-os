@@ -8,6 +8,13 @@ import {
   type ShotCounters,
   type ShotEntry,
 } from "../../lib/api";
+const number = (value: number) => new Intl.NumberFormat("pt-BR").format(value);
+const timestamp = (value: string) =>
+  new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+    timeZone: "America/Sao_Paulo",
+  }).format(new Date(value));
 const labels: Record<string, string> = {
   OPENING: "Contador inicial",
   CONSUMPTION: "Consumo",
@@ -29,6 +36,8 @@ export function ShotLedgerSection({
     [quantity, setQuantity] = useState(""),
     [reason, setReason] = useState(""),
     [kind, setKind] = useState<"OPENING" | "ADJUSTMENT">("OPENING"),
+    [hasMore, setHasMore] = useState(false),
+    [loadingMore, setLoadingMore] = useState(false),
     [key, setKey] = useState(() => crypto.randomUUID());
   function reload() {
     return Promise.all([
@@ -37,6 +46,7 @@ export function ShotLedgerSection({
     ]).then(([c, e]) => {
       setCounters(c);
       setEntries(e);
+      setHasMore(e.length === 100);
     });
   }
   useEffect(() => {
@@ -46,6 +56,7 @@ export function ShotLedgerSection({
         if (!cancelled) {
           setCounters(c);
           setEntries(e);
+          setHasMore(e.length === 100);
         }
       })
       .catch((e) => {
@@ -124,8 +135,31 @@ export function ShotLedgerSection({
       setBusy(false);
     }
   }
+  async function loadMore() {
+    if (!entries.length || loadingMore) return;
+    setLoadingMore(true);
+    setError("");
+    try {
+      const more = await getShotEntries(equipmentId, entries.at(-1)!.id);
+      setEntries((current) => [
+        ...current,
+        ...more.filter(
+          (entry) => !current.some((existing) => existing.id === entry.id),
+        ),
+      ]);
+      setHasMore(more.length === 100);
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "Não foi possível carregar o histórico.",
+      );
+    } finally {
+      setLoadingMore(false);
+    }
+  }
   return (
-    <section>
+    <section className="shot-ledger">
       <div className="section-header">
         <span className="section-label">Disparos e cartuchos</span>
       </div>
@@ -133,6 +167,9 @@ export function ShotLedgerSection({
         <p className="form-error" role="alert">
           {error}
         </p>
+      )}
+      {!counters && !error && (
+        <p className="section-meta">Carregando contadores e histórico…</p>
       )}
       {counters && (
         <>
@@ -147,15 +184,54 @@ export function ShotLedgerSection({
               </p>
               {counters.tracking === "EQUIPMENT" && (
                 <p>
-                  Contador: {counters.equipmentCounter ?? "Não inicializado"}
+                  Contador:{" "}
+                  {counters.equipmentCounter === null
+                    ? "Não inicializado"
+                    : number(counters.equipmentCounter)}
                 </p>
               )}
-              {counters.components.map((c) => (
-                <p key={c.id}>
-                  {c.name}: {c.consumed ?? "não inicializado"} · Restantes:{" "}
-                  {c.remaining ?? "não informado"} · {c.status}
-                </p>
-              ))}
+              <div className="shot-counter-grid">
+                {counters.components.map((c) => (
+                  <article className="shot-counter" key={c.id}>
+                    <h3>{c.name}</h3>
+                    <dl>
+                      <div>
+                        <dt>Consumidos</dt>
+                        <dd>
+                          {c.consumed === null
+                            ? "Não inicializado"
+                            : number(c.consumed)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Restantes</dt>
+                        <dd>
+                          {c.remaining === null
+                            ? "Não informado"
+                            : number(c.remaining)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Capacidade nominal</dt>
+                        <dd>
+                          {c.capacity === null
+                            ? "Não informada"
+                            : number(c.capacity)}
+                        </dd>
+                      </div>
+                    </dl>
+                    <span className="section-meta">
+                      {
+                        {
+                          ACTIVE: "Ativo",
+                          MAINTENANCE: "Em manutenção",
+                          RETIRED: "Arquivado",
+                        }[c.status]
+                      }
+                    </span>
+                  </article>
+                ))}
+              </div>
               {canManage && (
                 <div className="record-form">
                   <label className="field">
@@ -224,52 +300,118 @@ export function ShotLedgerSection({
           <div className="section-header">
             <span className="section-label">Histórico de disparos</span>
           </div>
-          {entries.map((e) => (
-            <div key={e.id}>
-              <p>
-                #{e.id} · {new Date(e.createdAt).toLocaleString("pt-BR")} ·{" "}
-                {labels[e.type] ?? e.type} · {e.quantityDelta > 0 ? "+" : ""}
-                {e.quantityDelta} · Responsável #{e.actorId}
-                {e.reason ? ` · ${e.reason}` : ""}
-              </p>
-              {canManage &&
-                e.type !== "OPENING" &&
-                e.type !== "REVERSAL" &&
-                !entries.some((r) => r.reversesId === e.id) && (
-                  <button
-                    className="text-button"
-                    type="button"
-                    disabled={busy}
-                    onClick={() => reverse(e)}
-                  >
-                    Estornar com motivo
-                  </button>
-                )}
-              {canManage &&
-                e.type === "CONSUMPTION" &&
-                !entries.some((r) => r.reversesId === e.id) && (
-                  <button
-                    className="text-button"
-                    type="button"
-                    disabled={busy}
-                    onClick={() => correct(e)}
-                  >
-                    Corrigir quantidade
-                  </button>
-                )}
-            </div>
-          ))}
-          {entries.length >= 100 && (
+          <p className="section-meta">
+            Registros mais recentes primeiro · horário de São Paulo. Correções e
+            estornos preservam o lançamento original.
+          </p>
+          {!entries.length && (
+            <p className="section-meta">
+              Nenhuma movimentação de disparos registrada.
+            </p>
+          )}
+          <ol className="shot-history">
+            {entries.map((entry) => {
+              const reversed =
+                Boolean(entry.reversal) ||
+                entries.some((other) => other.reversesId === entry.id);
+              return (
+                <li className="shot-history-entry" key={entry.id}>
+                  <div className="shot-history-heading">
+                    <div>
+                      <strong>{labels[entry.type] ?? entry.type}</strong>
+                      <span className="section-meta">
+                        {" "}
+                        #{entry.id} · {timestamp(entry.createdAt)}
+                      </span>
+                    </div>
+                    <b
+                      className={
+                        entry.quantityDelta < 0
+                          ? "shot-delta is-negative"
+                          : "shot-delta"
+                      }
+                    >
+                      {entry.quantityDelta > 0 ? "+" : ""}
+                      {number(entry.quantityDelta)}
+                    </b>
+                  </div>
+                  <p>
+                    {entry.component?.name ??
+                      (entry.componentId
+                        ? `Componente #${entry.componentId}`
+                        : "Contador do aparelho")}{" "}
+                    · Registrado por{" "}
+                    {entry.actor?.name ?? `usuário #${entry.actorId}`}
+                  </p>
+                  {entry.execution && (
+                    <p className="section-meta">
+                      {entry.execution.procedureName}
+                      {entry.execution.variationName
+                        ? ` · ${entry.execution.variationName}`
+                        : ""}{" "}
+                      · Profissional: {entry.execution.professional.name} ·
+                      Atendimento #{entry.execution.attendanceId}
+                    </p>
+                  )}
+                  {entry.reason && <p>{entry.reason}</p>}
+                  {entry.reversesId && (
+                    <p className="section-meta">
+                      Estorna o lançamento #{entry.reversesId}.
+                    </p>
+                  )}
+                  {entry.replacesId && (
+                    <p className="section-meta">
+                      Corrige o lançamento #{entry.replacesId}.
+                    </p>
+                  )}
+                  {entry.reversal && (
+                    <p className="section-meta">
+                      Estornado pelo lançamento #{entry.reversal.id}.
+                    </p>
+                  )}
+                  {entry.replacement && (
+                    <p className="section-meta">
+                      Quantidade corrigida no lançamento #{entry.replacement.id}
+                      .
+                    </p>
+                  )}
+                  <div className="equipment-actions">
+                    {canManage &&
+                      entry.type !== "OPENING" &&
+                      entry.type !== "REVERSAL" &&
+                      !reversed && (
+                        <button
+                          className="text-button"
+                          type="button"
+                          disabled={busy || loadingMore}
+                          onClick={() => reverse(entry)}
+                        >
+                          Estornar com motivo
+                        </button>
+                      )}
+                    {canManage && entry.type === "CONSUMPTION" && !reversed && (
+                      <button
+                        className="text-button"
+                        type="button"
+                        disabled={busy || loadingMore}
+                        onClick={() => correct(entry)}
+                      >
+                        Corrigir quantidade
+                      </button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+          {hasMore && (
             <button
               type="button"
               className="secondary-button"
-              onClick={() => {
-                getShotEntries(equipmentId, entries.at(-1)!.id)
-                  .then((more) => setEntries([...entries, ...more]))
-                  .catch((e) => setError(e.message));
-              }}
+              disabled={loadingMore || busy}
+              onClick={loadMore}
             >
-              Carregar anteriores
+              {loadingMore ? "Carregando…" : "Carregar anteriores"}
             </button>
           )}
         </>

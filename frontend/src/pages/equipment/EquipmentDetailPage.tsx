@@ -1,5 +1,5 @@
 import { ShotLedgerSection } from "./ShotLedgerSection";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 import {
@@ -40,6 +40,22 @@ export function EquipmentDetailPage() {
   const [historyEnd, setHistoryEnd] = useState(false);
   const [action, setAction] = useState("");
   const [componentId, setComponentId] = useState<number | undefined>();
+  const actionForm = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (action) {
+      actionForm.current?.scrollIntoView({
+        block: "center",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+      });
+      actionForm.current
+        ?.querySelector<HTMLElement>(
+          "input:not([type=hidden]), select, textarea",
+        )
+        ?.focus({ preventScroll: true });
+    }
+  }, [action, componentId]);
   useEffect(() => {
     let live = true;
     setItem(null);
@@ -74,10 +90,12 @@ export function EquipmentDetailPage() {
           componentId === undefined
             ? await createEquipmentComponent(equipmentId, data)
             : await updateEquipmentComponent(equipmentId, componentId, data);
-      } else if (action === "status")
+      } else if (action === "status" || action === "archive")
         result = await changeEquipmentStatus(
           equipmentId,
-          value("status") as EquipmentStatus,
+          (action === "archive"
+            ? "RETIRED"
+            : value("status")) as EquipmentStatus,
           value("reason"),
           componentId,
         );
@@ -137,18 +155,27 @@ export function EquipmentDetailPage() {
   }
   if (!item)
     return (
-      <div className="page">
-        <Link to="/equipamentos">← Equipamentos</Link>
+      <div className="page equipment-detail">
+        <Link className="back-link" to="/equipamentos">
+          ← Equipamentos
+        </Link>
         <p role={error ? "alert" : undefined}>{error || "Carregando…"}</p>
       </div>
     );
   const canManage = user.role === "ADMIN" && item.status !== "RETIRED";
   const component = item.components.find((c) => c.id === componentId);
   return (
-    <div className="page">
-      <Link to="/equipamentos">← Equipamentos</Link>
+    <div className="page equipment-detail">
+      <Link className="back-link" to="/equipamentos">
+        ← Equipamentos
+      </Link>
       <header className="page-header">
-        <h1 className="page-header-title">{item.name}</h1>
+        <div>
+          <p className="page-header-eyebrow">
+            Equipamento · {statusLabels[item.status]}
+          </p>
+          <h1 className="page-header-title">{item.name}</h1>
+        </div>
       </header>
       {error && <p role="alert">{error}</p>}
       <section className="equipment-card">
@@ -170,12 +197,13 @@ export function EquipmentDetailPage() {
               COMPONENT: "por componente",
             }[item.shotTracking]
           }
-          . Contadores e saldos ainda não registrados.
+          . Consulte os contadores e o histórico de disparos abaixo.
         </p>
         {canManage && (
           <div className="equipment-actions">
             <button onClick={() => open("edit")}>Editar cadastro</button>
             <button onClick={() => open("status")}>Alterar situação</button>
+            <button onClick={() => open("archive")}>Arquivar aparelho</button>
           </div>
         )}
       </section>
@@ -202,6 +230,7 @@ export function EquipmentDetailPage() {
       </section>
       {canManage && action && (
         <form
+          ref={actionForm}
           key={`${action}-${componentId}`}
           className="equipment-card equipment-form"
           onSubmit={submit}
@@ -217,6 +246,7 @@ export function EquipmentDetailPage() {
                   status: `Situação de ${component?.name || item.name}`,
                   schedule: "Programar manutenção",
                   maintenance: "Registrar manutenção realizada",
+                  archive: "Arquivar aparelho",
                 } as Record<string, string>
               )[action]
             }
@@ -332,10 +362,15 @@ export function EquipmentDetailPage() {
                     </option>
                   ))}
               </select>
-              <span>
-                A aposentadoria é definitiva nesta etapa e preserva o histórico.
-              </span>
+              <span>O arquivamento é definitivo e preserva o histórico.</span>
             </label>
+          )}
+          {action === "archive" && (
+            <p role="note">
+              O arquivamento é definitivo: o aparelho sai de operação e seu
+              histórico permanece disponível. Confira os agendamentos que
+              dependem dele antes de continuar.
+            </p>
           )}
           {action === "maintenance" && (
             <label>
@@ -352,14 +387,22 @@ export function EquipmentDetailPage() {
               <input name="next" type="date" required={action === "schedule"} />
             </label>
           )}
-          {["status", "maintenance", "schedule"].includes(action) && (
+          {["status", "archive", "maintenance", "schedule"].includes(
+            action,
+          ) && (
             <label>
               Justificativa / observações
               <textarea name="reason" minLength={3} maxLength={1000} required />
             </label>
           )}
           <div className="equipment-actions">
-            <button disabled={busy}>{busy ? "Salvando…" : "Salvar"}</button>
+            <button disabled={busy}>
+              {busy
+                ? "Salvando…"
+                : action === "archive"
+                  ? "Confirmar arquivamento definitivo"
+                  : "Salvar"}
+            </button>
             <button type="button" disabled={busy} onClick={() => setAction("")}>
               Cancelar
             </button>
@@ -386,10 +429,7 @@ export function EquipmentDetailPage() {
               {c.code} · {statusLabels[c.status]}
             </p>
             <p>{c.specification || "Especificação não informada"}</p>
-            <p>
-              Capacidade nominal: {c.nominalCapacity ?? "não informada"} ·
-              Saldo: não informado
-            </p>
+            <p>Capacidade nominal: {c.nominalCapacity ?? "não informada"}</p>
             {canManage && c.status !== "RETIRED" && (
               <div className="equipment-actions">
                 <button onClick={() => open("component", c.id)}>
@@ -447,7 +487,10 @@ export function EquipmentDetailPage() {
           </button>
         )}
       </section>
-      <ShotLedgerSection equipmentId={equipmentId} canManage={user?.role === "ADMIN"} />
+      <ShotLedgerSection
+        equipmentId={equipmentId}
+        canManage={canManage}
+      />
     </div>
   );
 }

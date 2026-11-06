@@ -1324,7 +1324,10 @@ export const startAttendance=(id:number)=>sendJSON<AttendanceResult>('POST',`/ap
 export const completeAttendance=(id:number,input:{requestKey:string;executions:ExecutionInput[]})=>sendJSON<AttendanceResult>('POST',`/api/v1/attendances/${id}/completion`,input);
 export interface ShotCounters {equipmentId:number;tracking:Equipment['shotTracking'];consumed:number;initialized:boolean;equipmentCounter:number|null;components:{id:number;name:string;status:EquipmentStatus;capacity:number|null;initialized:boolean;consumed:number|null;remaining:number|null}[]}
 export const getShotCounters=(id:number)=>getJSON<ShotCounters>(`/api/v1/equipment/${id}/shot-counters`);
-export interface ShotEntry {id:number;type:string;componentId:number|null;quantityDelta:number;actorId:number;reason:string|null;createdAt:string;reversesId:number|null}
+export interface ShotEntry {id:number;type:string;componentId:number|null;quantityDelta:number;actorId:number;reason:string|null;createdAt:string;reversesId:number|null;replacesId?:number|null;
+actor?:{id:number;name:string};component?:{id:number;name:string}|null;
+execution?:{id:number;attendanceId:number;procedureName:string;variationName:string|null;professional:{id:number;name:string}}|null;
+reversal?:{id:number}|null;replacement?:{id:number}|null}
 export const getShotEntries=(id:number,before?:number)=>getJSON<ShotEntry[]>(`/api/v1/equipment/${id}/shot-ledger${before?`?before=${before}`:''}`);
 export const postShotEntry=(id:number,input:{componentId:number|null;type:'OPENING'|'ADJUSTMENT';quantityDelta:number;reason:string;requestKey:string})=>sendJSON<ShotEntry>('POST',`/api/v1/equipment/${id}/shot-ledger`,input);
 export const reverseShotEntry=(id:number,input:{reason:string;requestKey:string})=>sendJSON<ShotEntry>('POST',`/api/v1/shot-ledger/${id}/reversal`,input);

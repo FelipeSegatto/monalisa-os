@@ -284,6 +284,21 @@ export class PrismaShotLedger extends ShotLedgerRepository {
       where: { equipmentId, ...(cursor ? { id: { lt: cursor } } : {}) },
       orderBy: { id: "desc" },
       take: 100,
+      include: {
+        actor: { select: { id: true, name: true } },
+        component: { select: { id: true, name: true } },
+        execution: {
+          select: {
+            id: true,
+            attendanceId: true,
+            procedureName: true,
+            variationName: true,
+            professional: { select: { id: true, name: true } },
+          },
+        },
+        reversal: { select: { id: true } },
+        replacement: { select: { id: true } },
+      },
     });
   }
 }

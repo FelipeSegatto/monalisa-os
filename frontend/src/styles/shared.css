@@ -356,3 +356,57 @@
 .active-badge.is-active {
   color: var(--status-ok);
 }
+
+/* Native select fallback; customizable pickers use the same neutral palette. */
+select {
+  accent-color: var(--ink);
+}
+select:focus-visible {
+  outline: 2px solid var(--ink-2);
+  outline-offset: 3px;
+}
+select option {
+  color: var(--ink);
+  background: var(--white);
+}
+select option:is(:checked, :hover, :focus) {
+  color: var(--white);
+  background: var(--ink);
+}
+@supports (appearance: base-select) {
+  select:not([multiple]):not([size]),
+  select:not([multiple]):not([size])::picker(select) {
+    appearance: base-select;
+  }
+  select:not([multiple]):not([size]) {
+    align-items: center;
+    cursor: pointer;
+  }
+  select:not([multiple]):not([size])::picker(select) {
+    border: 1px solid var(--line-dark);
+    border-radius: 0;
+    padding: 5px;
+    margin-block: 5px;
+    background: var(--white);
+    color: var(--ink);
+    box-shadow: 0 8px 22px rgb(36 35 31 / 12%);
+    max-height: min(360px, 60vh);
+    overflow-y: auto;
+  }
+  select:not([multiple]):not([size]) option {
+    padding: 10px 12px;
+    min-height: 38px;
+    border-radius: 0;
+  }
+  select:not([multiple]):not([size]) option:is(:hover, :focus, :checked) {
+    background: var(--ink);
+    color: var(--white);
+  }
+  select:not([multiple]):not([size]) option:disabled {
+    color: var(--ink-3);
+    background: var(--white);
+  }
+  select:not([multiple]):not([size])::picker-icon {
+    color: var(--ink-2);
+  }
+}

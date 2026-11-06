@@ -11,7 +11,7 @@ import "./equipment.css";
 export const statusLabels = {
   ACTIVE: "Ativo",
   MAINTENANCE: "Em manutenção",
-  RETIRED: "Aposentado",
+  RETIRED: "Arquivado",
 };
 export const maintenanceLabels = {
   UNKNOWN: "Data não informada",
@@ -27,6 +27,14 @@ export function EquipmentPage() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState("current");
+  const visibleItems = items.filter(
+    (item) =>
+      filter === "all" ||
+      (filter === "archived"
+        ? item.status === "RETIRED"
+        : item.status !== "RETIRED"),
+  );
   useEffect(() => {
     let live = true;
     getEquipment()
@@ -69,9 +77,14 @@ export function EquipmentPage() {
   return (
     <div className="page">
       <header className="page-header">
-        <h1 className="page-header-title">Equipamentos</h1>
+        <div>
+          <p className="page-header-eyebrow">Estrutura da clínica</p>
+          <h1 className="page-header-title">Equipamentos</h1>
+        </div>
         {user.role === "ADMIN" && (
-          <button onClick={() => setOpen(!open)}>Cadastrar equipamento</button>
+          <button className="primary-button" onClick={() => setOpen(!open)}>
+            {open ? "Fechar cadastro" : "Novo equipamento"}
+          </button>
         )}
       </header>
       {error && <p role="alert">{error}</p>}
@@ -116,38 +129,99 @@ export function EquipmentPage() {
             O código interno será gerado automaticamente. Datas e contadores
             desconhecidos permanecem sem informação.
           </p>
-          <button disabled={busy}>Salvar equipamento</button>
+          <button className="primary-button" disabled={busy}>
+            Salvar equipamento
+          </button>
         </form>
       )}
-      {loading ? (
-        <p>Carregando…</p>
-      ) : !items.length && !error ? (
-        <p>Nenhum equipamento cadastrado.</p>
-      ) : (
-        <div className="equipment-grid">
-          {items.map((item) => (
-            <article className="equipment-card" key={item.id}>
-              <h2>
-                <Link to={`/equipamentos/${item.id}`}>{item.name}</Link>
-              </h2>
-              <p>{statusLabels[item.status]}</p>
-              <p>{item.components.length} componente(s)</p>
-              <p
-                className={
-                  ["DUE_SOON", "OVERDUE"].includes(item.maintenanceState)
-                    ? "equipment-warning"
-                    : ""
-                }
-              >
-                {maintenanceLabels[item.maintenanceState]}
-                {item.nextMaintenanceDate
-                  ? ` · ${item.nextMaintenanceDate.split("-").reverse().join("/")}`
-                  : ""}
-              </p>
-            </article>
-          ))}
+      <section>
+        <div className="section-header">
+          <label className="field">
+            Exibir
+            <select
+              className="select-input"
+              value={filter}
+              onChange={(event) => setFilter(event.target.value)}
+            >
+              <option value="current">Em operação e manutenção</option>
+              <option value="archived">Arquivados</option>
+              <option value="all">Todos</option>
+            </select>
+          </label>
+          <span className="section-meta">
+            {visibleItems.length}{" "}
+            {visibleItems.length === 1 ? "aparelho" : "aparelhos"}
+          </span>
         </div>
-      )}
+        {loading ? (
+          <p className="page-status">Carregando…</p>
+        ) : (
+          <div className="equipment-list">
+            {!visibleItems.length && (
+              <p className="section-meta">Nenhum equipamento nesta seleção.</p>
+            )}
+            {visibleItems.map((item) => (
+              <article className="equipment-row" key={item.id}>
+                <div className="equipment-identity">
+                  <Link className="row-title" to={`/equipamentos/${item.id}`}>
+                    {item.name}
+                  </Link>
+                  <span className="section-meta">
+                    {[item.manufacturer, item.model]
+                      .filter(Boolean)
+                      .join(" · ") || "Fabricante não informado"}
+                  </span>
+                  <span
+                    className={
+                      item.status === "ACTIVE"
+                        ? "active-badge is-active"
+                        : "active-badge"
+                    }
+                  >
+                    {statusLabels[item.status]}
+                  </span>
+                </div>
+                <div className="equipment-stat">
+                  <span className="section-meta">Última manutenção</span>
+                  <b>
+                    {item.lastMaintenanceDate
+                      ? item.lastMaintenanceDate
+                          .slice(0, 10)
+                          .split("-")
+                          .reverse()
+                          .join("/")
+                      : "Não informada"}
+                  </b>
+                </div>
+                <div className="equipment-stat">
+                  <span className="section-meta">Próxima manutenção</span>
+                  <b>
+                    {item.nextMaintenanceDate
+                      ? item.nextMaintenanceDate
+                          .slice(0, 10)
+                          .split("-")
+                          .reverse()
+                          .join("/")
+                      : "Não programada"}
+                  </b>
+                  <span
+                    className={
+                      ["DUE_SOON", "OVERDUE"].includes(item.maintenanceState)
+                        ? "equipment-warning"
+                        : "section-meta"
+                    }
+                  >
+                    {maintenanceLabels[item.maintenanceState]}
+                  </span>
+                </div>
+                <Link className="section-link" to={`/equipamentos/${item.id}`}>
+                  Ver detalhes →
+                </Link>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
