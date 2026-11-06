@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getStockItems, type StockItem } from "../../lib/api";
+import { formatDateOnly } from "../../lib/format";
 import { NewStockItemPanel } from "./NewStockItemPanel";
 import { StockMovementPanel } from "./StockMovementPanel";
 import { StockHistoryPanel } from "./StockHistoryPanel";
@@ -54,7 +55,8 @@ export function StockPage() {
           <div className="section-header">
             <span className="section-label">Itens</span>
             <span className="section-meta">
-              {items.length} itens{lowCount > 0 ? ` · ${lowCount} com estoque baixo` : ""}
+              {items.length} itens
+              {lowCount > 0 ? ` · ${lowCount} com estoque baixo` : ""}
             </span>
           </div>
 
@@ -66,7 +68,23 @@ export function StockPage() {
                 <div className="stock-row" key={item.id}>
                   <div>
                     <p className="row-title">{item.name}</p>
-                    {!item.active ? <p className="procedure-description">Inativo</p> : null}
+                    {!item.active ? (
+                      <p className="procedure-description">Inativo</p>
+                    ) : null}
+                    {item.expiry ? (
+                      <p
+                        className={
+                          item.expiry.status === "EXPIRED"
+                            ? "procedure-description is-expired"
+                            : "procedure-description is-expiring"
+                        }
+                      >
+                        {item.expiry.status === "EXPIRED"
+                          ? "Conferir validade vencida"
+                          : "Conferir próximo vencimento"}{" "}
+                        · {formatDateOnly(item.expiry.date)}
+                      </p>
+                    ) : null}
                   </div>
                   <span className="stock-quantity">
                     {formatQuantity(item.quantity)} {item.unit}
@@ -74,11 +92,25 @@ export function StockPage() {
                   <span className="section-meta">
                     mín. {formatQuantity(item.minQuantity)} {item.unit}
                   </span>
-                  <span className={item.isLow ? "active-badge is-low" : "active-badge is-active"}>
+                  <span
+                    className={
+                      item.isLow
+                        ? "active-badge is-low"
+                        : "active-badge is-active"
+                    }
+                  >
                     {item.isLow ? "Estoque baixo" : "OK"}
                   </span>
                   <div className="stock-actions">
-                    <button type="button" className="text-button" onClick={()=>setMovementTarget({item,type:"CONSUMPTION"})}>Registrar embalagem consumida</button>
+                    <button
+                      type="button"
+                      className="text-button"
+                      onClick={() =>
+                        setMovementTarget({ item, type: "CONSUMPTION" })
+                      }
+                    >
+                      Registrar embalagem consumida
+                    </button>
                     <button
                       type="button"
                       className="text-button"
@@ -89,7 +121,9 @@ export function StockPage() {
                     <button
                       type="button"
                       className="text-button"
-                      onClick={() => setMovementTarget({ item, type: "ADJUSTMENT" })}
+                      onClick={() =>
+                        setMovementTarget({ item, type: "ADJUSTMENT" })
+                      }
                     >
                       Ajustar
                     </button>
@@ -133,7 +167,11 @@ export function StockPage() {
       ) : null}
 
       {historyTarget ? (
-        <StockHistoryPanel item={historyTarget} close={() => setHistoryTarget(null)} onChanged={reload} />
+        <StockHistoryPanel
+          item={historyTarget}
+          close={() => setHistoryTarget(null)}
+          onChanged={reload}
+        />
       ) : null}
     </div>
   );

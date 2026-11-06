@@ -6,7 +6,10 @@ interface Props {
   overview: DashboardOverview;
 }
 
-const TYPE_LABELS: Record<AttentionGroup["type"], { title: string; action: string; to: string }> = {
+const TYPE_LABELS: Record<
+  AttentionGroup["type"],
+  { title: string; action: string; to: string }
+> = {
   awaiting_confirmation: {
     title: "Agendamentos aguardando confirmação",
     action: "Confirmar →",
@@ -17,11 +20,33 @@ const TYPE_LABELS: Record<AttentionGroup["type"], { title: string; action: strin
     action: "Ver estoque →",
     to: "/estoque",
   },
+  expired_stock: {
+    title: "Conferir entradas com validade vencida",
+    action: "Ver estoque →",
+    to: "/estoque",
+  },
+  expiring_stock: {
+    title: "Conferir próximas validades",
+    action: "Ver estoque →",
+    to: "/estoque",
+  },
 };
 
 function describe(group: AttentionGroup): string {
   if (group.type === "low_stock") {
-    return group.count === 1 ? "1 item abaixo do mínimo" : `${group.count} itens abaixo do mínimo`;
+    return group.count === 1
+      ? "1 item abaixo do mínimo"
+      : `${group.count} itens abaixo do mínimo`;
+  }
+  if (group.type === "expired_stock") {
+    return group.count === 1
+      ? "1 insumo para conferir no estoque"
+      : `${group.count} insumos para conferir no estoque`;
+  }
+  if (group.type === "expiring_stock") {
+    return group.count === 1
+      ? "1 insumo com entrada que vence em até 30 dias"
+      : `${group.count} insumos com entradas que vencem em até 30 dias`;
   }
 
   const todayCount = group.items.filter((item) => item.isToday).length;
@@ -62,7 +87,9 @@ export function AttentionPanel({ overview }: Props) {
               <p className="attention-count">{group.count}</p>
               <div className="attention-main">
                 <p className="attention-title">
-                  {group.severity === "wait" ? <span className="status-dot is-wait" /> : null}
+                  {group.severity === "wait" ? (
+                    <span className="status-dot is-wait" />
+                  ) : null}
                   {labels.title}
                   {group.severity === "urgent" ? (
                     <span className="attention-tag">

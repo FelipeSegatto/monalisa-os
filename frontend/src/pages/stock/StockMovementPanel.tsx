@@ -13,6 +13,7 @@ export function StockMovementPanel({ item, type, close, onSaved }: Props) {
   const [requestKey]=useState(()=>crypto.randomUUID());
   const [quantity, setQuantity] = useState("");
   const [note, setNote] = useState("");
+  const [expiresAt, setExpiresAt] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +34,13 @@ export function StockMovementPanel({ item, type, close, onSaved }: Props) {
     setSaving(true);
     setError(null);
     try {
-      await registerStockMovement(item.id, { type, quantity: value, note: note.trim(),requestKey });
+      await registerStockMovement(item.id, {
+        type,
+        quantity: value,
+        note: note.trim(),
+        requestKey,
+        expiresAt: isEntrada && expiresAt ? expiresAt : null,
+      });
       setSaving(false);
       onSaved();
     } catch (err) {
@@ -89,6 +96,20 @@ export function StockMovementPanel({ item, type, close, onSaved }: Props) {
               placeholder={isEntrada ? "Ex.: compra do fornecedor X" : "Ex.: contagem física"}
             />
           </label>
+          {isEntrada ? (
+            <label className="field">
+              Validade (opcional)
+              <input
+                className="text-input"
+                type="date"
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+              />
+              <span className="section-meta">
+                Esta entrada pode ter validade diferente de outras compras do mesmo item.
+              </span>
+            </label>
+          ) : null}
         </div>
       </div>
     </SidePanel>

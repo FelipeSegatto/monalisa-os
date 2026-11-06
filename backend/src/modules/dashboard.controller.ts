@@ -2,6 +2,7 @@ import { isExpiredReservation } from "../scheduling/domain/reservation-hold";
 import { Inject, Controller, Get, Req } from "@nestjs/common";
 import { PrismaService } from "../common/prisma.service";
 import { dateKey, dayRange, expenseLabels, iso, money } from "../common/util";
+import { nearestExpiry } from "../inventory/domain/stock-expiry";
 @Controller("api/v1")
 export class DashboardController {
   constructor(@Inject(PrismaService) private readonly db: PrismaService) {}
@@ -50,7 +51,15 @@ export class DashboardController {
         },
         select: { customerId: true },
       }),
-      this.db.stockItem.findMany({ where: { active: true } }),
+      this.db.stockItem.findMany({
+        where: { active: true },
+        include: {
+          movements: {
+            where: { type: "IN", expiresAt: { not: null } },
+            select: { expiresAt: true, reversal: { select: { id: true } } },
+          },
+        },
+      }),
       this.db.sale.findMany({
         where: {
           createdAt: { gte: monthStart, lt: monthEnd },
@@ -116,6 +125,29 @@ export class DashboardController {
           quantity: String(s.quantity),
           minQuantity: String(s.minQuantity),
         })),
+      });
+    const expired: { id: number; name: string; unit: string; expiresAt: string }[] = [];
+    const expiring: typeof expired = [];
+    for (const s of stock) {
+      if (Number(s.quantity) <= 0) continue;
+      const expiry = nearestExpiry(s.movements, today);
+      if (!expiry) continue;
+      const row = { id: s.id, name: s.name, unit: s.unit, expiresAt: expiry.date };
+      (expiry.status === "EXPIRED" ? expired : expiring).push(row);
+    }
+    if (expired.length && isAdmin)
+      attention.push({
+        type: "expired_stock",
+        count: expired.length,
+        severity: "urgent",
+        items: expired.slice(0, 5),
+      });
+    if (expiring.length && isAdmin)
+      attention.push({
+        type: "expiring_stock",
+        count: expiring.length,
+        severity: "wait",
+        items: expiring.slice(0, 5),
       });
     const counts = new Map<string, number>();
     for (const c of customers)

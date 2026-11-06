@@ -1,6 +1,8 @@
+import { queryDay } from "../shared/presentation/listing-query";
 import { Req } from "@nestjs/common";
 import { InventoryService } from "../inventory/application/inventory.service";
 import { StockBalance } from "../inventory/domain/stock-balance";
+import { nearestExpiry } from "../inventory/domain/stock-expiry";
 import {
   Inject,
   BadRequestException,
@@ -13,7 +15,7 @@ import {
 } from "@nestjs/common";
 import { PrismaService } from "../common/prisma.service";
 import { Admin } from "../auth/auth.guard";
-import { iso, parse, required, requiredId } from "../common/util";
+import { dateKey, iso, parse, required, requiredId } from "../common/util";
 import { z } from "zod";
 const input = z.object({
   name: z.string().trim().min(2).max(150),
@@ -22,6 +24,12 @@ const input = z.object({
   active: z.boolean().optional(),
   initialQuantity: z.number().nonnegative().optional(),
 });
+const EXPIRY_INCLUDE = {
+  movements: {
+    where: { type: "IN" as const, expiresAt: { not: null } },
+    select: { expiresAt: true, reversal: { select: { id: true } } },
+  },
+};
 const itemOut = (s: any) => ({
   id: s.id,
   name: s.name,
@@ -30,6 +38,10 @@ const itemOut = (s: any) => ({
   minQuantity: String(s.minQuantity),
   active: s.active,
   isLow: Number(s.quantity) <= Number(s.minQuantity),
+  expiry:
+    s.active && Number(s.quantity) > 0
+      ? nearestExpiry(s.movements, dateKey(new Date()))
+      : null,
 });
 @Controller("api/v1/stock")
 export class StockController {
@@ -38,14 +50,22 @@ export class StockController {
     @Inject(InventoryService) private readonly inventory: InventoryService,
   ) {}
   @Get("items") async list() {
-    const data = await this.db.stockItem.findMany({ orderBy: { name: "asc" } });
+    const data = await this.db.stockItem.findMany({
+      orderBy: { name: "asc" },
+      include: EXPIRY_INCLUDE,
+    });
     return { items: data.map(itemOut) };
   }
   @Get("items/:id") async detail(@Param("id") id: string) {
     const s = required(
       await this.db.stockItem.findUnique({
         where: { id: requiredId(id) },
-        include: { movements: { orderBy: { createdAt: "desc" } } },
+        include: {
+          movements: {
+            orderBy: { createdAt: "desc" },
+            include: { reversal: { select: { id: true } } },
+          },
+        },
       }),
     );
     return {
@@ -57,6 +77,7 @@ export class StockController {
         reversesId: m.reversesId,
         quantityDelta: String(m.quantityDelta),
         note: m.note,
+        expiresAt: m.expiresAt ? m.expiresAt.toISOString().slice(0, 10) : null,
         createdAt: iso(m.createdAt),
       })),
     };
@@ -106,6 +127,7 @@ export class StockController {
         quantity: z.number().finite(),
         note: z.string().trim().min(3).max(255),
         requestKey: z.string().uuid(),
+        expiresAt: queryDay.nullable().optional(),
       }),
       body,
     );
