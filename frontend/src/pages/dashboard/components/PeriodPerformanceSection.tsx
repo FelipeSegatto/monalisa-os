@@ -88,142 +88,140 @@ export function PeriodPerformanceSection({ overview }: Props) {
         </div>
       </section>
 
+      <section className="management-section">
+        <div className="section-header">
+          <span className="section-label">Procedimentos</span>
+          <Link to="/procedimentos" className="section-link">
+            Gerenciar →
+          </Link>
+        </div>
+        {topProcedures.length === 0 ? (
+          <p className="procedure-empty">Nenhuma venda registrada neste período.</p>
+        ) : (
+          <div className="procedure-performance">
+            {topProcedureShare !== null ? (
+              <div className="statement">
+                <strong className="display">{topProcedureShare}%</strong>
+                <span>
+                  da receita deste mês veio de {topProcedures[0].procedureName}.
+                </span>
+              </div>
+            ) : null}
+            <div className="performance-table">
+              <div className="table-head">
+                <span>Procedimento</span>
+                <span>Receita</span>
+                <span>Sessões</span>
+                <span>Ticket</span>
+                <span>Variação</span>
+              </div>
+              {topProcedures.map((item) => {
+                const change = formatChange(item.changePercent);
+                return (
+                  <div className="table-line" key={item.procedureId}>
+                    <span>{item.procedureName}</span>
+                    <span>{formatPrice(item.revenue)}</span>
+                    <span>{item.sessions}</span>
+                    <span>{formatPrice(item.ticket)}</span>
+                    <span className={change.className}>{change.text}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {topMover ? (
+              <p className="performance-callout is-up">
+                ▲ {topMover.procedureName} cresceu {topMover.changePercent}% em relação ao mês
+                passado.
+              </p>
+            ) : null}
+            {topDecline ? (
+              <p className="performance-callout is-down">
+                ▼ {topDecline.procedureName} caiu {Math.abs(topDecline.changePercent ?? 0)}% em
+                relação ao mês passado.
+              </p>
+            ) : null}
+          </div>
+        )}
+      </section>
+
       <div className="management-columns">
         <section className="management-section">
           <div className="section-header">
-            <span className="section-label">Procedimentos</span>
-            <Link to="/procedimentos" className="section-link">
-              Gerenciar →
+            <span className="section-label">Despesas</span>
+            <Link to="/financeiro" className="section-link">
+              Ver financeiro →
             </Link>
           </div>
-          {topProcedures.length === 0 ? (
-            <p className="procedure-empty">Nenhuma venda registrada neste período.</p>
+          {topExpenseCategories.length === 0 ? (
+            <p className="procedure-empty">Nenhuma despesa paga neste período.</p>
           ) : (
-            <div className="procedure-performance">
-              {topProcedureShare !== null ? (
-                <div className="statement">
-                  <strong className="display">{topProcedureShare}%</strong>
-                  <span>
-                    da receita deste mês veio de {topProcedures[0].procedureName}.
-                  </span>
-                </div>
-              ) : null}
-              <div className="performance-table">
-                <div className="table-head">
-                  <span>Procedimento</span>
-                  <span>Receita</span>
-                  <span>Sessões</span>
-                  <span>Ticket</span>
-                  <span>Variação</span>
-                </div>
-                {topProcedures.map((item) => {
-                  const change = formatChange(item.changePercent);
-                  return (
-                    <div className="table-line" key={item.procedureId}>
-                      <span>{item.procedureName}</span>
-                      <span>{formatPrice(item.revenue)}</span>
-                      <span>{item.sessions}</span>
-                      <span>{formatPrice(item.ticket)}</span>
-                      <span className={change.className}>{change.text}</span>
-                    </div>
-                  );
-                })}
+            <div className="performance-table performance-table--expenses">
+              <div className="table-head">
+                <span>Categoria</span>
+                <span>Valor</span>
+                <span>Variação</span>
               </div>
-              {topMover ? (
-                <p className="performance-callout is-up">
-                  ▲ {topMover.procedureName} cresceu {topMover.changePercent}% em relação ao mês
-                  passado.
-                </p>
-              ) : null}
-              {topDecline ? (
-                <p className="performance-callout is-down">
-                  ▼ {topDecline.procedureName} caiu {Math.abs(topDecline.changePercent ?? 0)}% em
-                  relação ao mês passado.
-                </p>
-              ) : null}
+              {topExpenseCategories.map((item) => {
+                const change = formatChange(item.changePercent);
+                return (
+                  <div className="table-line" key={item.category}>
+                    <span>{item.categoryLabel}</span>
+                    <span>{formatPrice(item.amount)}</span>
+                    <span className={change.className}>{change.text}</span>
+                  </div>
+                );
+              })}
             </div>
           )}
         </section>
 
-        <div className="management-side-stack">
-          <section className="management-section">
-            <div className="section-header">
-              <span className="section-label">Despesas</span>
-              <Link to="/financeiro" className="section-link">
-                Ver financeiro →
-              </Link>
+        <section className="management-section">
+          <div className="section-header">
+            <span className="section-label">Clientes</span>
+            <Link to="/clientes" className="section-link">
+              Ver clientes →
+            </Link>
+          </div>
+          <div className="client-numbers">
+            <div>
+              <strong className="display">{period.attendedCustomers}</strong>
+              <span className="section-meta">clientes atendidos</span>
             </div>
-            {topExpenseCategories.length === 0 ? (
-              <p className="procedure-empty">Nenhuma despesa paga neste período.</p>
-            ) : (
-              <div className="performance-table performance-table--expenses">
-                <div className="table-head">
-                  <span>Categoria</span>
-                  <span>Valor</span>
-                  <span>Variação</span>
-                </div>
-                {topExpenseCategories.map((item) => {
-                  const change = formatChange(item.changePercent);
-                  return (
-                    <div className="table-line" key={item.category}>
-                      <span>{item.categoryLabel}</span>
-                      <span>{formatPrice(item.amount)}</span>
-                      <span className={change.className}>{change.text}</span>
+            <div>
+              <b>{period.totalNewCustomers}</b>
+              <span className="section-meta">novos clientes</span>
+            </div>
+            <div>
+              <b>{period.returningCustomers}</b>
+              <span className="section-meta">retornaram</span>
+            </div>
+          </div>
+          <p className="section-label client-numbers-label">Origem dos novos clientes</p>
+          <div className="new-customers-list">
+            {period.newCustomersBySource.map((source) => (
+              <div className="new-customers-row" key={source.source}>
+                <span className="new-customers-source">{source.label}</span>
+                <div className="new-customers-visual">
+                  {source.count === 0 ? null : source.count > UNIT_THRESHOLD ? (
+                    <div className="new-customers-bar-track">
+                      <div
+                        className="new-customers-bar-fill"
+                        style={{ width: `${(source.count / maxCount) * 100}%` }}
+                      />
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-
-          <section className="management-section">
-            <div className="section-header">
-              <span className="section-label">Clientes</span>
-              <Link to="/clientes" className="section-link">
-                Ver clientes →
-              </Link>
-            </div>
-            <div className="client-numbers">
-              <div>
-                <strong className="display">{period.attendedCustomers}</strong>
-                <span className="section-meta">clientes atendidos</span>
-              </div>
-              <div>
-                <b>{period.totalNewCustomers}</b>
-                <span className="section-meta">novos clientes</span>
-              </div>
-              <div>
-                <b>{period.returningCustomers}</b>
-                <span className="section-meta">retornaram</span>
-              </div>
-            </div>
-            <p className="section-label client-numbers-label">Origem dos novos clientes</p>
-            <div className="new-customers-list">
-              {period.newCustomersBySource.map((source) => (
-                <div className="new-customers-row" key={source.source}>
-                  <span className="new-customers-source">{source.label}</span>
-                  <div className="new-customers-visual">
-                    {source.count === 0 ? null : source.count > UNIT_THRESHOLD ? (
-                      <div className="new-customers-bar-track">
-                        <div
-                          className="new-customers-bar-fill"
-                          style={{ width: `${(source.count / maxCount) * 100}%` }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="new-customers-units">
-                        {Array.from({ length: source.count }).map((_, index) => (
-                          <span className="new-customers-unit" key={index} />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <span className="new-customers-count">{source.count}</span>
+                  ) : (
+                    <div className="new-customers-units">
+                      {Array.from({ length: source.count }).map((_, index) => (
+                        <span className="new-customers-unit" key={index} />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          </section>
-        </div>
+                <span className="new-customers-count">{source.count}</span>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
     </>
   );

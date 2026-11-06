@@ -631,6 +631,8 @@
 .pubcat-trail {
   flex: 999 1 480px;
   min-width: 0;
+  max-width: 1198px; /* 3 cartas (370px) + 2 gaps (44px): no maximo 3 visiveis por vez */
+  overflow: hidden;
   touch-action: pan-y;
   cursor: grab;
 }
@@ -849,6 +851,7 @@
 
   .pubcat-trail {
     flex-basis: 320px;
+    max-width: 1012px; /* 3 cartas (320px) + 2 gaps (26px) nesta faixa */
   }
 
   .pubcat-footer-top h2 {
