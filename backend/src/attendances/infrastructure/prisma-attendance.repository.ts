@@ -284,11 +284,36 @@ export class PrismaAttendanceRepository extends AttendanceRepository {
             where: { id: { in: e.materials.map((m) => m.stockItemId) } },
           });
           const recorded = ProcedureExecution.record(e, {
-            procedure: proc,
-            variation,
-            equipment: eq ? { ...eq, compatible: link?.active ?? false } : null,
+            procedure: {
+              id: proc.id,
+              name: proc.name,
+              active: proc.active,
+              requiresEquipment: proc.requiresEquipment,
+              technology: proc.technology,
+              equipmentReviewedAt: proc.equipmentReviewedAt,
+            },
+            variation: variation
+              ? {
+                  id: variation.id,
+                  procedureId: variation.procedureId,
+                  name: variation.name,
+                  active: variation.active,
+                }
+              : null,
+            equipment: eq
+              ? {
+                  id: eq.id,
+                  status: eq.status,
+                  shotTracking: eq.shotTracking,
+                  compatible: link?.active ?? false,
+                }
+              : null,
             expectedMaterialIds: expected.map((m) => m.stockItemId),
-            materials,
+            materials: materials.map((m) => ({
+              id: m.id,
+              name: m.name,
+              active: m.active,
+            })),
           }).snapshot();
           const { materials: usages, ...fields } = recorded;
           const execution = await tx.procedureExecution.create({

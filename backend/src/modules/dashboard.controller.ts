@@ -57,7 +57,7 @@ export class DashboardController {
           cancelled: false,
         },
         include: {
-          items: true,
+          items: { include: { procedure: true } },
           payments: { include: { reversal: true } },
           professional: true,
         },
@@ -279,7 +279,7 @@ export class DashboardController {
           const k = String(i.procedureId);
           const x = topMap.get(k) || {
             procedureId: i.procedureId,
-            procedureName: i.description,
+            procedureName: i.procedure.name,
             revenue: 0,
             sessions: 0,
           };
