@@ -85,6 +85,13 @@ function toSale(s: any, withDetails = false) {
   const core = {
     id: s.id,
     customerId: s.customerId,
+    categoryIds: [
+      ...new Set(
+        (s.items || [])
+          .map((item: any) => item.procedure?.categoryId)
+          .filter((id: unknown) => typeof id === "number"),
+      ),
+    ],
     customerName: s.customer?.name || "",
     professionalId: s.professionalId,
     professionalName: s.professional?.name || null,
@@ -137,7 +144,7 @@ const range = (start?: string, end?: string) => {
 const includeSale = {
   customer: true,
   professional: true,
-  items: true,
+  items: { include: { procedure: { select: { categoryId: true } } } },
   payments: {
     include: { reversal: true },
     orderBy: { paidAt: "desc" as const },

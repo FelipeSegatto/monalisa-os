@@ -1,6 +1,13 @@
 import { Actor } from "../../auth/domain/actor";
 import { OfferVersionInput } from "../domain/commercial-offer";
 import { SaleInput } from "../domain/sale";
+export interface SaleListFilters {
+  search?: string;
+  start?: string;
+  end?: string;
+  categoryId?: number;
+  status?: "PENDING" | "PARTIAL" | "PAID" | "CANCELLED";
+}
 export abstract class CommercialRepository {
   abstract attachSession(
     appointmentId: number,
@@ -26,6 +33,7 @@ export abstract class CommercialRepository {
     actor: Actor,
     customerId?: number,
     before?: number,
+    filters?: SaleListFilters,
   ): Promise<any>;
   abstract sale(id: number, actor: Actor): Promise<any>;
   abstract createSale(input: SaleInput, actor: Actor): Promise<any>;

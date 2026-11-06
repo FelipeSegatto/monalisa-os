@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { formatLongDate, formatPrice } from "../../lib/format";
 import { FinanceNav } from "./FinanceNav";
 import { ExpenseEditor } from "./ExpenseEditor";
@@ -54,7 +54,12 @@ function DetailView({ id }: { id: number }) {
     }
   }
 
-  async function handlePay(input: { amount: number; method: any; paidAt: string; requestKey: string }) {
+  async function handlePay(input: {
+    amount: number;
+    method: any;
+    paidAt: string;
+    requestKey: string;
+  }) {
     setBusy(true);
     try {
       const updated = await payExpense(id, input);
@@ -92,36 +97,57 @@ function DetailView({ id }: { id: number }) {
     }
   }
 
-  if (error) return <p className="page-status">Não foi possível carregar a despesa.</p>;
+  if (error)
+    return <p className="page-status">Não foi possível carregar a despesa.</p>;
   if (!expense) return <p className="page-status">Carregando…</p>;
 
-  const activePayment = expense.payments.find((p) => p.type === "PAYMENT" && !p.reversed);
+  const activePayment = expense.payments.find(
+    (p) => p.type === "PAYMENT" && !p.reversed,
+  );
 
   return (
     <div className="page">
       <header className="page-header">
         <div>
-          <button type="button" className="text-button" onClick={() => navigate("/financeiro/despesas")}>
+          <button
+            type="button"
+            className="text-button"
+            onClick={() => navigate("/financeiro/despesas")}
+          >
             ← Despesas
           </button>
           <h1 className="page-header-title">{expense.description}</h1>
           {expense.historicalPending ? (
-            <span className="expense-pending-badge">Pendência histórica — classificação incompleta</span>
+            <span className="expense-pending-badge">
+              Pendência histórica — classificação incompleta
+            </span>
           ) : null}
         </div>
         <div className="page-actions">
           {!expense.cancelled && !activePayment ? (
-            <button type="button" className="secondary-button" onClick={() => setPanel("revise")}>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => setPanel("revise")}
+            >
               Revisar
             </button>
           ) : null}
           {!expense.cancelled && !activePayment ? (
-            <button type="button" className="secondary-button" onClick={() => setPanel("pay")}>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => setPanel("pay")}
+            >
               Registrar pagamento
             </button>
           ) : null}
           {!expense.cancelled && !activePayment ? (
-            <button type="button" className="secondary-button" onClick={handleCancel}>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={handleCancel}
+            >
               Cancelar despesa
             </button>
           ) : null}
@@ -147,7 +173,13 @@ function DetailView({ id }: { id: number }) {
         </div>
         <div className="financial-summary-item">
           <span className="section-meta">Status</span>
-          <b>{expense.cancelled ? "Cancelada" : expense.paid ? "Paga" : "Pendente"}</b>
+          <b>
+            {expense.cancelled
+              ? "Cancelada"
+              : expense.paid
+                ? "Paga"
+                : "Pendente"}
+          </b>
         </div>
         <div className="financial-summary-item">
           <span className="section-meta">Destinação</span>
@@ -168,7 +200,9 @@ function DetailView({ id }: { id: number }) {
           <div className="section-header">
             <span className="section-label">Distribuição</span>
           </div>
-          {expense.allocationNote ? <p className="section-meta">{expense.allocationNote}</p> : null}
+          {expense.allocationNote ? (
+            <p className="section-meta">{expense.allocationNote}</p>
+          ) : null}
           {expense.allocations.map((a) => (
             <div className="expense-history-row" key={a.id}>
               <span>{a.procedureName ?? "Geral"}</span>
@@ -188,13 +222,19 @@ function DetailView({ id }: { id: number }) {
           expense.payments.map((p) => (
             <div className="expense-history-row" key={p.id}>
               <span>
-                {p.type === "REVERSAL" ? "Estorno" : "Pagamento"} · {p.source === "LEGACY" ? "legado" : p.method ?? "—"}
+                {p.type === "REVERSAL" ? "Estorno" : "Pagamento"} ·{" "}
+                {p.source === "LEGACY" ? "legado" : (p.method ?? "—")}
                 {p.occurredAt ? ` · ${formatLongDate(p.occurredAt)}` : ""}
               </span>
               <span>
                 <b>{formatPrice(p.amount)}</b>
                 {p.type === "PAYMENT" && !p.reversed && !expense.cancelled ? (
-                  <button type="button" className="text-button" onClick={() => handleReverse(p.id)} style={{ marginLeft: 12 }}>
+                  <button
+                    type="button"
+                    className="text-button"
+                    onClick={() => handleReverse(p.id)}
+                    style={{ marginLeft: 12 }}
+                  >
                     Estornar
                   </button>
                 ) : null}
@@ -256,22 +296,78 @@ function DetailView({ id }: { id: number }) {
 
 function ListView() {
   const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const procedureId = Number(params.get("procedureId")) || undefined;
   const [expenses, setExpenses] = useState<ExpenseDetail[]>([]);
   const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("");
+  const [status, setStatus] = useState("");
+  const [dueStart, setDueStart] = useState("");
+  const [dueEnd, setDueEnd] = useState("");
+  const [destination, setDestination] = useState("");
+  const [cursor, setCursor] = useState<number | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [busy, setBusy] = useState(false);
-
-  function reload() {
+  const invalidRange = Boolean(dueStart && dueEnd && dueStart > dueEnd);
+  const filters: Parameters<typeof listExpenses>[0] = {
+    search: search || undefined,
+    procedureId,
+    category: (category || undefined) as ExpenseDetail["category"] | undefined,
+    status: (status || undefined) as
+      "PAID" | "PENDING" | "CANCELLED" | undefined,
+    destination: (destination || undefined) as
+      NonNullable<ExpenseDetail["destination"]> | undefined,
+    dueStart: dueStart || undefined,
+    dueEnd: dueEnd || undefined,
+  };
+  useEffect(() => {
+    let cancelled = false;
     setLoading(true);
     setError("");
-    listExpenses({ search: search || undefined })
-      .then((r) => setExpenses(r.expenses))
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+    setCursor(null);
+    if (invalidRange) {
+      setExpenses([]);
+      setLoading(false);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      listExpenses(filters)
+        .then((result) => {
+          if (!cancelled) {
+            setExpenses(result.expenses);
+            setCursor(result.nextCursor);
+          }
+        })
+        .catch((error) => {
+          if (!cancelled) setError(error.message);
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+    }, 250);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [search, category, status, dueStart, dueEnd, destination, procedureId]);
+  async function more() {
+    if (!cursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const result = await listExpenses({ ...filters, before: cursor });
+      setExpenses((current) => [...current, ...result.expenses]);
+      setCursor(result.nextCursor);
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Não foi possível carregar.",
+      );
+    } finally {
+      setLoadingMore(false);
+    }
   }
-  useEffect(reload, [search]);
 
   async function handleCreate(input: CreateExpenseInput) {
     setBusy(true);
@@ -292,7 +388,11 @@ function ListView() {
           <h1 className="page-header-title">Despesas</h1>
         </div>
         <div className="page-actions">
-          <button type="button" className="primary-button primary-button-link" onClick={() => setCreating(true)}>
+          <button
+            type="button"
+            className="primary-button primary-button-link"
+            onClick={() => setCreating(true)}
+          >
             Nova despesa
           </button>
         </div>
@@ -302,14 +402,134 @@ function ListView() {
 
       <div className="section-header">
         <span className="section-label">Lançamentos</span>
-        <input
-          className="text-input"
-          placeholder="Buscar por descrição"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
       </div>
-
+      <section className="listing-filters" aria-label="Filtros de despesas">
+        <label className="field">
+          Buscar descrição ou fornecedor
+          <input
+            className="text-input"
+            value={search}
+            maxLength={120}
+            disabled={loadingMore}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Descrição ou fornecedor"
+          />
+        </label>
+        <label className="field">
+          Categoria
+          <select
+            className="select-input"
+            value={category}
+            disabled={loadingMore}
+            onChange={(event) => setCategory(event.target.value)}
+          >
+            <option value="">Todas</option>
+            {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="field">
+          Status
+          <select
+            className="select-input"
+            value={status}
+            disabled={loadingMore}
+            onChange={(event) => setStatus(event.target.value)}
+          >
+            <option value="">Todos</option>
+            <option value="PENDING">Pendente</option>
+            <option value="PAID">Paga</option>
+            <option value="CANCELLED">Cancelada</option>
+          </select>
+        </label>
+        <label className="field">
+          Destinação
+          <select
+            className="select-input"
+            value={destination}
+            disabled={loadingMore}
+            onChange={(event) => setDestination(event.target.value)}
+          >
+            <option value="">Todas</option>
+            <option value="GENERAL">Geral da clínica</option>
+            <option value="PROCEDURES">Procedimentos</option>
+            <option value="MIXED">Mista</option>
+          </select>
+        </label>
+        <div className="listing-period">
+          <label className="field">
+            Vencimento a partir de
+            <input
+              className="text-input"
+              type="date"
+              value={dueStart}
+              max={dueEnd || undefined}
+              disabled={loadingMore}
+              onChange={(event) => setDueStart(event.target.value)}
+            />
+          </label>
+          <label className="field">
+            Até
+            <input
+              className="text-input"
+              type="date"
+              value={dueEnd}
+              min={dueStart || undefined}
+              disabled={loadingMore}
+              onChange={(event) => setDueEnd(event.target.value)}
+            />
+          </label>
+        </div>
+        <button
+          className="text-button listing-clear"
+          type="button"
+          disabled={
+            loadingMore ||
+            !(
+              search ||
+              category ||
+              status ||
+              destination ||
+              dueStart ||
+              dueEnd ||
+              procedureId
+            )
+          }
+          onClick={() => {
+            setSearch("");
+            setCategory("");
+            setStatus("");
+            setDestination("");
+            setDueStart("");
+            setDueEnd("");
+            setParams({});
+          }}
+        >
+          Limpar filtros
+        </button>
+      </section>
+      {procedureId && (
+        <p className="section-meta">
+          Despesas atribuídas ao procedimento #{procedureId}.
+        </p>
+      )}
+      {invalidRange && (
+        <p className="form-error" role="alert">
+          A data inicial deve ser anterior ou igual à final.
+        </p>
+      )}
+      {!loading && !error && !invalidRange && (
+        <p className="section-meta" role="status">
+          {expenses.length}{" "}
+          {expenses.length === 1
+            ? "despesa encontrada"
+            : "despesas encontradas"}
+          {cursor ? " · há mais resultados" : ""}
+        </p>
+      )}
       {loading ? (
         <p className="page-status">Carregando…</p>
       ) : error ? (
@@ -335,10 +555,16 @@ function ListView() {
                 onClick={() => navigate(`/financeiro/despesas/${expense.id}`)}
               >
                 {expense.description}
-                {expense.historicalPending ? <span className="expense-pending-badge"> · pendência</span> : null}
+                {expense.historicalPending ? (
+                  <span className="expense-pending-badge"> · pendência</span>
+                ) : null}
               </button>
-              <span className="section-meta">{CATEGORY_LABELS[expense.category] ?? expense.category}</span>
-              <span className="section-meta">{expense.dueDate ? formatLongDate(expense.dueDate) : "—"}</span>
+              <span className="section-meta">
+                {CATEGORY_LABELS[expense.category] ?? expense.category}
+              </span>
+              <span className="section-meta">
+                {expense.dueDate ? formatLongDate(expense.dueDate) : "—"}
+              </span>
               <span className="section-meta">
                 {expense.destination === "GENERAL"
                   ? "Geral"
@@ -348,11 +574,27 @@ function ListView() {
                       ? "Misto"
                       : "—"}
               </span>
-              <span className={expense.cancelled ? "active-badge" : expense.paid ? "active-badge is-active" : "active-badge"}>
-                {expense.cancelled ? "Cancelada" : expense.paid ? "Paga" : "Pendente"}
+              <span
+                className={
+                  expense.cancelled
+                    ? "active-badge"
+                    : expense.paid
+                      ? "active-badge is-active"
+                      : "active-badge"
+                }
+              >
+                {expense.cancelled
+                  ? "Cancelada"
+                  : expense.paid
+                    ? "Paga"
+                    : "Pendente"}
               </span>
               <b>{formatPrice(expense.amount)}</b>
-              <button type="button" className="section-link" onClick={() => navigate(`/financeiro/despesas/${expense.id}`)}>
+              <button
+                type="button"
+                className="section-link"
+                onClick={() => navigate(`/financeiro/despesas/${expense.id}`)}
+              >
                 Abrir →
               </button>
             </div>
@@ -360,8 +602,22 @@ function ListView() {
         </div>
       )}
 
+      {cursor && !loading && (
+        <button
+          type="button"
+          className="secondary-button"
+          disabled={loadingMore}
+          onClick={more}
+        >
+          {loadingMore ? "Carregando…" : "Carregar despesas anteriores"}
+        </button>
+      )}
       {creating ? (
-        <ExpenseEditor close={() => setCreating(false)} busy={busy} onSubmit={handleCreate} />
+        <ExpenseEditor
+          close={() => setCreating(false)}
+          busy={busy}
+          onSubmit={handleCreate}
+        />
       ) : null}
     </div>
   );

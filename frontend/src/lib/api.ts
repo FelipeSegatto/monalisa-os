@@ -785,6 +785,7 @@ export interface SalePayment {
 }
 
 export interface SaleSummary {
+  categoryIds?: number[];
   id: number;
   customerId: number;
   customerName: string;
@@ -1086,6 +1087,8 @@ export function getExpenseDetail(id: number): Promise<ExpenseDetail> {
 }
 
 export function listExpenses(params: {
+  category?: ExpenseCategory;
+  status?: "PAID" | "PENDING" | "CANCELLED";
   procedureId?: number;
   destination?: ExpenseDestination;
   dueStart?: string;

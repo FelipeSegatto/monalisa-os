@@ -1,3 +1,4 @@
+import { saleListInput } from "./commercial.schemas";
 import {
   Body,
   Controller,
@@ -63,16 +64,9 @@ export class CommercialController {
       req.actor,
     );
   }
-  @Get("sales") sales(
-    @Query("customerId") id: string | undefined,
-    @Query("before") before: string | undefined,
-    @Req() req: any,
-  ) {
-    return this.service.sales(
-      req.actor,
-      id ? requiredId(id) : undefined,
-      before ? requiredId(before) : undefined,
-    );
+  @Get("sales") sales(@Query() query: unknown, @Req() req: any) {
+    const { customerId, before, ...filters } = parse(saleListInput, query);
+    return this.service.sales(req.actor, customerId, before, filters);
   }
   @Get("sales/:id") sale(@Param("id") id: string, @Req() req: any) {
     return this.service.sale(requiredId(id), req.actor);

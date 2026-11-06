@@ -1,3 +1,4 @@
+import { expenseListInput } from "./expense.schemas";
 import {
   Body,
   Controller,
@@ -22,26 +23,8 @@ export class ExpensesController {
   constructor(
     @Inject(ExpenseService) private readonly service: ExpenseService,
   ) {}
-  @Admin() @Get("expenses") list(
-    @Query("procedureId") procedureId: string | undefined,
-    @Query("destination") destination: string | undefined,
-    @Query("dueStart") dueStart: string | undefined,
-    @Query("dueEnd") dueEnd: string | undefined,
-    @Query("search") search: string | undefined,
-    @Query("before") before: string | undefined,
-    @Req() req: any,
-  ) {
-    return this.service.list(
-      {
-        procedureId: procedureId ? Number(procedureId) : undefined,
-        destination: destination as any,
-        dueStart,
-        dueEnd,
-        search,
-        before: before ? Number(before) : undefined,
-      },
-      req.actor,
-    );
+  @Admin() @Get("expenses") list(@Query() query: unknown, @Req() req: any) {
+    return this.service.list(parse(expenseListInput, query), req.actor);
   }
   @Admin() @Get("expense-records") records(@Req() req: any) {
     return this.service.records(req.actor);

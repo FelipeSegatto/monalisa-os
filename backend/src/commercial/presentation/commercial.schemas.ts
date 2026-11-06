@@ -83,3 +83,18 @@ export const saleInput = z.object({
     .max(120)
     .optional(),
 });
+
+export const saleListInput = z
+  .object({
+    customerId: z.coerce.number().int().positive().optional(),
+    before: z.coerce.number().int().positive().optional(),
+    categoryId: z.coerce.number().int().positive().optional(),
+    search: z.string().trim().max(120).optional(),
+    start: day.optional(),
+    end: day.optional(),
+    status: z.enum(["PENDING", "PARTIAL", "PAID", "CANCELLED"]).optional(),
+  })
+  .refine(
+    (input) => !input.start || !input.end || input.start <= input.end,
+    "Período inválido",
+  );

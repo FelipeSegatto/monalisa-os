@@ -199,10 +199,25 @@ export const setOfferState = (id: number, active: boolean, reason: string) =>
     active,
     reason,
   });
-export const getCommercialSales = (customerId?: number, before?: number) =>
-  getJSON<{ sales: CommercialSale[]; nextCursor?: number | null }>(
-    `/api/v1/commercial/sales?${new URLSearchParams({ ...(customerId ? { customerId: String(customerId) } : {}), ...(before ? { before: String(before) } : {}) })}`,
+export interface CommercialSaleFilters {
+  search?: string;
+  start?: string;
+  end?: string;
+  categoryId?: number;
+  status?: string;
+}
+export const getCommercialSales = (
+  customerId?: number,
+  before?: number,
+  filters: CommercialSaleFilters = {},
+) => {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries({ customerId, before, ...filters }))
+    if (value !== undefined && value !== "") query.set(key, String(value));
+  return getJSON<{ sales: CommercialSale[]; nextCursor?: number | null }>(
+    `/api/v1/commercial/sales?${query}`,
   );
+};
 export const getCommercialSale = (id: number) =>
   getJSON<CommercialSale>(`/api/v1/commercial/sales/${id}`);
 export const createCommercialSale = (input: CommercialSaleInput) =>

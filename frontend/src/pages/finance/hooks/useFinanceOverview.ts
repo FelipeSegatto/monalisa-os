@@ -39,13 +39,19 @@ const EMPTY_STATE: State = {
   error: null,
 };
 
-export function useFinanceOverview(start: Date, end: Date, evolutionMonths: 1 | 3 | 6 | 12) {
+export function useFinanceOverview(
+  start: Date,
+  end: Date,
+  evolutionMonths: 1 | 3 | 6 | 12,
+  enabled = true,
+) {
   const [state, setState] = useState<State>(EMPTY_STATE);
   const [reloadToken, setReloadToken] = useState(0);
 
   const reload = useCallback(() => setReloadToken((t) => t + 1), []);
 
   useEffect(() => {
+    if (!enabled) return;
     let cancelled = false;
 
     Promise.all([
@@ -56,21 +62,30 @@ export function useFinanceOverview(start: Date, end: Date, evolutionMonths: 1 | 
       getExpenses(start, end),
       getFinancePendencias(),
     ])
-      .then(([summary, evolution, { composition, procedureRevenue }, sales, expenses, pendencias]) => {
-        if (!cancelled) {
-          setState({
-            summary,
-            evolution,
-            composition,
-            procedureRevenue,
-            sales,
-            expenses,
-            pendencias,
-            loading: false,
-            error: null,
-          });
-        }
-      })
+      .then(
+        ([
+          summary,
+          evolution,
+          { composition, procedureRevenue },
+          sales,
+          expenses,
+          pendencias,
+        ]) => {
+          if (!cancelled) {
+            setState({
+              summary,
+              evolution,
+              composition,
+              procedureRevenue,
+              sales,
+              expenses,
+              pendencias,
+              loading: false,
+              error: null,
+            });
+          }
+        },
+      )
       .catch((error: Error) => {
         if (!cancelled) {
           setState({ ...EMPTY_STATE, loading: false, error: error.message });
@@ -80,7 +95,7 @@ export function useFinanceOverview(start: Date, end: Date, evolutionMonths: 1 | 
     return () => {
       cancelled = true;
     };
-  }, [start, end, evolutionMonths, reloadToken]);
+  }, [start, end, evolutionMonths, reloadToken, enabled]);
 
   return { ...state, reload };
 }

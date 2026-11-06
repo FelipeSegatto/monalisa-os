@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { useFinanceOverview } from "./hooks/useFinanceOverview";
 import { FinanceChart } from "./FinanceChart";
@@ -13,6 +13,7 @@ import {
   createExpense as createExpenseApi,
   createSale as createSaleApi,
   getSale,
+  getProcedureCategories,
   registerSalePayment as registerSalePaymentApi,
   type CreateExpenseInput,
   type CreateSaleInput,
@@ -32,7 +33,9 @@ type Section = "Movimentações" | "Vendas" | "Despesas" | "Pendências";
 type MovementFilter = "Todos" | "Recebimento" | "Despesa" | "Pendente";
 
 function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+  }).format(new Date());
 }
 
 export function FinancePage() {
@@ -41,31 +44,71 @@ export function FinancePage() {
   const [now] = useState(() => new Date());
   const [periodMode, setPeriodMode] = useState<"month" | "custom">("month");
   const [customStart, setCustomStart] = useState(
-    new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10),
+    todayISO().slice(0, 7) + "-01",
   );
   const [customEnd, setCustomEnd] = useState(todayISO());
   const [evolutionMonths, setEvolutionMonths] = useState<1 | 3 | 6 | 12>(6);
   const [section, setSection] = useState<Section>("Movimentações");
   const [movementFilter, setMovementFilter] = useState<MovementFilter>("Todos");
+  const [listSearch, setListSearch] = useState("");
+  const [listCategory, setListCategory] = useState("");
+  const [listStatus, setListStatus] = useState("");
+  const [pendingType, setPendingType] = useState("");
+  const [pendingStart, setPendingStart] = useState("");
+  const [pendingEnd, setPendingEnd] = useState("");
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>(
+    [],
+  );
+  useEffect(() => {
+    let cancelled = false;
+    getProcedureCategories()
+      .then((rows) => {
+        if (!cancelled) setCategories(rows);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [panel, setPanel] = useState<Panel | null>(null);
   const [saving, setSaving] = useState(false);
   const [cancelling, setCancelling] = useState(false);
 
+  const invalidPeriod =
+    periodMode === "custom" &&
+    (!customStart || !customEnd || customStart > customEnd);
   const { start, end } = useMemo(() => {
-    if (periodMode === "month") {
-      return {
-        start: new Date(now.getFullYear(), now.getMonth(), 1),
-        end: new Date(now.getFullYear(), now.getMonth() + 1, 1),
-      };
+    if (periodMode === "month" || invalidPeriod) {
+      const month = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Sao_Paulo",
+      })
+        .format(now)
+        .slice(0, 7);
+      const start = new Date(month + "-01T03:00:00Z");
+      const end = new Date(start);
+      end.setUTCMonth(end.getUTCMonth() + 1);
+      return { start, end };
     }
     return {
-      start: new Date(`${customStart}T00:00:00`),
-      end: new Date(new Date(`${customEnd}T00:00:00`).getTime() + 24 * 60 * 60 * 1000),
+      start: new Date(`${customStart}T03:00:00Z`),
+      end: new Date(
+        new Date(`${customEnd}T03:00:00Z`).getTime() + 24 * 60 * 60 * 1000,
+      ),
     };
-  }, [periodMode, customStart, customEnd, now]);
+  }, [periodMode, customStart, customEnd, now, invalidPeriod]);
 
-  const { summary, evolution, composition, procedureRevenue, sales, expenses, pendencias, loading, error, reload } =
-    useFinanceOverview(start, end, evolutionMonths);
+  const {
+    summary,
+    evolution,
+    composition,
+    procedureRevenue,
+    sales,
+    expenses,
+    pendencias,
+    loading,
+    error,
+    reload,
+  } = useFinanceOverview(start, end, evolutionMonths, !invalidPeriod);
 
   async function openSale(id: number) {
     const sale = await getSale(id);
@@ -105,11 +148,16 @@ export function FinancePage() {
     amount: number,
     method: PaymentMethod,
     installments: number | null,
-    requestKey:string,
+    requestKey: string,
   ) {
     setSaving(true);
     try {
-      const sale = await registerSalePaymentApi(saleId, { amount, method, installments,requestKey });
+      const sale = await registerSalePaymentApi(saleId, {
+        amount,
+        method,
+        installments,
+        requestKey,
+      });
       setSaving(false);
       setPanel({ type: "sale-detail", sale });
       reload();
@@ -119,10 +167,11 @@ export function FinancePage() {
   }
 
   async function handleCancelSale(saleId: number) {
-    const reason=window.prompt("Motivo do cancelamento da venda");if(!reason)return;
+    const reason = window.prompt("Motivo do cancelamento da venda");
+    if (!reason) return;
     setCancelling(true);
     try {
-      const sale = await cancelSaleApi(saleId,reason);
+      const sale = await cancelSaleApi(saleId, reason);
       setCancelling(false);
       setPanel({ type: "sale-detail", sale });
       reload();
@@ -136,8 +185,68 @@ export function FinancePage() {
   }
 
   if (error || !summary) {
-    return <p className="page-status">Não foi possível carregar o financeiro.</p>;
+    return (
+      <p className="page-status">Não foi possível carregar o financeiro.</p>
+    );
   }
+
+  const expenseCategories = {
+    INSUMOS: "Insumos",
+    EQUIPAMENTOS_MANUTENCAO: "Equipamentos e manutenção",
+    MARKETING: "Marketing",
+    ALUGUEL_ESTRUTURA: "Aluguel e estrutura",
+    SERVICOS: "Serviços",
+    PESSOAL: "Pessoal",
+    OUTROS: "Outros",
+  };
+  const matchesSearch = (text: string) =>
+    text
+      .toLocaleLowerCase("pt-BR")
+      .includes(listSearch.toLocaleLowerCase("pt-BR"));
+  const filteredSales = sales.filter(
+    (sale) =>
+      matchesSearch(`${sale.customerName} ${sale.id}`) &&
+      (!listCategory || sale.categoryIds?.includes(Number(listCategory))) &&
+      (!listStatus || sale.status === listStatus),
+  );
+  const filteredExpenses = expenses.filter(
+    (expense) =>
+      matchesSearch(`${expense.description} ${expense.supplier ?? ""}`) &&
+      (!listCategory || expense.category === listCategory) &&
+      (!listStatus ||
+        (expense.cancelled
+          ? "CANCELLED"
+          : expense.paid
+            ? "PAID"
+            : "PENDING") === listStatus),
+  );
+  const invalidPendingRange = Boolean(
+    pendingStart && pendingEnd && pendingStart > pendingEnd,
+  );
+  const matchesPendingDate = (value: string, isDate = false) => {
+    if (invalidPendingRange) return false;
+    const day = isDate
+      ? value.slice(0, 10)
+      : new Intl.DateTimeFormat("en-CA", {
+          timeZone: "America/Sao_Paulo",
+        }).format(new Date(value));
+    return (
+      (!pendingStart || day >= pendingStart) &&
+      (!pendingEnd || day <= pendingEnd)
+    );
+  };
+  const pendingReceivable = (pendencias?.receivable ?? []).filter(
+    (sale) =>
+      matchesSearch(`${sale.customerName} ${sale.id}`) &&
+      matchesPendingDate(sale.createdAt) &&
+      !listCategory,
+  );
+  const pendingPayable = (pendencias?.payable ?? []).filter(
+    (expense) =>
+      matchesSearch(`${expense.description} ${expense.supplier ?? ""}`) &&
+      matchesPendingDate(expense.dueDate, true) &&
+      (!listCategory || expense.category === listCategory),
+  );
 
   const movements = [
     ...sales
@@ -182,7 +291,11 @@ export function FinancePage() {
           <h1 className="page-header-title">Financeiro</h1>
         </div>
         <div className="page-actions">
-          <button type="button" className="secondary-button" onClick={() => setPanel({ type: "expense" })}>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => setPanel({ type: "expense" })}
+          >
             Nova despesa
           </button>
           <button
@@ -199,14 +312,22 @@ export function FinancePage() {
         <div className="segmented">
           <button
             type="button"
-            className={periodMode === "month" ? "segmented-item is-active" : "segmented-item"}
+            className={
+              periodMode === "month"
+                ? "segmented-item is-active"
+                : "segmented-item"
+            }
             onClick={() => setPeriodMode("month")}
           >
             Este mês
           </button>
           <button
             type="button"
-            className={periodMode === "custom" ? "segmented-item is-active" : "segmented-item"}
+            className={
+              periodMode === "custom"
+                ? "segmented-item is-active"
+                : "segmented-item"
+            }
             onClick={() => setPeriodMode("custom")}
           >
             Período personalizado
@@ -217,6 +338,7 @@ export function FinancePage() {
             <input
               className="text-input"
               type="date"
+              aria-label="Início do período financeiro"
               value={customStart}
               onChange={(e) => setCustomStart(e.target.value)}
             />
@@ -224,17 +346,25 @@ export function FinancePage() {
             <input
               className="text-input"
               type="date"
+              aria-label="Fim do período financeiro"
               value={customEnd}
               onChange={(e) => setCustomEnd(e.target.value)}
             />
           </div>
         ) : (
           <span className="section-meta">
-            {formatLongDate(start.toISOString())} – {formatLongDate(new Date(end.getTime() - 86400000).toISOString())}
+            {formatLongDate(start.toISOString())} –{" "}
+            {formatLongDate(new Date(end.getTime() - 86400000).toISOString())}
           </span>
         )}
       </div>
 
+      {invalidPeriod && (
+        <p className="form-error" role="alert">
+          Informe um período válido para atualizar os dados. Os indicadores
+          exibem o último período carregado.
+        </p>
+      )}
       <div className="financial-summary">
         {[
           ["Vendas", formatPrice(summary.sales)],
@@ -244,10 +374,19 @@ export function FinancePage() {
           ["Fluxo líquido", formatPrice(summary.flow)],
           ["Ticket médio", formatPrice(summary.ticketMedio)],
         ].map(([label, value], index) => (
-          <div className={index === 4 ? "financial-summary-item emphasis" : "financial-summary-item"} key={label}>
+          <div
+            className={
+              index === 4
+                ? "financial-summary-item emphasis"
+                : "financial-summary-item"
+            }
+            key={label}
+          >
             <span className="section-meta">{label}</span>
             <b className={index === 4 ? "display" : ""}>{value}</b>
-            {index === 4 ? <span className="section-meta">recebido − despesas pagas</span> : null}
+            {index === 4 ? (
+              <span className="section-meta">recebido − despesas pagas</span>
+            ) : null}
           </div>
         ))}
       </div>
@@ -259,7 +398,9 @@ export function FinancePage() {
             <select
               className="select-input chart-period"
               value={evolutionMonths}
-              onChange={(e) => setEvolutionMonths(Number(e.target.value) as 1 | 3 | 6 | 12)}
+              onChange={(e) =>
+                setEvolutionMonths(Number(e.target.value) as 1 | 3 | 6 | 12)
+              }
             >
               <option value={1}>Último mês</option>
               <option value={3}>Últimos 3 meses</option>
@@ -300,56 +441,268 @@ export function FinancePage() {
       </div>
 
       <div className="segmented finance-tabs">
-        {(["Movimentações", "Vendas", "Despesas", "Pendências"] as Section[]).map((item) => (
+        {(
+          ["Movimentações", "Vendas", "Despesas", "Pendências"] as Section[]
+        ).map((item) => (
           <button
             type="button"
             key={item}
-            className={section === item ? "segmented-item is-active" : "segmented-item"}
-            onClick={() => setSection(item)}
+            className={
+              section === item ? "segmented-item is-active" : "segmented-item"
+            }
+            onClick={() => {
+              setSection(item);
+              setListSearch("");
+              setListCategory("");
+              setListStatus("");
+              setPendingType("");
+              setPendingStart("");
+              setPendingEnd("");
+            }}
           >
             {item}
           </button>
         ))}
       </div>
 
+      {section !== "Movimentações" && (
+        <>
+          <section
+            className="listing-filters"
+            aria-label={`Filtros de ${section.toLowerCase()}`}
+          >
+            <label className="field">
+              Buscar
+              <input
+                className="text-input"
+                value={listSearch}
+                onChange={(event) => setListSearch(event.target.value)}
+                placeholder={
+                  section === "Vendas"
+                    ? "Cliente ou número da venda"
+                    : "Cliente, descrição ou fornecedor"
+                }
+              />
+            </label>
+            {section === "Pendências" && (
+              <label className="field">
+                Tipo
+                <select
+                  className="select-input"
+                  value={pendingType}
+                  onChange={(event) => {
+                    setPendingType(event.target.value);
+                    setListCategory("");
+                  }}
+                >
+                  <option value="">A receber e a pagar</option>
+                  <option value="receivable">A receber</option>
+                  <option value="payable">A pagar</option>
+                </select>
+              </label>
+            )}
+            {(section !== "Pendências" || pendingType === "payable") && (
+              <label className="field">
+                {section === "Vendas"
+                  ? "Categoria do procedimento"
+                  : "Categoria da despesa"}
+                <select
+                  className="select-input"
+                  value={listCategory}
+                  onChange={(event) => setListCategory(event.target.value)}
+                >
+                  <option value="">Todas</option>
+                  {section === "Vendas"
+                    ? categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))
+                    : Object.entries(expenseCategories).map(
+                        ([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ),
+                      )}
+                </select>
+              </label>
+            )}
+            {section !== "Pendências" && (
+              <label className="field">
+                Status
+                <select
+                  className="select-input"
+                  value={listStatus}
+                  onChange={(event) => setListStatus(event.target.value)}
+                >
+                  <option value="">Todos</option>
+                  <option value="PENDING">Pendente</option>
+                  {section === "Vendas" && (
+                    <option value="PARTIAL">Parcial</option>
+                  )}
+                  <option value="PAID">Paga</option>
+                  <option value="CANCELLED">Cancelada</option>
+                </select>
+              </label>
+            )}
+            {section === "Pendências" && (
+              <div className="listing-period">
+                <label className="field">
+                  A partir de
+                  <input
+                    className="text-input"
+                    type="date"
+                    value={pendingStart}
+                    max={pendingEnd || undefined}
+                    onChange={(event) => setPendingStart(event.target.value)}
+                  />
+                </label>
+                <label className="field">
+                  Até
+                  <input
+                    className="text-input"
+                    type="date"
+                    value={pendingEnd}
+                    min={pendingStart || undefined}
+                    onChange={(event) => setPendingEnd(event.target.value)}
+                  />
+                </label>
+              </div>
+            )}
+            <button
+              className="text-button listing-clear"
+              type="button"
+              disabled={
+                !(
+                  listSearch ||
+                  listCategory ||
+                  listStatus ||
+                  pendingType ||
+                  pendingStart ||
+                  pendingEnd
+                )
+              }
+              onClick={() => {
+                setListSearch("");
+                setListCategory("");
+                setListStatus("");
+                setPendingType("");
+                setPendingStart("");
+                setPendingEnd("");
+              }}
+            >
+              Limpar filtros
+            </button>
+          </section>
+          <p className="section-meta">
+            {section === "Pendências"
+              ? "Período pela data da venda em valores a receber e pelo vencimento em despesas a pagar. Sem período selecionado, mostra todas as pendências."
+              : section === "Vendas"
+                ? "Listagem pela data da venda no período selecionado acima. Os filtros abaixo não alteram os indicadores do período."
+                : "Listagem pelo vencimento no período selecionado acima. Os filtros não alteram os indicadores do período."}
+          </p>
+          {invalidPendingRange && section === "Pendências" && (
+            <p className="form-error" role="alert">
+              A data inicial deve ser anterior ou igual à final.
+            </p>
+          )}
+          {section === "Vendas" && !filteredSales.length && (
+            <p className="procedure-empty">
+              Nenhuma venda encontrada com estes filtros.
+            </p>
+          )}
+          {section === "Despesas" && !filteredExpenses.length && (
+            <p className="procedure-empty">
+              Nenhuma despesa encontrada com estes filtros.
+            </p>
+          )}
+          {section === "Pendências" &&
+            !(pendingType === "payable"
+              ? pendingPayable.length
+              : pendingType === "receivable"
+                ? pendingReceivable.length
+                : pendingPayable.length + pendingReceivable.length) && (
+              <p className="procedure-empty">
+                Nenhuma pendência encontrada com estes filtros.
+              </p>
+            )}
+        </>
+      )}
+
       {section === "Movimentações" ? (
         <>
           <div className="movement-tools">
             <div className="segmented">
-              {(["Todos", "Recebimento", "Despesa", "Pendente"] as MovementFilter[]).map((item) => (
+              {(
+                [
+                  "Todos",
+                  "Recebimento",
+                  "Despesa",
+                  "Pendente",
+                ] as MovementFilter[]
+              ).map((item) => (
                 <button
                   type="button"
                   key={item}
-                  className={movementFilter === item ? "segmented-item is-active" : "segmented-item"}
+                  className={
+                    movementFilter === item
+                      ? "segmented-item is-active"
+                      : "segmented-item"
+                  }
                   onClick={() => setMovementFilter(item)}
                 >
-                  {item === "Recebimento" ? "Recebimentos" : item === "Despesa" ? "Despesas" : item === "Pendente" ? "Pendentes" : item}
+                  {item === "Recebimento"
+                    ? "Recebimentos"
+                    : item === "Despesa"
+                      ? "Despesas"
+                      : item === "Pendente"
+                        ? "Pendentes"
+                        : item}
                 </button>
               ))}
             </div>
           </div>
           <div className="movement-list">
             {movements.length === 0 ? (
-              <p className="procedure-empty">Nenhuma movimentação no período.</p>
+              <p className="procedure-empty">
+                Nenhuma movimentação no período.
+              </p>
             ) : (
               movements.map((item) => (
                 <div className="movement-row" key={item.id}>
-                  <span className="section-meta">{formatLongDate(item.date)}</span>
+                  <span className="section-meta">
+                    {formatLongDate(item.date)}
+                  </span>
                   <div>
-                    <button type="button" className="row-title" onClick={item.onOpen}>
+                    <button
+                      type="button"
+                      className="row-title"
+                      onClick={item.onOpen}
+                    >
                       {item.title}
                     </button>
                     <p className="client-row-sub">{item.detail}</p>
                   </div>
                   <span className="section-meta">{item.method}</span>
-                  <span className={item.status === "Pendente" ? "active-badge" : "active-badge is-active"}>
+                  <span
+                    className={
+                      item.status === "Pendente"
+                        ? "active-badge"
+                        : "active-badge is-active"
+                    }
+                  >
                     {item.status}
                   </span>
                   <b>
                     {item.type === "Despesa" ? "− " : "+ "}
                     {formatPrice(item.amount)}
                   </b>
-                  <button type="button" className="section-link" onClick={item.onOpen}>
+                  <button
+                    type="button"
+                    className="section-link"
+                    onClick={item.onOpen}
+                  >
                     Abrir →
                   </button>
                 </div>
@@ -370,16 +723,28 @@ export function FinancePage() {
             <span>Status</span>
             <span />
           </div>
-          {sales.map((sale) => (
+          {filteredSales.map((sale) => (
             <div className="sales-row" key={sale.id}>
-              <span className="section-meta">{formatLongDate(sale.createdAt)}</span>
-              <button type="button" className="row-title" onClick={() => openSale(sale.id)}>
+              <span className="section-meta">
+                {formatLongDate(sale.createdAt)}
+              </span>
+              <button
+                type="button"
+                className="row-title"
+                onClick={() => openSale(sale.id)}
+              >
                 {sale.customerName}
               </button>
               <b>{formatPrice(sale.total)}</b>
               <span>{formatPrice(sale.received)}</span>
               <span>{formatPrice(sale.balance)}</span>
-              <span className={sale.status === "PAID" ? "active-badge is-active" : "active-badge"}>
+              <span
+                className={
+                  sale.status === "PAID"
+                    ? "active-badge is-active"
+                    : "active-badge"
+                }
+              >
                 {sale.status === "PAID"
                   ? "Paga"
                   : sale.status === "PARTIAL"
@@ -388,7 +753,11 @@ export function FinancePage() {
                       ? "Cancelada"
                       : "Pendente"}
               </span>
-              <button type="button" className="section-link" onClick={() => openSale(sale.id)}>
+              <button
+                type="button"
+                className="section-link"
+                onClick={() => openSale(sale.id)}
+              >
                 Abrir →
               </button>
             </div>
@@ -407,19 +776,39 @@ export function FinancePage() {
             <span>Valor</span>
             <span />
           </div>
-          {expenses.map((expense) => (
+          {filteredExpenses.map((expense) => (
             <div className="expense-row" key={expense.id}>
-              <span className="section-meta">{formatLongDate(expense.createdAt)}</span>
-              <button type="button" className="row-title" onClick={() => openExpense(expense.id)}>
+              <span className="section-meta">
+                {formatLongDate(expense.createdAt)}
+              </span>
+              <button
+                type="button"
+                className="row-title"
+                onClick={() => openExpense(expense.id)}
+              >
                 {expense.description}
               </button>
               <span className="section-meta">{expense.categoryLabel}</span>
-              <span className="section-meta">{formatLongDate(expense.dueDate)}</span>
-              <span className={expense.paid ? "active-badge is-active" : "active-badge"}>
-                {expense.paid ? "Pago" : "Pendente"}
+              <span className="section-meta">
+                {formatLongDate(expense.dueDate)}
+              </span>
+              <span
+                className={
+                  expense.paid ? "active-badge is-active" : "active-badge"
+                }
+              >
+                {expense.cancelled
+                  ? "Cancelada"
+                  : expense.paid
+                    ? "Pago"
+                    : "Pendente"}
               </span>
               <b>{formatPrice(expense.amount)}</b>
-              <button type="button" className="section-link" onClick={() => openExpense(expense.id)}>
+              <button
+                type="button"
+                className="section-link"
+                onClick={() => openExpense(expense.id)}
+              >
                 Abrir →
               </button>
             </div>
@@ -429,48 +818,79 @@ export function FinancePage() {
 
       {section === "Pendências" && pendencias ? (
         <div className="pending-columns">
-          <div>
-            <div className="section-header">
-              <span className="section-label">A receber</span>
-              <span className="section-meta">{formatPrice(summary.receivable)}</span>
-            </div>
-            {pendencias.receivable.map((sale) => (
-              <div className="pending-row" key={sale.id}>
-                <div>
-                  <button type="button" className="row-title" onClick={() => openSale(sale.id)}>
-                    {sale.customerName}
-                  </button>
-                  <p className="client-row-sub">Venda #{sale.id}</p>
-                </div>
-                <b>{formatPrice(sale.balance)}</b>
-                <button type="button" className="section-link" onClick={() => openSale(sale.id)}>
-                  Abrir →
-                </button>
+          {pendingType !== "payable" && (
+            <div>
+              <div className="section-header">
+                <span className="section-label">A receber</span>
+                <span className="section-meta">
+                  {formatPrice(
+                    pendingReceivable.reduce(
+                      (sum, sale) => sum + sale.balance,
+                      0,
+                    ),
+                  )}
+                </span>
               </div>
-            ))}
-          </div>
-          <div>
-            <div className="section-header">
-              <span className="section-label">A pagar</span>
-              <span className="section-meta">
-                {formatPrice(pendencias.payable.reduce((sum, e) => sum + e.amount, 0))}
-              </span>
-            </div>
-            {pendencias.payable.map((expense) => (
-              <div className="pending-row" key={expense.id}>
-                <div>
-                  <button type="button" className="row-title" onClick={() => openExpense(expense.id)}>
-                    {expense.description}
+              {pendingReceivable.map((sale) => (
+                <div className="pending-row" key={sale.id}>
+                  <div>
+                    <button
+                      type="button"
+                      className="row-title"
+                      onClick={() => openSale(sale.id)}
+                    >
+                      {sale.customerName}
+                    </button>
+                    <p className="client-row-sub">Venda #{sale.id}</p>
+                  </div>
+                  <b>{formatPrice(sale.balance)}</b>
+                  <button
+                    type="button"
+                    className="section-link"
+                    onClick={() => openSale(sale.id)}
+                  >
+                    Abrir →
                   </button>
-                  <p className="client-row-sub">Vence {formatLongDate(expense.dueDate)}</p>
                 </div>
-                <b>{formatPrice(expense.amount)}</b>
-                <button type="button" className="section-link" onClick={() => openExpense(expense.id)}>
-                  Abrir →
-                </button>
+              ))}
+            </div>
+          )}
+          {pendingType !== "receivable" && (
+            <div>
+              <div className="section-header">
+                <span className="section-label">A pagar</span>
+                <span className="section-meta">
+                  {formatPrice(
+                    pendingPayable.reduce((sum, e) => sum + e.amount, 0),
+                  )}
+                </span>
               </div>
-            ))}
-          </div>
+              {pendingPayable.map((expense) => (
+                <div className="pending-row" key={expense.id}>
+                  <div>
+                    <button
+                      type="button"
+                      className="row-title"
+                      onClick={() => openExpense(expense.id)}
+                    >
+                      {expense.description}
+                    </button>
+                    <p className="client-row-sub">
+                      Vence {formatLongDate(expense.dueDate)}
+                    </p>
+                  </div>
+                  <b>{formatPrice(expense.amount)}</b>
+                  <button
+                    type="button"
+                    className="section-link"
+                    onClick={() => openExpense(expense.id)}
+                  >
+                    Abrir →
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       ) : null}
 
@@ -483,13 +903,19 @@ export function FinancePage() {
         />
       ) : null}
       {panel?.type === "expense" ? (
-        <NewExpensePanel close={() => setPanel(null)} save={handleSaveExpense} saving={saving} />
+        <NewExpensePanel
+          close={() => setPanel(null)}
+          save={handleSaveExpense}
+          saving={saving}
+        />
       ) : null}
       {panel?.type === "sale-detail" ? (
         <SaleDetailPanel
           sale={panel.sale}
           close={() => setPanel(null)}
-          onRegisterPayment={() => setPanel({ type: "sale-payment", sale: panel.sale })}
+          onRegisterPayment={() =>
+            setPanel({ type: "sale-payment", sale: panel.sale })
+          }
           onCancel={() => handleCancelSale(panel.sale.id)}
           cancelling={cancelling}
         />
@@ -499,8 +925,14 @@ export function FinancePage() {
           balance={panel.sale.balance}
           close={() => setPanel({ type: "sale-detail", sale: panel.sale })}
           saving={saving}
-          save={(amount, method, installments,requestKey) =>
-            handleRegisterSalePayment(panel.sale.id, amount, method, installments,requestKey)
+          save={(amount, method, installments, requestKey) =>
+            handleRegisterSalePayment(
+              panel.sale.id,
+              amount,
+              method,
+              installments,
+              requestKey,
+            )
           }
         />
       ) : null}

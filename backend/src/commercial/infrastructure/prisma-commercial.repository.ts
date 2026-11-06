@@ -1,3 +1,4 @@
+import { SaleListFilters } from "../application/commercial.repository";
 import { Inject, Injectable } from "@nestjs/common";
 import { Actor } from "../../auth/domain/actor";
 import { ApplicationError } from "../../shared/domain/application-error";
@@ -44,8 +45,13 @@ export class PrismaCommercialRepository extends CommercialRepository {
     this.admin(actor);
     return this.catalog.setActive(id, active, reason, actor);
   }
-  sales(actor: Actor, customerId?: number, before?: number) {
-    return this.salesStore.list(actor, customerId, before);
+  sales(
+    actor: Actor,
+    customerId?: number,
+    before?: number,
+    filters?: SaleListFilters,
+  ) {
+    return this.salesStore.list(actor, customerId, before, filters);
   }
   sale(id: number, actor: Actor) {
     return this.salesStore.detail(id, actor);
@@ -93,7 +99,15 @@ export class PrismaCommercialRepository extends CommercialRepository {
     } as const;
     const perMonth = await Promise.all(
       windows.map(async (w) => {
-        const bucket = new Map<number, { offerId: number; offerName: string; soldCents: number; receivedCents: number }>();
+        const bucket = new Map<
+          number,
+          {
+            offerId: number;
+            offerName: string;
+            soldCents: number;
+            receivedCents: number;
+          }
+        >();
         const get = (offerId: number, offerName: string) => {
           let row = bucket.get(offerId);
           if (!row) {

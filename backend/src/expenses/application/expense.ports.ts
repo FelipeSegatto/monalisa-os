@@ -7,6 +7,8 @@ export interface ExpenseListFilters {
   dueEnd?: string;
   search?: string;
   before?: number;
+  category?: import("../domain/expense.types").ExpenseCategory;
+  status?: "PAID" | "PENDING" | "CANCELLED";
 }
 export abstract class ExpenseQueries {
   abstract list(filters: ExpenseListFilters, actor: Actor): Promise<any>;

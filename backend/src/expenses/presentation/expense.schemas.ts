@@ -1,3 +1,4 @@
+import { queryDay } from "../../shared/presentation/listing-query";
 import { z } from "zod";
 const CATEGORY = z.enum([
   "INSUMOS",
@@ -40,3 +41,20 @@ export const expenseReversalInput = z.object({
 export const expenseCancellationInput = z.object({
   reason: z.string().trim().min(3).max(1000),
 });
+
+export const expenseListInput = z
+  .object({
+    procedureId: z.coerce.number().int().positive().optional(),
+    before: z.coerce.number().int().positive().optional(),
+    category: CATEGORY.optional(),
+    status: z.enum(["PAID", "PENDING", "CANCELLED"]).optional(),
+    destination: z.enum(["GENERAL", "PROCEDURES", "MIXED"]).optional(),
+    dueStart: queryDay.optional(),
+    dueEnd: queryDay.optional(),
+    search: z.string().trim().max(120).optional(),
+  })
+  .refine(
+    (input) =>
+      !input.dueStart || !input.dueEnd || input.dueStart <= input.dueEnd,
+    "Período inválido",
+  );

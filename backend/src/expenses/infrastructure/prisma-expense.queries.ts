@@ -1,8 +1,12 @@
+import { Prisma } from "@prisma/client";
 import { Inject, Injectable } from "@nestjs/common";
 import { PrismaService } from "../../shared/infrastructure/prisma/prisma.service";
 import { required, iso, expenseLabels } from "../../common/util";
 import { Actor } from "../../auth/domain/actor";
-import { ExpenseListFilters, ExpenseQueries } from "../application/expense.ports";
+import {
+  ExpenseListFilters,
+  ExpenseQueries,
+} from "../application/expense.ports";
 import { Money, allocate } from "../../shared/domain/money";
 import {
   ProcedurePeriodFigures,
@@ -25,39 +29,50 @@ export class PrismaExpenseQueries extends ExpenseQueries {
   }
   async list(filters: ExpenseListFilters, actor: Actor) {
     if (actor.role === "FUNCIONARIO") return { expenses: [], nextCursor: null };
-    const data = await this.db.expense.findMany({
-      where: {
-        ...(filters.before ? { id: { lt: filters.before } } : {}),
-        ...(filters.dueStart || filters.dueEnd
-          ? {
-              dueDate: {
-                ...(filters.dueStart
-                  ? { gte: new Date(filters.dueStart + "T00:00:00Z") }
-                  : {}),
-                ...(filters.dueEnd
-                  ? { lte: new Date(filters.dueEnd + "T23:59:59Z") }
-                  : {}),
-              },
-            }
-          : {}),
-        ...(filters.search
-          ? { description: { contains: filters.search } }
-          : {}),
-      },
-      include: expenseInclude,
-      orderBy: { id: "desc" },
-      take: 51,
-    });
-    let rows = data.slice(0, 50).map((x) => viewExpense(x));
-    if (filters.procedureId)
-      rows = rows.filter((r) =>
-        r.allocations.some((a: any) => a.procedureId === filters.procedureId),
+    const conditions: Prisma.Sql[] = [Prisma.sql`1 = 1`];
+    if (filters.before) conditions.push(Prisma.sql`e.id < ${filters.before}`);
+    if (filters.category)
+      conditions.push(Prisma.sql`e.category = ${filters.category}`);
+    if (filters.status === "CANCELLED")
+      conditions.push(Prisma.sql`e.cancelled = TRUE`);
+    else if (filters.status)
+      conditions.push(
+        Prisma.sql`e.cancelled = FALSE AND e.paid = ${filters.status === "PAID"}`,
       );
+    if (filters.dueStart)
+      conditions.push(
+        Prisma.sql`e.dueDate >= ${new Date(filters.dueStart + "T00:00:00Z")}`,
+      );
+    if (filters.dueEnd)
+      conditions.push(
+        Prisma.sql`e.dueDate <= ${new Date(filters.dueEnd + "T00:00:00Z")}`,
+      );
+    if (filters.search) {
+      const search = `%${filters.search.replace(/[!%_]/g, "!$&")}%`;
+      conditions.push(
+        Prisma.sql`(e.description LIKE ${search} ESCAPE '!' OR e.supplier LIKE ${search} ESCAPE '!')`,
+      );
+    }
     if (filters.destination)
-      rows = rows.filter((r) => r.destination === filters.destination);
+      conditions.push(Prisma.sql`r.destination = ${filters.destination}`);
+    if (filters.procedureId)
+      conditions.push(
+        Prisma.sql`EXISTS (SELECT 1 FROM ExpenseAllocation a WHERE a.revisionId = r.id AND a.procedureId = ${filters.procedureId})`,
+      );
+    const ids = await this.db.$queryRaw<Array<{ id: number }>>(
+      Prisma.sql`SELECT e.id FROM Expense e LEFT JOIN ExpenseRevision r ON r.expenseId = e.id AND r.version = e.allocationRevision WHERE ${Prisma.join(conditions, " AND ")} ORDER BY e.id DESC LIMIT 51`,
+    );
+    const rows = ids.slice(0, 50);
+    const data = rows.length
+      ? await this.db.expense.findMany({
+          where: { id: { in: rows.map((row) => row.id) } },
+          include: expenseInclude,
+          orderBy: { id: "desc" },
+        })
+      : [];
     return {
-      expenses: rows,
-      nextCursor: data.length > 50 ? data[49].id : null,
+      expenses: data.map((row) => viewExpense(row)),
+      nextCursor: ids.length > 50 ? ids[49].id : null,
     };
   }
   /** Flat, backward-compatible shape for the previous Financeiro expense list/movements widgets. */
@@ -65,7 +80,6 @@ export class PrismaExpenseQueries extends ExpenseQueries {
     if (actor.role === "FUNCIONARIO") return { expenses: [] };
     const data = await this.db.expense.findMany({
       orderBy: { dueDate: "desc" },
-      take: 200,
     });
     return {
       expenses: data.map((x) => ({
@@ -90,7 +104,10 @@ export class PrismaExpenseQueries extends ExpenseQueries {
     if (actor.role === "FUNCIONARIO")
       throw required(null, "Acesso restrito a administradores");
     const x = required(
-      await this.db.expense.findUnique({ where: { id }, include: expenseInclude }),
+      await this.db.expense.findUnique({
+        where: { id },
+        include: expenseInclude,
+      }),
     );
     return viewExpense(x);
   }
@@ -111,7 +128,8 @@ export class PrismaExpenseQueries extends ExpenseQueries {
   }
   /** Monthly time series (sold/received/expense/result) for the clinic total and each procedure. */
   async series(months: number, actor: Actor) {
-    if (actor.role === "FUNCIONARIO") return { months: [], total: null, procedures: [] };
+    if (actor.role === "FUNCIONARIO")
+      return { months: [], total: null, procedures: [] };
     const n = Math.max(1, Math.min(24, months));
     const now = new Date();
     const windows: { key: string; start: Date; end: Date }[] = [];
@@ -152,12 +170,22 @@ export class PrismaExpenseQueries extends ExpenseQueries {
         expenseAttributed.push((r?.expenseAttributedCents ?? 0) / 100);
         expensePaidNet.push((r?.expensePaidNetCents ?? 0) / 100);
         executions.push(r?.executions ?? 0);
-        result.push(((r?.soldCents ?? 0) - (r?.expenseAttributedCents ?? 0)) / 100);
+        result.push(
+          ((r?.soldCents ?? 0) - (r?.expenseAttributedCents ?? 0)) / 100,
+        );
         cashBalance.push(
           ((r?.receivedCents ?? 0) - (r?.expensePaidNetCents ?? 0)) / 100,
         );
       }
-      return { sold, received, expenseAttributed, expensePaidNet, executions, result, cashBalance };
+      return {
+        sold,
+        received,
+        expenseAttributed,
+        expensePaidNet,
+        executions,
+        result,
+        cashBalance,
+      };
     };
     const totalSeries = (() => {
       const sold: number[] = [],
@@ -178,7 +206,14 @@ export class PrismaExpenseQueries extends ExpenseQueries {
         result.push((s - ea) / 100);
         cashBalance.push((rec - epn) / 100);
       }
-      return { sold, received, expenseAttributed, expensePaidNet, result, cashBalance };
+      return {
+        sold,
+        received,
+        expenseAttributed,
+        expensePaidNet,
+        result,
+        cashBalance,
+      };
     })();
     return {
       months: windows.map((w) => w.key),
@@ -195,7 +230,10 @@ export class PrismaExpenseQueries extends ExpenseQueries {
     end: Date,
   ): Promise<ProcedurePeriodFigures[]> {
     const byProcedure = new Map<string, ProcedurePeriodFigures>();
-    const bucket = (procedureId: number | null, procedureName: string | null) => {
+    const bucket = (
+      procedureId: number | null,
+      procedureName: string | null,
+    ) => {
       const key = String(procedureId);
       let row = byProcedure.get(key);
       if (!row) {
@@ -242,7 +280,10 @@ export class PrismaExpenseQueries extends ExpenseQueries {
           : Money.from(i.finalPrice.toString()).cents,
       );
       if (!weights.reduce((a, b) => a + b, 0)) continue;
-      const shares = allocate(Money.from(payment.amount.toString()).cents, weights);
+      const shares = allocate(
+        Money.from(payment.amount.toString()).cents,
+        weights,
+      );
       items.forEach((item, index) => {
         bucket(item.procedureId, item.procedure.name).receivedCents +=
           shares[index];
@@ -251,17 +292,21 @@ export class PrismaExpenseQueries extends ExpenseQueries {
     // Executions: completed procedure executions within the period.
     const executions = await this.db.procedureExecution.groupBy({
       by: ["procedureId"],
-      where: { attendance: { status: "COMPLETED", completedAt: { gte: start, lt: end } } },
+      where: {
+        attendance: {
+          status: "COMPLETED",
+          completedAt: { gte: start, lt: end },
+        },
+      },
       _count: { id: true },
     });
     const procedureIdsForExecutions = executions.map((e) => e.procedureId);
-    const procedureNames =
-      procedureIdsForExecutions.length
-        ? await this.db.procedure.findMany({
-            where: { id: { in: procedureIdsForExecutions } },
-            select: { id: true, name: true },
-          })
-        : [];
+    const procedureNames = procedureIdsForExecutions.length
+      ? await this.db.procedure.findMany({
+          where: { id: { in: procedureIdsForExecutions } },
+          select: { id: true, name: true },
+        })
+      : [];
     for (const row of executions)
       bucket(
         row.procedureId,
@@ -285,8 +330,12 @@ export class PrismaExpenseQueries extends ExpenseQueries {
     for (const rev of attributedRevisions) {
       if (currentRevisionIds.get(rev.expenseId) !== rev.version) continue;
       for (const allocation of rev.allocations)
-        bucket(allocation.procedureId, allocation.procedureName).expenseAttributedCents +=
-          Money.from(allocation.amount.toString()).cents;
+        bucket(
+          allocation.procedureId,
+          allocation.procedureName,
+        ).expenseAttributedCents += Money.from(
+          allocation.amount.toString(),
+        ).cents;
     }
     // Expense paid net of reversals: cash events within the period, apportioned by the expense's current allocation shares.
     const expensePayments = await this.db.expensePayment.findMany({

@@ -24,7 +24,8 @@
     "db:studio": "prisma studio",
     "db:seed:demo": "tsx prisma/seed.ts",
     "test:contracts:compiled": "npm run build && node scripts/run-contracts.mjs compiled",
-    "test:mysql:clinical": "node scripts/test-clinical-mysql.mjs"
+    "test:mysql:clinical": "node scripts/test-clinical-mysql.mjs",
+    "test:mysql:listings": "node scripts/test-listing-mysql.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.0",

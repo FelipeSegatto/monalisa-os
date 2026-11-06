@@ -1,3 +1,4 @@
+import { SaleListFilters } from "../application/commercial.repository";
 import { Payment } from "../domain/payment";
 import { ReceivableSchedule } from "../domain/receivable-schedule";
 import { Inject, Injectable } from "@nestjs/common";
@@ -131,24 +132,66 @@ export class PrismaCommercialSales {
     this.authorize(s, actor);
     return this.view(s);
   }
-  async list(actor: Actor, customerId?: number, before?: number) {
+  async list(
+    actor: Actor,
+    customerId?: number,
+    before?: number,
+    filters: SaleListFilters = {},
+  ) {
     if (actor.role === "FUNCIONARIO" && !actor.professionalId)
       throw new ApplicationError("Conta sem profissional", "FORBIDDEN");
-    const data = await this.db.sale.findMany({
-      where: {
-        ...(customerId ? { customerId } : {}),
-        ...(before ? { id: { lt: before } } : {}),
-        ...(actor.role === "FUNCIONARIO"
-          ? { professionalId: actor.professionalId }
-          : {}),
-      },
-      include: commercialSaleInclude,
-      orderBy: { id: "desc" },
-      take: 51,
-    });
+    const conditions: Prisma.Sql[] = [Prisma.sql`1 = 1`];
+    if (customerId) conditions.push(Prisma.sql`s.customerId = ${customerId}`);
+    if (before) conditions.push(Prisma.sql`s.id < ${before}`);
+    if (actor.role === "FUNCIONARIO")
+      conditions.push(Prisma.sql`s.professionalId = ${actor.professionalId}`);
+    if (filters.start)
+      conditions.push(
+        Prisma.sql`s.createdAt >= ${new Date(filters.start + "T03:00:00Z")}`,
+      );
+    if (filters.end)
+      conditions.push(
+        Prisma.sql`s.createdAt < ${new Date(+new Date(filters.end + "T03:00:00Z") + 86400000)}`,
+      );
+    if (filters.search) {
+      const search = `%${filters.search.replace(/[!%_]/g, "!$&")}%`;
+      conditions.push(
+        Prisma.sql`(CAST(s.id AS CHAR) LIKE ${search} ESCAPE '!' OR EXISTS (SELECT 1 FROM customers c WHERE c.id = s.customerId AND c.name LIKE ${search} ESCAPE '!') OR EXISTS (SELECT 1 FROM SaleItem si WHERE si.saleId = s.id AND si.description LIKE ${search} ESCAPE '!') OR EXISTS (SELECT 1 FROM SaleOfferPurchase op WHERE op.saleId = s.id AND op.offerName LIKE ${search} ESCAPE '!'))`,
+      );
+    }
+    if (filters.categoryId)
+      conditions.push(
+        Prisma.sql`EXISTS (SELECT 1 FROM SaleItem si JOIN \`Procedure\` p ON p.id = si.procedureId WHERE si.saleId = s.id AND p.categoryId = ${filters.categoryId})`,
+      );
+    if (filters.status === "CANCELLED")
+      conditions.push(Prisma.sql`s.cancelled = TRUE`);
+    else if (filters.status) {
+      conditions.push(Prisma.sql`s.cancelled = FALSE`);
+      const total = Prisma.sql`(COALESCE((SELECT SUM(si.finalPrice) FROM SaleItem si WHERE si.saleId = s.id), 0) - s.discount)`;
+      const received = Prisma.sql`COALESCE((SELECT SUM(sp.amount) FROM SalePayment sp WHERE sp.saleId = s.id AND NOT EXISTS (SELECT 1 FROM PaymentReversal pr WHERE pr.paymentId = sp.id)), 0)`;
+      if (filters.status === "PAID")
+        conditions.push(Prisma.sql`${received} = ${total}`);
+      else if (filters.status === "PENDING")
+        conditions.push(Prisma.sql`${received} = 0 AND ${total} > 0`);
+      else
+        conditions.push(
+          Prisma.sql`${received} <> ${total} AND NOT (${received} = 0 AND ${total} > 0)`,
+        );
+    }
+    const ids = await this.db.$queryRaw<Array<{ id: number }>>(
+      Prisma.sql`SELECT s.id FROM Sale s WHERE ${Prisma.join(conditions, " AND ")} ORDER BY s.id DESC LIMIT 51`,
+    );
+    const rows = ids.slice(0, 50);
+    const data = rows.length
+      ? await this.db.sale.findMany({
+          where: { id: { in: rows.map((row) => row.id) } },
+          include: commercialSaleInclude,
+          orderBy: { id: "desc" },
+        })
+      : [];
     return {
-      sales: data.slice(0, 50).map((s) => this.view(s)),
-      nextCursor: data.length > 50 ? data[49].id : null,
+      sales: data.map((s) => this.view(s)),
+      nextCursor: ids.length > 50 ? ids[49].id : null,
     };
   }
   async create(input: SaleInput, actor: Actor) {
